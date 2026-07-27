@@ -1,4 +1,5 @@
-FROM node:20-alpine AS base
+# Node 20 required by Next.js 16 — do not downgrade
+FROM node:20.19-alpine AS base
 
 # Step 1. Rebuild the source code only when needed
 FROM base AS builder

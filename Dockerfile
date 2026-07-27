@@ -1,0 +1,28 @@
+FROM node:18-alpine AS base
+
+# Step 1. Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+# We must build the Next.js app
+RUN npm run build
+
+# Step 2. Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV production
+ENV PORT 3000
+
+# You only need to copy next.config.js if you are NOT using the default configuration
+# COPY --from=builder /app/next.config.js ./
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]

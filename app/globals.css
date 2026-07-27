@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme {
+  --color-pearl-blush: #F7F1EC;
+  --color-rosewood: #C45B6A;
+  --color-champagne: #C4A484;
+  --color-warm-black: #1C1412;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+
+body {
+  background-color: var(--color-pearl-blush);
+  color: var(--color-warm-black);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-champagne);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-rosewood);
+}

@@ -30,20 +30,24 @@ function FadeIn({
 const faqs = [
   {
     q: "واش نقدر نقلب السلعة قبل ما نخلص؟",
-    a: "نعم. الليفور كيجيب الطلب حتى لباب الدار، تقلبي السلعة وتتأكدي منها، عاد تخلصي. ما كاين حتى دفع مسبق."
+    a: "أكيد. الليفور كيوصل حتى لباب الدار، تفتحي العلبة وتتأكدي من السلعة قدامو، عاد تخلصي. ما كاين حتى فلوس مسبقة، وما كاين حتى مخاطرة.",
   },
   {
-    q: "شحال ديال الوقت باش يوصلني الطلب؟",
-    a: "التوصيل مجاني لجميع مدن المغرب. غالباً كيوصلك الطلب بين 24 و 48 ساعة حسب المدينة."
+    q: "شحال ديال الوقت باش يوصلني الطلب؟ وواش التوصيل مجاني؟",
+    a: "التوصيل مجاني 100% لجميع مدن المغرب. غالباً كيوصلك الطلب بين 24 و 48 ساعة حسب المدينة والمنطقة.",
   },
   {
-    q: "واش هاد المنتجات كتصلح لجميع أنواع الشعر؟",
-    a: "نعم. أدوات رونق مختارة لتقنية الأيونات والكيراتين، وكتناسب الشعر الرطب، الحرش، والمجعد — مع حماية من الحرارة."
+    q: "واش هاد الأدوات كتصلح لشعري؟",
+    a: "نعم. مجموعة رونق مختارة للشعر المغربي — الرطب، الحرش، والمجعد. تقنية الأيونات والكيراتين كتعطي نعومة ولمعان مع حماية من الحرارة.",
   },
   {
-    q: "واش السلعة أصلية ومضمونة؟",
-    a: "رونق بيوتي مركز معتمد للجمال (CMC). كنخدمو بمنتجات أصلية، وتقدري تقلبي الطلب قبل الدفع باش تطمني."
-  }
+    q: "واش السلعة أصلية؟ وعلاش نثق فـ رونق؟",
+    a: "رونق بيوتي مركز معتمد للجمال (CMC). كنخدمو بأدوات أصلية مختارة بعناية، والتأكيد الأكبر: تقلبي الطلب بيدك قبل ما تخلصي درهم واحد.",
+  },
+  {
+    q: "كيفاش نطلب؟ واش ساهل؟",
+    a: "اختاري المنتج، دخلي الاسم ورقم الهاتف، وأكدي الطلب. حنا كندوزو التوصيل، ونتا ما تخلصي حتى توصلك السلعة للدار.",
+  },
 ];
 
 const heroImage = "/images/raonaq-hero-premium-v2.png";
@@ -312,13 +316,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════ FAQ (NEW) ══════════ */}
+      {/* ══════════ FAQ ══════════ */}
       <section className="py-24 bg-white">
         <div className="container mx-auto px-4 max-w-3xl">
           <FadeIn>
             <div className="text-center mb-12">
-              <h2 className="text-4xl font-black text-[#1C1412] mb-4">عندك سؤال؟ حنا نجاوبوك</h2>
-              <p className="text-gray-500">كلشي واضح وشفاف معانا</p>
+              <span className="text-sm font-bold tracking-widest text-[#C45B6A] uppercase">أجوبة صريحة</span>
+              <h2 className="text-4xl md:text-5xl font-black text-[#1C1412] mt-3 mb-4">كلشي واضح قبل ما تطلبي</h2>
+              <p className="text-gray-500 text-lg">أسئلة البنات اللي كيطلبو من رونق — جواب مباشر بلا لف ودوران</p>
             </div>
           </FadeIn>
 
@@ -326,21 +331,21 @@ export default function Home() {
             {faqs.map((faq, i) => (
               <FadeIn key={i} delay={i * 100}>
                 <div 
-                  className={`border-2 rounded-2xl overflow-hidden transition-all duration-300 ${openFaq === i ? 'border-[#C45B6A] bg-red-50/30' : 'border-gray-100 hover:border-gray-200'}`}
+                  className={`border-2 rounded-2xl overflow-hidden transition-all duration-300 ${openFaq === i ? 'border-[#C45B6A] bg-[#F7F1EC]/60' : 'border-gray-100 hover:border-[#C4A484]/40'}`}
                 >
                   <button 
-                    className="w-full text-right p-6 flex justify-between items-center font-black text-lg text-[#1C1412]"
+                    className="w-full text-right p-6 flex justify-between items-center gap-4 font-black text-lg text-[#1C1412]"
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   >
                     {faq.q}
-                    <span className={`text-[#C45B6A] transition-transform duration-300 ${openFaq === i ? 'rotate-180' : ''}`}>
+                    <span className={`text-[#C45B6A] transition-transform duration-300 shrink-0 ${openFaq === i ? 'rotate-180' : ''}`}>
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                       </svg>
                     </span>
                   </button>
-                  <div className={`px-6 overflow-hidden transition-all duration-300 ease-in-out ${openFaq === i ? 'max-h-40 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}>
-                    <p className="text-gray-600 leading-relaxed">{faq.a}</p>
+                  <div className={`px-6 overflow-hidden transition-all duration-300 ease-in-out ${openFaq === i ? 'max-h-56 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}>
+                    <p className="text-gray-600 leading-relaxed text-base">{faq.a}</p>
                   </div>
                 </div>
               </FadeIn>
@@ -353,15 +358,27 @@ export default function Home() {
       <section className="py-24 bg-gradient-to-br from-[#1C1412] to-[#3a2925] text-white text-center relative overflow-hidden">
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle, #C4A484 1.5px, transparent 1.5px)", backgroundSize: "30px 30px" }} />
         <FadeIn className="relative z-10 container mx-auto px-4">
-          <span className="inline-block bg-[#C45B6A] text-white px-4 py-1 rounded-full text-xs font-black tracking-widest uppercase mb-6">جاهزة للطلب</span>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight">اطلبي رونق دابا<br/>بلا أي مخاطرة</h2>
-          <p className="text-gray-300 text-xl mb-12 max-w-2xl mx-auto leading-relaxed">
-            التوصيل مجاني لكل المغرب. <span className="font-bold text-white">ما تخلصي حتى تقلبي سلعتك بيدك.</span>
+          <p className="text-[#C4A484] font-black tracking-wide mb-4">رونق · الاختيار اللي كيطمّن</p>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight">
+            شعر زوين فدارك،
+            <br />
+            وطلب بلا خوف
+          </h2>
+          <p className="text-gray-300 text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
+            توصيل مجاني لكل المغرب. تقلبي السلعة عند الباب،
+            <span className="font-bold text-white"> وعاد تخلصي.</span>
+            {" "}هاد هو الفرق ديال رونق.
           </p>
           <Link href="#products" className="inline-block bg-[#C4A484] text-[#1C1412] px-12 py-5 rounded-2xl font-black text-2xl hover:bg-white transition-all duration-300 shadow-[0_0_40px_rgba(196,164,132,0.4)] hover:scale-105">
-            شوفي العروض من 199 درهم
+            اختاري أداتك من 199 درهم
           </Link>
-          <p className="mt-8 text-[#C4A484] text-sm font-medium">دفع عند الاستلام · توصيل مجاني · مركز معتمد CMC</p>
+          <div className="mt-10 flex flex-wrap justify-center gap-4 md:gap-8 text-sm font-bold text-[#C4A484]">
+            <span>دفع عند الاستلام</span>
+            <span className="text-white/30">·</span>
+            <span>توصيل مجاني</span>
+            <span className="text-white/30">·</span>
+            <span>مركز معتمد CMC</span>
+          </div>
         </FadeIn>
       </section>
 

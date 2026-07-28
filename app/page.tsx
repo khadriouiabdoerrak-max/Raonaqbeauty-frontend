@@ -49,15 +49,15 @@ const faqs = [
 const heroImage = "/images/raonaq-hero-premium-v2.png";
 
 const proofStats = [
-  { value: "COD", label: "خلصي عند الاستلام" },
+  { value: "عند الباب", label: "خلصي بعد ما تقلبي" },
   { value: "CMC", label: "مركز معتمد للجمال" },
-  { value: "24-48h", label: "توصيل لجميع المدن" },
+  { value: "مجاني", label: "توصيل لكل المغرب" },
 ];
 
 const benefits = [
-  "قلبي السلعة قبل ما تخلصي",
-  "توصيل مجاني حتى للدار",
-  "أدوات مختارة للشعر المغربي",
+  "ما كاين حتى دفع مسبق",
+  "توصيل حتى لباب الدار",
+  "نتيجة صالون بلا موعد",
 ];
 
 const testimonials = [
@@ -99,23 +99,25 @@ export default function Home() {
 
         <div className="container mx-auto px-4 grid lg:grid-cols-[1.05fr_0.95fr] gap-10 items-center relative z-10 py-20">
           <div className="space-y-8 text-right" dir="rtl">
-            <p className="text-sm md:text-base font-bold tracking-[0.2em] text-[#C4A484] uppercase">
-              رونق · Raonaq Beauty
+            <p className="text-2xl md:text-3xl font-black tracking-wide text-[#C4A484]">
+              رونق
             </p>
 
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.15] text-white">
-              رونق<br />
-              <span className="text-[#C4A484]">شعر مرتب ولامع، فدارك</span>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.12] text-white">
+              الجمال اللي كيبان،
+              <br />
+              <span className="text-[#C4A484]">من أول تصفيفة فدارك</span>
             </h1>
 
             <p className="text-lg md:text-xl text-gray-200 leading-relaxed max-w-xl">
-              أدوات تصفيف مختارة بعناية للشعر المغربي. توصيل مجاني، والدفع غير ملي تقلبي السلعة عند الباب.
+              رونق كتجيب ليك أدوات تصفيف احترافية مختارة للشعر المغربي — حجم، نعومة، ولمعان بلا ما تمشي للصالون.
+              والأحسن: ما تخلصي حتى تشوفي السلعة قدامك.
             </p>
 
             <div className="grid grid-cols-3 gap-3 max-w-xl">
               {proofStats.map((stat) => (
                 <div key={stat.label} className="rounded-2xl border border-white/15 bg-white/10 p-4 text-center backdrop-blur-md">
-                  <p className="text-2xl font-black text-[#C4A484]">{stat.value}</p>
+                  <p className="text-xl md:text-2xl font-black text-[#C4A484]">{stat.value}</p>
                   <p className="mt-1 text-xs font-bold text-white/75">{stat.label}</p>
                 </div>
               ))}
@@ -134,10 +136,10 @@ export default function Home() {
 
             <div className="flex flex-wrap gap-4 pt-2">
               <Link href="#products" className="bg-[#C45B6A] text-white px-10 py-5 rounded-2xl font-black text-xl hover:bg-[#a64d5a] transition-all duration-300 shadow-xl shadow-[#C45B6A]/30 hover:scale-105">
-                اطلبي دابا 
+                ابدئي بطلبك
               </Link>
               <Link href="/collection" className="border border-white/25 bg-white/10 text-white px-8 py-5 rounded-2xl font-black text-lg hover:bg-white hover:text-[#1C1412] transition-all duration-300">
-                شوفي المنتجات
+                اكتشفي المجموعة
               </Link>
             </div>
           </div>

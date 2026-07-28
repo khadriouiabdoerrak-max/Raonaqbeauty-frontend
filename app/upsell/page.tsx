@@ -70,7 +70,11 @@ export default function UpsellPage() {
     };
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://raonaqbeauty-backend.toxb9v.easypanel.host";
+      const rawApiUrl = (process.env.NEXT_PUBLIC_API_URL || "").trim();
+      const apiUrl =
+        rawApiUrl && !rawApiUrl.includes("easypanel.host")
+          ? rawApiUrl.replace(/\/$/, "")
+          : "https://Api.raonaqbeauty.com";
       const res = await fetch(`${apiUrl}/api/v1/orders/webhook`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -149,9 +149,9 @@ export default function Home() {
                 العرض الأكثر طلباً
               </div>
               <img
-                src={products[0].images[0]}
+                src={heroImage}
                 alt={products[0].name}
-                className="aspect-[4/3] w-full rounded-[1.5rem] object-cover"
+                className="aspect-[4/3] w-full rounded-[1.5rem] object-cover object-top"
               />
               <div className="mt-5 space-y-4 text-white">
                 <div>

@@ -77,17 +77,17 @@ export default function UpsellPage() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error("فشل إرسال الطلب");
+      if (!res.ok) {
+        const details = await res.text();
+        throw new Error(details || "فشل إرسال الطلب");
+      }
 
       localStorage.removeItem("temp_customer_data");
       router.push("/thank-you");
     } catch (err) {
       console.error("Order submission error:", err);
-      setError("حدث خطأ أثناء إرسال الطلب. جاري التحويل...");
-      setTimeout(() => {
-        localStorage.removeItem("temp_customer_data");
-        router.push("/thank-you");
-      }, 2000);
+      setError("ما تسجلاتش الطلبية. عاود المحاولة أو تواصل معنا عبر واتساب.");
+      setIsProcessing(false);
     }
   };
 

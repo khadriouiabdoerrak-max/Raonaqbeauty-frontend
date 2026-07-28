@@ -12,6 +12,24 @@
   100% { transform: translateX(-33.333%); }
 }
 
+@keyframes salon-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes salon-tools-in {
+  from { opacity: 0; transform: translateX(28px) scale(0.98); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+.salon-copy {
+  animation: salon-rise 0.9s ease-out both;
+}
+
+.salon-visual {
+  animation: salon-tools-in 1.1s ease-out 0.15s both;
+}
+
 body {
   background-color: var(--color-pearl-blush);
   color: var(--color-warm-black);

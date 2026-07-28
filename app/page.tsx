@@ -52,6 +52,7 @@ const faqs = [
 
 const heroImage = "/images/raonaq-hero-premium-v2.png";
 const featuredImage = "/images/raonaq-hero-hair-styling.png";
+const salonResultsImage = "/images/raonaq-salon-results.png";
 
 const proofStats = [
   { value: "عند الباب", label: "خلصي بعد ما تقلبي" },
@@ -182,6 +183,49 @@ export default function Home() {
           <span className="flex items-center gap-2"><span>✓</span> مركز معتمد للجمال CMC</span>
         </div>
       </div>
+
+      {/* ══════════ SALON RESULTS AT HOME ══════════ */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#F7F1EC] via-[#faf6f2] to-[#eee4db]">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-40"
+          style={{
+            backgroundImage:
+              "radial-gradient(ellipse 60% 50% at 75% 55%, rgba(196,164,132,0.22), transparent), radial-gradient(ellipse 40% 40% at 15% 30%, rgba(196,91,106,0.08), transparent)",
+          }}
+        />
+        <div className="container mx-auto relative z-10 px-4 py-20 md:py-28">
+          <div className="grid items-center gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-6">
+            <div className="salon-copy space-y-6 text-right" dir="rtl">
+              <p className="text-2xl font-black tracking-wide text-[#C45B6A]">رونق</p>
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.15] text-[#1C1412]">
+                نتيجة صالون
+                <br />
+                <span className="relative inline-block">
+                  فدارك
+                  <span className="absolute -bottom-1 left-0 right-0 h-[0.35em] -z-10 bg-[#C45B6A]/25" />
+                </span>
+              </h2>
+              <p className="max-w-md text-lg leading-relaxed text-[#1C1412]/70 md:text-xl">
+                أدوات رونق كتعطي نتيجة احترافية مع حماية الشعر — حجم، نعومة، ولمعان بلا موعد وبلا صالون.
+              </p>
+              <Link
+                href="#products"
+                className="inline-flex items-center gap-2 rounded-full border border-[#1C1412]/20 bg-white/70 px-8 py-3.5 text-base font-black text-[#1C1412] backdrop-blur transition-all duration-300 hover:border-[#C45B6A] hover:bg-[#C45B6A] hover:text-white"
+              >
+                شوفي المجموعة
+              </Link>
+            </div>
+
+            <div className="salon-visual relative">
+              <img
+                src={salonResultsImage}
+                alt="أدوات رونق — نتيجة صالون في المنزل"
+                className="mx-auto w-full max-w-3xl object-contain drop-shadow-[0_20px_40px_rgba(28,20,18,0.12)]"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ══════════ BEST SELLERS ══════════ */}
       <section id="products" className="py-24 bg-[#F7F1EC]">

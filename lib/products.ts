@@ -35,7 +35,7 @@ export const products: Product[] = [
     price1: 199,
     price2: 279,
     images: [
-      "/images/raonaq-hero-hair-styling.png",
+      "/images/raonaq-hero-premium-v2.png",
       "https://images.unsplash.com/photo-1560869713-7d0a29430803?w=900&q=85",
       "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=900&q=85",
       "https://images.unsplash.com/photo-1519415943484-9fa1873496d4?w=900&q=85",

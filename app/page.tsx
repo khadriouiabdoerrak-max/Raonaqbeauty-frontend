@@ -30,48 +30,48 @@ function FadeIn({
 const faqs = [
   {
     q: "واش نقدر نقلب السلعة قبل ما نخلص؟",
-    a: "طبعاً! راحتك هي الأهم عندنا. ملي يجيب ليك الليفرور الكوموند حتى لباب الدار، حليها وتأكدي منها مزيان، عاد خلصي."
+    a: "نعم. الليفور كيجيب الطلب حتى لباب الدار، تقلبي السلعة وتتأكدي منها، عاد تخلصي. ما كاين حتى دفع مسبق."
   },
   {
     q: "شحال ديال الوقت باش يوصلني الطلب؟",
-    a: "التوصيل عندنا سريع ومجاني لجميع مدن المغرب. غالباً كيوصلك الطلب ديالك بين 24 حتى 48 ساعة كأقصى تقدير."
+    a: "التوصيل مجاني لجميع مدن المغرب. غالباً كيوصلك الطلب بين 24 و 48 ساعة حسب المدينة."
   },
   {
     q: "واش هاد المنتجات كتصلح لجميع أنواع الشعر؟",
-    a: "أكيد! صممناها بتقنية الأيونات والكيراتين باش تناسب الزغبة الرطبة، الحرشة، والمجعدة. كتخلي الشعر ناعم ولامع بلا ما تضرو بالحرارة."
+    a: "نعم. أدوات رونق مختارة لتقنية الأيونات والكيراتين، وكتناسب الشعر الرطب، الحرش، والمجعد — مع حماية من الحرارة."
   },
   {
-    q: "واش السلعة أصلية؟",
-    a: "رونق بيوتي هو المركز المعتمد للجمال (CMC). جميع منتجاتنا أصلية 100% ومضمونة، وتستعمل في أرقى الصالونات."
+    q: "واش السلعة أصلية ومضمونة؟",
+    a: "رونق بيوتي مركز معتمد للجمال (CMC). كنخدمو بمنتجات أصلية، وتقدري تقلبي الطلب قبل الدفع باش تطمني."
   }
 ];
 
-const heroImage = "/images/raonaq-hero-hair-styling.png";
+const heroImage = "/images/raonaq-hero-premium-v2.png";
 
 const proofStats = [
-  { value: "+1200", label: "عميلة راضية" },
-  { value: "24-48h", label: "توصيل سريع" },
-  { value: "COD", label: "الدفع عند الاستلام" },
+  { value: "COD", label: "خلصي عند الاستلام" },
+  { value: "CMC", label: "مركز معتمد للجمال" },
+  { value: "24-48h", label: "توصيل لجميع المدن" },
 ];
 
 const benefits = [
-  "نتيجة صالون فدارك فدقائق",
-  "منتجات مختارة للشعر المغربي",
   "قلبي السلعة قبل ما تخلصي",
+  "توصيل مجاني حتى للدار",
+  "أدوات مختارة للشعر المغربي",
 ];
 
 const testimonials = [
   {
     name: "سارة من كازا",
-    text: "وصلني الطلب فنهارو والتغليف كان زوين. جربت الفرشاة وعطاتني volume بلا ما نمشي للصالون.",
+    text: "وصلني الطلب فنهارو والتغليف كان مرتب. جربت الفرشاة وعطاتني حجم ولمعان بلا ما نمشي للصالون.",
   },
   {
     name: "مريم من طنجة",
-    text: "عجبني بزاف حيث خلصت ملي شفت السلعة. الإحساس ديال الثقة فرق كبير.",
+    text: "اللي طمّنني أكثر هو أني خلصت ملي شفت السلعة بيدي. الإحساس ديال الثقة فرق كبير.",
   },
   {
     name: "نادية من الرباط",
-    text: "الشعر ولى ناعم بسرعة، خصوصا من بعد الدوش. كنصح بها البنات اللي باغين نتيجة سريعة.",
+    text: "الشعر ولى ناعم بسرعة، خصوصا من بعد الدوش. كنصح بها البنات اللي باغين نتيجة واضحة فدارهم.",
   },
 ];
 
@@ -88,8 +88,8 @@ export default function Home() {
         <div className="absolute inset-0 z-0">
           <img
             src={heroImage}
-            alt="Raonaq Beauty hair styling result"
-            className="w-full h-full object-cover object-center opacity-75"
+            alt="نتيجة تصفيف الشعر مع رونق بيوتي"
+            className="w-full h-full object-cover object-[center_18%] opacity-80"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#1C1412]/95 via-[#1C1412]/70 to-[#1C1412]/15" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412] via-transparent to-transparent" />
@@ -99,18 +99,17 @@ export default function Home() {
 
         <div className="container mx-auto px-4 grid lg:grid-cols-[1.05fr_0.95fr] gap-10 items-center relative z-10 py-20">
           <div className="space-y-8 text-right" dir="rtl">
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2 rounded-full shadow-lg">
-              <span className="text-[#C4A484]">✦</span>
-              <span className="text-xs font-bold text-white tracking-wide">Raonaq Beauty — رونق الشعر المغربي</span>
-            </div>
+            <p className="text-sm md:text-base font-bold tracking-[0.2em] text-[#C4A484] uppercase">
+              رونق · Raonaq Beauty
+            </p>
 
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.15] text-white">
-              ستايل صالون <br />
-              <span className="text-[#C4A484]">فدارك، بلا صداع</span>
+              رونق<br />
+              <span className="text-[#C4A484]">شعر مرتب ولامع، فدارك</span>
             </h1>
 
             <p className="text-lg md:text-xl text-gray-200 leading-relaxed max-w-xl">
-              رونق كتجمع ليك أدوات تصفيف مختارة بعناية: تجفيف، فرد، volume ولمعان فدقائق. توصيل سريع فالمغرب والدفع حتى توصلك السلعة.
+              أدوات تصفيف مختارة بعناية للشعر المغربي. توصيل مجاني، والدفع غير ملي تقلبي السلعة عند الباب.
             </p>
 
             <div className="grid grid-cols-3 gap-3 max-w-xl">
@@ -146,12 +145,12 @@ export default function Home() {
           <div className="hidden lg:block" dir="rtl">
             <div className="relative rounded-[2rem] border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-md">
               <div className="absolute -top-4 right-8 rounded-full bg-[#C4A484] px-5 py-2 text-sm font-black text-[#1C1412] shadow-xl">
-                العرض الأكثر طلباً
+                الاختيار الأول للبنات
               </div>
               <img
                 src={heroImage}
                 alt={products[0].name}
-                className="aspect-[4/3] w-full rounded-[1.5rem] object-cover object-top"
+                className="aspect-[4/3] w-full rounded-[1.5rem] object-cover object-[center_20%]"
               />
               <div className="mt-5 space-y-4 text-white">
                 <div>
@@ -159,7 +158,7 @@ export default function Home() {
                   <h2 className="mt-1 text-2xl font-black">{products[0].name}</h2>
                 </div>
                 <div className="flex items-end justify-between gap-4">
-                  <p className="text-sm text-white/70">3 أدوات فباك واحد، مثالي ليك أو كهدية.</p>
+                  <p className="text-sm text-white/70">3 أدوات فباك واحد — النتيجة واضحة من أول استعمال.</p>
                   <p className="text-3xl font-black text-[#C4A484]">{products[0].price1} د.م</p>
                 </div>
               </div>
@@ -171,9 +170,9 @@ export default function Home() {
       {/* ══════════ VIP TRUST BAR ══════════ */}
       <div className="bg-[#C4A484] text-[#1C1412] py-5 shadow-lg relative z-20 -mt-2">
         <div className="container mx-auto px-4 flex flex-wrap justify-center gap-6 md:gap-14 text-sm md:text-base font-black text-center">
-          <span className="flex items-center gap-2"><span>🚚</span> التوصيل فابور حتى للدار</span>
-          <span className="flex items-center gap-2"><span>💵</span> خلصي حتى توصلك السلعة</span>
-          <span className="flex items-center gap-2"><span>✨</span> ستايل premium بلا صالون</span>
+          <span className="flex items-center gap-2"><span>✓</span> قلبي السلعة قبل الدفع</span>
+          <span className="flex items-center gap-2"><span>✓</span> توصيل مجاني لكل المغرب</span>
+          <span className="flex items-center gap-2"><span>✓</span> مركز معتمد للجمال CMC</span>
         </div>
       </div>
 
@@ -183,8 +182,8 @@ export default function Home() {
           <FadeIn>
             <div className="text-center mb-16">
               <span className="text-sm font-bold tracking-widest text-[#C45B6A] uppercase">اختاري اللي يناسبك</span>
-              <h2 className="text-4xl md:text-5xl font-black text-[#1C1412] mt-3 mb-4">مجموعتنا الحصرية</h2>
-              <p className="text-gray-500 text-lg">أدوات مصممة خصيصاً لجمال المرأة المغربية</p>
+              <h2 className="text-4xl md:text-5xl font-black text-[#1C1412] mt-3 mb-4">مجموعة رونق</h2>
+              <p className="text-gray-500 text-lg">4 أدوات مختارة للنتيجة فدارك — بلا تعقيد وبلا دفع مسبق</p>
             </div>
           </FadeIn>
 
@@ -259,16 +258,16 @@ export default function Home() {
 
           <FadeIn delay={150} className="space-y-6 text-right" dir="rtl">
             <span className="text-sm font-bold tracking-widest text-[#C45B6A] uppercase">النتيجة بعينيك</span>
-            <h2 className="text-4xl md:text-5xl font-black text-[#1C1412] leading-tight">الفرق واضح،<br/>والنتيجة مضمونة!</h2>
+            <h2 className="text-4xl md:text-5xl font-black text-[#1C1412] leading-tight">شعر أنعم وألمع،<br/>من أول أيام الاستعمال</h2>
             <p className="text-gray-600 leading-relaxed text-lg">
-              زلقي بصباعك وشوفي النتيجة. تقنية الأيونات السلبية كتخلي شعرك رطب، لامع، ومحمي من الحرارة. وداعا للشعر المنفوخ والمخبل!
+              تقنية الأيونات والكيراتين كتخلي الشعرك مرتب، لامع، ومحمي من الحرارة — بلا ما تمشي للصالون.
             </p>
             <div className="bg-[#F7F1EC] rounded-2xl p-6 mt-4">
-              <h3 className="font-black text-lg mb-3 text-[#C45B6A]">علاش رونق بيوتي؟</h3>
+              <h3 className="font-black text-lg mb-3 text-[#C45B6A]">علاش البنات كتختار رونق؟</h3>
               <ul className="space-y-3">
-                <li className="flex items-center gap-3"><span className="text-xl">✅</span> نتيجة من أول 5 دقائق</li>
-                <li className="flex items-center gap-3"><span className="text-xl">✅</span> حماية تامة من التلف</li>
-                <li className="flex items-center gap-3"><span className="text-xl">✅</span> ساهل في الاستعمال بوحدك فدار</li>
+                <li className="flex items-center gap-3"><span className="text-[#C45B6A] font-black">✓</span> خلصي غير ملي تقلبي السلعة</li>
+                <li className="flex items-center gap-3"><span className="text-[#C45B6A] font-black">✓</span> توصيل مجاني حتى لباب الدار</li>
+                <li className="flex items-center gap-3"><span className="text-[#C45B6A] font-black">✓</span> نتيجة واضحة فاستعمال سهل فدارك</li>
               </ul>
             </div>
           </FadeIn>
@@ -282,9 +281,9 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <FadeIn>
             <div className="text-center mb-14">
-              <span className="text-sm font-bold tracking-widest text-[#C45B6A] uppercase">تجارب حقيقية</span>
-              <h2 className="text-4xl md:text-5xl font-black text-[#1C1412] mt-3 mb-4">شنو قالو البنات على رونق؟</h2>
-              <p className="text-gray-500 text-lg">ثقة كتبدأ من أول رسالة وكتكمل مع أول استعمال</p>
+              <span className="text-sm font-bold tracking-widest text-[#C45B6A] uppercase">تجارب من المغرب</span>
+              <h2 className="text-4xl md:text-5xl font-black text-[#1C1412] mt-3 mb-4">شنو كيقولو على رونق؟</h2>
+              <p className="text-gray-500 text-lg">الثقة كتبدأ من التوصيل والدفع عند الاستلام</p>
             </div>
           </FadeIn>
 
@@ -351,15 +350,15 @@ export default function Home() {
       <section className="py-24 bg-gradient-to-br from-[#1C1412] to-[#3a2925] text-white text-center relative overflow-hidden">
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle, #C4A484 1.5px, transparent 1.5px)", backgroundSize: "30px 30px" }} />
         <FadeIn className="relative z-10 container mx-auto px-4">
-          <span className="inline-block bg-red-500 text-white px-4 py-1 rounded-full text-xs font-black tracking-widest uppercase mb-6 animate-pulse">عرض محدود المدى</span>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight">شني كتسناي؟<br/>الكمية قربات تسالي! 🔥</h2>
+          <span className="inline-block bg-[#C45B6A] text-white px-4 py-1 rounded-full text-xs font-black tracking-widest uppercase mb-6">جاهزة للطلب</span>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight">اطلبي رونق دابا<br/>بلا أي مخاطرة</h2>
           <p className="text-gray-300 text-xl mb-12 max-w-2xl mx-auto leading-relaxed">
-            استفدي دابا من التخفيض. <span className="font-bold text-white">ماتخلصي والو حتى تقلبي سلعتك بيدك!</span> التوصيل فابور لكل المغرب.
+            التوصيل مجاني لكل المغرب. <span className="font-bold text-white">ما تخلصي حتى تقلبي سلعتك بيدك.</span>
           </p>
           <Link href="#products" className="inline-block bg-[#C4A484] text-[#1C1412] px-12 py-5 rounded-2xl font-black text-2xl hover:bg-white transition-all duration-300 shadow-[0_0_40px_rgba(196,164,132,0.4)] hover:scale-105">
-            اطلبي دابا بـ 199 درهم
+            شوفي العروض من 199 درهم
           </Link>
-          <p className="mt-8 text-[#C4A484] text-sm font-medium">✅ دفع عند الاستلام &nbsp;&nbsp; 🚚 توصيل فابور &nbsp;&nbsp; 🔒 ضمان الجودة</p>
+          <p className="mt-8 text-[#C4A484] text-sm font-medium">دفع عند الاستلام · توصيل مجاني · مركز معتمد CMC</p>
         </FadeIn>
       </section>
 

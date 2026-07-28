@@ -46,7 +46,7 @@ const faqs = [
   }
 ];
 
-const heroImage = "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1600&q=90";
+const heroImage = "/images/raonaq-hero-hair-styling.png";
 
 const proofStats = [
   { value: "+1200", label: "عميلة راضية" },

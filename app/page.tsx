@@ -47,6 +47,7 @@ const faqs = [
 ];
 
 const heroImage = "/images/raonaq-hero-premium-v2.png";
+const featuredImage = "/images/raonaq-hero-hair-styling.png";
 
 const proofStats = [
   { value: "عند الباب", label: "خلصي بعد ما تقلبي" },
@@ -150,9 +151,9 @@ export default function Home() {
                 الاختيار الأول للبنات
               </div>
               <img
-                src={heroImage}
+                src={featuredImage}
                 alt={products[0].name}
-                className="aspect-[4/3] w-full rounded-[1.5rem] object-cover object-[center_20%]"
+                className="aspect-[4/3] w-full rounded-[1.5rem] object-cover object-center"
               />
               <div className="mt-5 space-y-4 text-white">
                 <div>
@@ -199,7 +200,7 @@ export default function Home() {
                         {product.tag}
                       </span>
                     )}
-                    <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    <img src={product.images[0]} alt={product.name} className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-700" />
                     <div className="absolute inset-x-4 bottom-4 rounded-2xl bg-white/90 px-4 py-3 text-right shadow-lg backdrop-blur">
                       <p className="text-xs font-black text-[#C45B6A]">{product.tagline}</p>
                     </div>

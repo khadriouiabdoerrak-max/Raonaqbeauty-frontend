@@ -354,34 +354,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════ FINAL CTA ══════════ */}
-      <section className="py-24 bg-gradient-to-br from-[#1C1412] to-[#3a2925] text-white text-center relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle, #C4A484 1.5px, transparent 1.5px)", backgroundSize: "30px 30px" }} />
-        <FadeIn className="relative z-10 container mx-auto px-4">
-          <p className="text-[#C4A484] font-black tracking-wide mb-4">رونق بيوتي</p>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight">
-            اطلبي دابا…
-            <br />
-            وخلّصي غير ملي تشوفي السلعة
-          </h2>
-          <p className="text-gray-300 text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
-            توصيل مجاني لكل المغرب. الليفور كيوصل للدار، تقلبي المنتج قدامو،
-            <span className="font-bold text-white"> وعاد تخلصي.</span>
-            {" "}ما كاين حتى دفع مسبق.
-          </p>
-          <Link href="#products" className="inline-block bg-[#C4A484] text-[#1C1412] px-12 py-5 rounded-2xl font-black text-2xl hover:bg-white transition-all duration-300 shadow-[0_0_40px_rgba(196,164,132,0.4)] hover:scale-105">
-            ابدئي الطلب من 199 درهم
-          </Link>
-          <div className="mt-10 flex flex-wrap justify-center gap-4 md:gap-8 text-sm font-bold text-[#C4A484]">
-            <span>دفع عند الاستلام</span>
-            <span className="text-white/30">·</span>
-            <span>توصيل مجاني</span>
-            <span className="text-white/30">·</span>
-            <span>مركز معتمد CMC</span>
-          </div>
-        </FadeIn>
-      </section>
-
     </div>
   );
 }

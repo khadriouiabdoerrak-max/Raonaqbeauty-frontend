@@ -140,7 +140,7 @@ export default function Home() {
 
         <div className="relative z-10 flex min-h-[calc(100svh-112px)] w-full items-end md:min-h-[100svh]">
           <div className="container mx-auto px-4 pb-8 pt-20 md:pb-24 md:pt-40">
-            <div className="hero-copy ms-auto max-w-xl text-right text-white" dir="rtl">
+            <div className="hero-copy me-auto max-w-xl text-right text-white" dir="rtl">
               <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[11px] font-black text-[#F7F1EC] backdrop-blur-md md:text-sm">
                 <span className="h-2 w-2 rounded-full bg-[#C4A484]" />
                 براند مغربي لأدوات الشعر الاحترافية

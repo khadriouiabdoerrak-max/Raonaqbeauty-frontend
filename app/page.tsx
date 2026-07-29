@@ -5,21 +5,23 @@ import { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { products } from "../lib/products";
 import { useInView } from "../lib/useInView";
-import BeforeAfterSlider from "../components/BeforeAfterSlider";
 
-// Fade-in wrapper
 function FadeIn({
   children,
   delay = 0,
   className = "",
-  ...props
-}: React.HTMLAttributes<HTMLDivElement> & { children: React.ReactNode; delay?: number }) {
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+}) {
   const { ref, inView } = useInView();
   return (
     <div
       ref={ref}
-      {...props}
-      className={`transition-all duration-700 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"} ${className}`}
+      className={`transition-all duration-700 ease-out ${
+        inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+      } ${className}`}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}
@@ -27,275 +29,335 @@ function FadeIn({
   );
 }
 
+const heroImage = "/images/raonaq-hero-branded.png";
+const heroMobileImage = "/images/raonaq-hero-mobile.png";
+const lifestyleImage = "/images/raonaq-lifestyle-home.png";
+const toolsImage = "/images/raonaq-tools-editorial.png";
+
+const featured = products[0]; // تريو — البطلة
+
+const heroProof = [
+  { value: "24–48h", label: "توصيل سريع" },
+  { value: "COD", label: "خلصي عند الباب" },
+  { value: "4.8/5", label: "تجارب مؤكدة" },
+];
+
+const looks = [
+  {
+    title: "حجم",
+    en: "VOLUME",
+    image: "/images/raonaq-hair-blowout.png",
+    href: "/products/raonaq-volume",
+    product: "رونق فوليوم",
+    line: "رفع من الجذور · حضور قوي",
+  },
+  {
+    title: "نعومة",
+    en: "SMOOTH",
+    image: "/images/raonaq-hair-straight.png",
+    href: "/products/raonaq-trio",
+    product: "رونق تريو",
+    line: "انسيابية ولمعان فدارك",
+  },
+  {
+    title: "كثافة",
+    en: "SOFT",
+    image: "/images/raonaq-hair-curls.png",
+    href: "/products/raonaq-air-soft",
+    product: "رونق إير سوفت",
+    line: "للشعر الكثيف والمجعد",
+  },
+  {
+    title: "يومي",
+    en: "DAILY",
+    image: "/images/raonaq-hair-waves.png",
+    href: "/products/raonaq-air-pink",
+    product: "رونق إير بينك",
+    line: "ترتيب خفيف قبل الخروج",
+  },
+];
+
 const faqs = [
   {
     q: "واش نقدر نقلب السلعة قبل ما نخلص؟",
-    a: "أكيد. الليفور كيوصل حتى لباب الدار، تفتحي العلبة وتتأكدي من السلعة قدامو، عاد تخلصي. ما كاين حتى فلوس مسبقة، وما كاين حتى مخاطرة.",
+    a: "أكيد. الليفور كيوصل للباب، تفتحي وتتأكدي قدامو، عاد تخلصي. ما كاين حتى دفع مسبق.",
   },
   {
-    q: "شحال ديال الوقت باش يوصلني الطلب؟ وواش التوصيل مجاني؟",
-    a: "التوصيل مجاني 100% لجميع مدن المغرب. غالباً كيوصلك الطلب بين 24 و 48 ساعة حسب المدينة والمنطقة.",
+    q: "شحال كياخد التوصيل؟ واش مجاني؟",
+    a: "مجاني لجميع مدن المغرب. غالباً بين 24 و 48 ساعة حسب المدينة.",
   },
   {
-    q: "واش هاد الأدوات كتصلح لشعري؟",
-    a: "نعم. مجموعة رونق مختارة للشعر المغربي — الرطب، الحرش، والمجعد. تقنية الأيونات والكيراتين كتعطي نعومة ولمعان مع حماية من الحرارة.",
+    q: "كيفاش نختار الأداة المناسبة؟",
+    a: "فوليوم للحجم، إير سوفت للكثيف والنعومة، إير بينك لليومي، وتريو إلا بغيتي طقم كامل فباكة وحدة.",
   },
   {
-    q: "واش السلعة أصلية؟ وعلاش نثق فـ رونق؟",
-    a: "رونق بيوتي مركز معتمد للجمال (CMC). كنخدمو بأدوات أصلية مختارة بعناية، والتأكيد الأكبر: تقلبي الطلب بيدك قبل ما تخلصي درهم واحد.",
-  },
-  {
-    q: "كيفاش نطلب؟ واش ساهل؟",
-    a: "اختاري المنتج، دخلي الاسم ورقم الهاتف والمدينة والعنوان، وأكدي الطلب. حنا كندوزو التوصيل، ونتا ما تخلصي حتى توصلك السلعة للدار.",
+    q: "علاش نطلب من رونق؟",
+    a: "براند مغربي لنتيجة احترافية مع حماية الشعر — مجموعة مختارة، مش كتالوج عشوائي، ووعد واضح: تقلبي قبل ما تخلصي.",
   },
 ];
 
-const heroImage = "/images/raonaq-hero-hair-styling.png";
-const featuredImage = "/images/raonaq-hero-premium-v2.png";
-const salonResultsImage = "/images/raonaq-salon-results.png";
-
-const hairTypes = [
+const voices = [
   {
-    label: "حجم",
-    labelEn: "Blowout",
-    image: "/images/raonaq-hair-blowout.png",
-    line: "للّي كتحرك بسرعة… وما كتساومش على النتيجة",
-    href: "/products/raonaq-volume",
+    city: "الدار البيضاء",
+    name: "سارة",
+    text: "عطاتني حجم ولمعان بلا صالون، والشعر ما حسّيتوش تقيل. الطلب وصل فنهارو.",
   },
   {
-    label: "ناعم",
-    labelEn: "Straight",
-    image: "/images/raonaq-hair-straight.png",
-    line: "للّي كتشوف البساطة هي الأناقة الحقيقية",
-    href: "/products/raonaq-trio",
+    city: "طنجة",
+    name: "مريم",
+    text: "خلصت غير ملي شفت السلعة بيدي. هاد الثقة هي اللي خلّاتني نطلب براحتي.",
   },
   {
-    label: "كيرلز",
-    labelEn: "Curls",
-    image: "/images/raonaq-hair-curls.png",
-    line: "للّي كتحب الحجم، القوة، والحضور",
-    href: "/products/raonaq-air-soft",
-  },
-  {
-    label: "موجات",
-    labelEn: "Waves",
-    image: "/images/raonaq-hair-waves.png",
-    line: "للّي عايشة بين السهولة والأناقة",
-    href: "/products/raonaq-air-pink",
+    city: "الرباط",
+    name: "نادية",
+    text: "نعومة ولمعان من بعد الدوش بسرعة. كنستعملها تقريبا كل صباح بلا ما نفكّر فالصالون.",
   },
 ];
-
-const proofStats = [
-  { value: "عند الباب", label: "خلصي بعد ما تقلبي" },
-  { value: "CMC", label: "مركز معتمد للجمال" },
-  { value: "مجاني", label: "توصيل لكل المغرب" },
-];
-
-const benefits = [
-  "ما كاين حتى دفع مسبق",
-  "توصيل حتى لباب الدار",
-  "نتيجة صالون بلا موعد",
-];
-
-const testimonials = [
-  {
-    name: "سارة من كازا",
-    text: "وصلني الطلب فنهارو والتغليف كان مرتب. جربت الفرشاة وعطاتني حجم ولمعان بلا ما نمشي للصالون.",
-  },
-  {
-    name: "مريم من طنجة",
-    text: "اللي طمّنني أكثر هو أني خلصت ملي شفت السلعة بيدي. الإحساس ديال الثقة فرق كبير.",
-  },
-  {
-    name: "نادية من الرباط",
-    text: "الشعر ولى ناعم بسرعة، خصوصا من بعد الدوش. كنصح بها البنات اللي باغين نتيجة واضحة فدارهم.",
-  },
-];
-
 
 export default function Home() {
   const { addToCart } = useCart();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  return (
-    <div className="overflow-x-hidden">
+  const addOne = (id: string, name: string, price: number, image: string, qty = 1) => {
+    addToCart({ id, name, price, quantity: qty, image });
+  };
 
-      {/* ══════════ PREMIUM HERO ══════════ */}
-      <section className="relative min-h-[92vh] flex items-center overflow-hidden bg-[#1C1412]">
-        <div className="absolute inset-0 z-0">
+  return (
+    <div className="overflow-x-hidden bg-[#F7F1EC]">
+      {/* ═══════════════ HERO ═══════════════ */}
+      <section className="relative min-h-[calc(100svh-112px)] overflow-hidden bg-[#1C1412] md:min-h-[100svh]">
+        <picture>
+          <source srcSet={heroMobileImage} media="(max-width: 767px)" />
           <img
             src={heroImage}
-            alt="نتيجة تصفيف الشعر مع رونق بيوتي"
-            className="w-full h-full object-cover object-[center_25%]"
+            alt="أدوات رونق — نتيجة صالون في المنزل"
+            className="hero-media absolute inset-0 h-full w-full object-cover object-[center_top] md:object-[center_18%]"
           />
-          {/* تدرج خفيف باش الصورة تبان — ماشي تغطية كاملة */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#1C1412]/80 via-[#1C1412]/45 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412]/70 via-transparent to-[#1C1412]/20" />
-        </div>
+        </picture>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412] via-[#1C1412]/62 to-[#1C1412]/5" />
+        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#1C1412]/45 to-transparent md:hidden" />
+        <div className="absolute inset-0 bg-gradient-to-l from-[#1C1412]/75 via-[#1C1412]/25 to-transparent hidden md:block" />
 
-        <div className="container mx-auto px-4 grid lg:grid-cols-[1.05fr_0.95fr] gap-10 items-center relative z-10 py-20">
-          <div className="space-y-8 text-right" dir="rtl">
-            <p className="text-2xl md:text-3xl font-black tracking-wide text-[#C4A484]">
-              رونق
-            </p>
+        <div className="relative z-10 flex min-h-[calc(100svh-112px)] w-full items-end md:min-h-[100svh]">
+          <div className="container mx-auto px-4 pb-8 pt-20 md:pb-24 md:pt-40">
+            <div className="hero-copy ms-auto max-w-xl text-right text-white" dir="rtl">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[11px] font-black text-[#F7F1EC] backdrop-blur-md md:text-sm">
+                <span className="h-2 w-2 rounded-full bg-[#C4A484]" />
+                براند مغربي لأدوات الشعر الاحترافية
+              </div>
 
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.12] text-white">
-              الجمال اللي كيبان،
-              <br />
-              <span className="text-[#C4A484]">من أول تصفيفة فدارك</span>
-            </h1>
+              <p className="mb-3 text-3xl font-black tracking-[0.08em] text-[#C4A484] md:text-5xl">رونق</p>
+              <h1 className="max-w-[10ch] text-4xl font-black leading-[1.08] md:max-w-none md:text-7xl">
+                نتيجة صالون
+                <br />
+                فدارك
+              </h1>
+              <p className="mt-5 max-w-md text-base leading-relaxed text-white/85 md:text-xl">
+                حجم، نعومة، ولمعان مع حماية للشعر — أدوات مختارة للبنات اللي بغاو نتيجة احترافية بلا موعد.
+              </p>
 
-            <p className="text-lg md:text-xl text-gray-200 leading-relaxed max-w-xl">
-              رونق كتجيب ليك أدوات تصفيف احترافية مختارة للشعر المغربي — حجم، نعومة، ولمعان بلا ما تمشي للصالون.
-              والأحسن: ما تخلصي حتى تشوفي السلعة قدامك.
-            </p>
-
-            <div className="grid grid-cols-3 gap-3 max-w-xl">
-              {proofStats.map((stat) => (
-                <div key={stat.label} className="rounded-2xl border border-white/15 bg-white/10 p-4 text-center backdrop-blur-md">
-                  <p className="text-xl md:text-2xl font-black text-[#C4A484]">{stat.value}</p>
-                  <p className="mt-1 text-xs font-bold text-white/75">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-5 rounded-3xl max-w-xl">
-              <div className="grid gap-3 sm:grid-cols-3 text-white">
-                {benefits.map((benefit) => (
-                  <div key={benefit} className="flex items-center gap-2 text-sm font-bold">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#C45B6A] text-xs">✓</span>
-                    <span>{benefit}</span>
+              <div className="mt-6 grid grid-cols-3 gap-2 text-center md:max-w-md">
+                {heroProof.map((item) => (
+                  <div key={item.label} className="border border-white/14 bg-white/10 px-2 py-3 backdrop-blur-md">
+                    <p className="text-sm font-black text-[#C4A484] md:text-lg">{item.value}</p>
+                    <p className="mt-1 text-[10px] font-bold text-white/75 md:text-xs">{item.label}</p>
                   </div>
                 ))}
               </div>
-            </div>
 
-            <div className="flex flex-wrap gap-4 pt-2">
-              <Link href="#products" className="bg-[#C45B6A] text-white px-10 py-5 rounded-2xl font-black text-xl hover:bg-[#a64d5a] transition-all duration-300 shadow-xl shadow-[#C45B6A]/30 hover:scale-105">
-                ابدئي بطلبك
-              </Link>
-              <Link href="/collection" className="border border-white/25 bg-white/10 text-white px-8 py-5 rounded-2xl font-black text-lg hover:bg-white hover:text-[#1C1412] transition-all duration-300">
-                اكتشفي المجموعة
-              </Link>
-            </div>
-          </div>
-
-          {/* الصورة ظاهرة حتى فالموبايل */}
-          <div className="relative" dir="rtl">
-            <div className="relative rounded-[2rem] border border-white/15 bg-white/10 p-3 md:p-5 shadow-2xl backdrop-blur-md overflow-hidden">
-              <div className="absolute top-4 right-4 z-10 rounded-full bg-[#C4A484] px-4 py-1.5 text-xs md:text-sm font-black text-[#1C1412]">
-                الاختيار الأول للبنات
+              <div className="mt-6 max-w-md border border-white/14 bg-[#F7F1EC]/95 p-4 text-[#1C1412] shadow-2xl backdrop-blur-md">
+                <p className="text-xs font-black text-[#C45B6A]">الأكثر طلباً اليوم</p>
+                <div className="mt-2 flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-xl font-black">{featured.name}</p>
+                    <p className="mt-1 text-xs font-bold text-[#1C1412]/55">3 أدوات فباكة وحدة · قلبي قبل الدفع</p>
+                  </div>
+                  <p className="shrink-0 text-3xl font-black text-[#C45B6A]">
+                    {featured.price1}
+                    <span className="mr-1 text-sm">د.م</span>
+                  </p>
+                </div>
               </div>
-              <img
-                src={heroImage}
-                alt="رونق — تصفيف الشعر"
-                className="aspect-[4/3] w-full rounded-[1.25rem] object-cover object-[center_20%]"
-              />
-              <div className="mt-4 space-y-3 text-white px-1 pb-1">
-                <div>
-                  <p className="text-sm font-bold text-[#C4A484]">{products[0].tag}</p>
-                  <h2 className="mt-1 text-xl md:text-2xl font-black">{products[0].name}</h2>
-                </div>
-                <div className="flex items-end justify-between gap-4">
-                  <p className="text-sm text-white/70">النتيجة واضحة من أول استعمال.</p>
-                  <p className="text-2xl md:text-3xl font-black text-[#C4A484]">{products[0].price1} د.م</p>
-                </div>
+
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <button
+                  onClick={() => addOne(featured.id, featured.name, featured.price1, featured.images[0])}
+                  className="bg-[#C45B6A] px-10 py-4 text-base font-black text-white transition-colors hover:bg-[#a64d5a] md:text-lg"
+                >
+                  طلبي الأكثر طلباً
+                </button>
+                <Link
+                  href="#shop"
+                  className="border border-white/35 px-8 py-4 text-center text-base font-black text-white transition-colors hover:bg-white hover:text-[#1C1412] md:text-lg"
+                >
+                  شوفي المجموعة
+                </Link>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ══════════ VIP TRUST BAR ══════════ */}
-      <div className="bg-[#C4A484] text-[#1C1412] py-5 shadow-lg relative z-20 -mt-2">
-        <div className="container mx-auto px-4 flex flex-wrap justify-center gap-6 md:gap-14 text-sm md:text-base font-black text-center">
-          <span className="flex items-center gap-2"><span>✓</span> قلبي السلعة قبل الدفع</span>
-          <span className="flex items-center gap-2"><span>✓</span> توصيل مجاني لكل المغرب</span>
-          <span className="flex items-center gap-2"><span>✓</span> مركز معتمد للجمال CMC</span>
+      <div className="fixed inset-x-3 bottom-3 z-40 border border-[#C4A484]/30 bg-[#1C1412]/95 p-2 shadow-2xl backdrop-blur-xl md:hidden" dir="rtl">
+        <button
+          onClick={() => addOne(featured.id, featured.name, featured.price1, featured.images[0])}
+          className="flex w-full items-center justify-between bg-[#C45B6A] px-4 py-3 text-white"
+        >
+          <span className="text-right">
+            <span className="block text-sm font-black">طلبي رونق تريو</span>
+            <span className="block text-[10px] font-bold text-white/75">الدفع عند الاستلام</span>
+          </span>
+          <span className="text-xl font-black">{featured.price1} د.م</span>
+        </button>
+      </div>
+
+      {/* وعد واحد */}
+      <div className="border-b border-[#1C1412]/10 bg-[#C4A484]">
+        <div
+          className="container mx-auto flex flex-wrap items-center justify-center gap-x-10 gap-y-2 px-4 py-4 text-center text-sm font-black text-[#1C1412] md:text-base"
+          dir="rtl"
+        >
+          <span>أدوات رونق — نتيجة صالون في المنزل</span>
+          <span className="hidden text-[#1C1412]/35 sm:inline">|</span>
+          <span>قلبي قبل ما تخلصي</span>
+          <span className="hidden text-[#1C1412]/35 sm:inline">|</span>
+          <span>توصيل مجاني لكل المغرب</span>
         </div>
       </div>
 
-      {/* ══════════ SALON RESULTS AT HOME ══════════ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#F7F1EC] via-[#faf6f2] to-[#eee4db]">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-40"
-          style={{
-            backgroundImage:
-              "radial-gradient(ellipse 60% 50% at 75% 55%, rgba(196,164,132,0.22), transparent), radial-gradient(ellipse 40% 40% at 15% 30%, rgba(196,91,106,0.08), transparent)",
-          }}
-        />
-        <div className="container mx-auto relative z-10 px-4 py-20 md:py-28">
-          <div className="grid items-center gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-6">
-            <div className="salon-copy space-y-6 text-right" dir="rtl">
-              <p className="text-2xl font-black tracking-wide text-[#C45B6A]">رونق</p>
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.15] text-[#1C1412]">
-                نتيجة صالون
-                <br />
-                <span className="relative inline-block">
-                  فدارك
-                  <span className="absolute -bottom-1 left-0 right-0 h-[0.35em] -z-10 bg-[#C45B6A]/25" />
-                </span>
-              </h2>
-              <p className="max-w-md text-lg leading-relaxed text-[#1C1412]/70 md:text-xl">
-                أدوات رونق كتعطي نتيجة احترافية مع حماية الشعر — حجم، نعومة، ولمعان بلا موعد وبلا صالون.
-              </p>
-              <Link
-                href="#products"
-                className="inline-flex items-center gap-2 rounded-full border border-[#1C1412]/20 bg-white/70 px-8 py-3.5 text-base font-black text-[#1C1412] backdrop-blur transition-all duration-300 hover:border-[#C45B6A] hover:bg-[#C45B6A] hover:text-white"
-              >
-                شوفي المجموعة
-              </Link>
-            </div>
+      {/* ═══════════════ المنتج البطلة ═══════════════ */}
+      <section className="relative overflow-hidden bg-[#F7F1EC]" id="featured">
+        <div className="container mx-auto px-4 py-20 md:py-28">
+          <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-6">
+            <FadeIn className="order-2 lg:order-1">
+              <div className="relative">
+                <img
+                  src={featured.images[0]}
+                  alt={featured.name}
+                  className="mx-auto w-full max-w-lg object-contain drop-shadow-[0_30px_60px_rgba(28,20,18,0.12)]"
+                />
+              </div>
+            </FadeIn>
 
-            <div className="salon-visual relative">
-              <img
-                src={salonResultsImage}
-                alt="أدوات رونق — نتيجة صالون في المنزل"
-                className="mx-auto w-full max-w-3xl object-contain drop-shadow-[0_20px_40px_rgba(28,20,18,0.12)]"
-              />
-            </div>
+            <FadeIn delay={120} className="order-1 space-y-6 text-right lg:order-2" >
+              <div dir="rtl">
+                <p className="text-sm font-black tracking-[0.25em] text-[#C45B6A]">الأكثر طلباً</p>
+                <p className="mt-4 text-3xl font-black text-[#C4A484]">رونق</p>
+                <h2 className="mt-1 text-4xl font-black leading-tight text-[#1C1412] md:text-5xl">
+                  {featured.name}
+                </h2>
+                <p className="mt-4 max-w-md text-lg leading-relaxed text-[#1C1412]/65">
+                  {featured.tagline}. طقم كامل فباكة وحدة — نتيجة احترافية مع حماية للشعر، ليك أو كهدية.
+                </p>
+
+                <ul className="mt-6 space-y-2 text-[#1C1412]/75">
+                  {featured.features.slice(0, 3).map((f) => (
+                    <li key={f} className="flex items-center gap-3 text-sm font-medium md:text-base">
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#C45B6A]" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-8 flex flex-wrap items-end gap-4">
+                  <div>
+                    <p className="text-xs font-bold text-[#1C1412]/45">من</p>
+                    <p className="text-4xl font-black text-[#C45B6A]">
+                      {featured.price1}
+                      <span className="mr-1 text-lg font-bold">د.م</span>
+                    </p>
+                  </div>
+                  <button
+                    onClick={() =>
+                      addOne(featured.id, featured.name, featured.price1, featured.images[0])
+                    }
+                    className="bg-[#C45B6A] px-8 py-4 text-base font-black text-white transition-colors hover:bg-[#a64d5a]"
+                  >
+                    أضيفي للسلة
+                  </button>
+                  <Link
+                    href={`/products/${featured.slug}`}
+                    className="px-2 py-4 text-base font-bold text-[#1C1412] underline-offset-4 hover:underline"
+                  >
+                    التفاصيل
+                  </Link>
+                </div>
+
+                <p className="mt-4 text-sm text-[#1C1412]/50">
+                  قطعتين بـ {featured.price2} د.م — وفّري{" "}
+                  {featured.price1 * 2 - featured.price2} درهم
+                </p>
+              </div>
+            </FadeIn>
           </div>
         </div>
       </section>
 
-      {/* ══════════ YOUR HAIR AS IT IS ══════════ */}
-      <section className="bg-[#F7F1EC] py-20 md:py-28">
+      {/* ═══════════════ النتيجة ═══════════════ */}
+      <section className="relative min-h-[70vh] overflow-hidden bg-[#1C1412]" id="looks">
+        <img
+          src={lifestyleImage}
+          alt="تصفيف فدارك مع رونق"
+          className="absolute inset-0 h-full w-full object-cover object-[center_25%] opacity-50"
+        />
+        <div className="absolute inset-0 bg-[#1C1412]/55" />
+        <div className="relative z-10 flex min-h-[70vh] items-center">
+          <div className="container mx-auto px-4 py-20" dir="rtl">
+            <FadeIn>
+              <div className="max-w-lg text-right text-white">
+                <p className="text-sm font-black tracking-[0.25em] text-[#C4A484]">أدوات رونق</p>
+                <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">
+                  نتيجة صالون
+                  <br />
+                  في المنزل
+                </h2>
+                <p className="mt-5 text-lg text-white/75">
+                  حجم، نعومة، ولمعان — نتيجة احترافية مع حماية الشعر، بلا موعد وبلا صالون.
+                </p>
+              </div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════ اختاري الستايل ═══════════════ */}
+      <section className="bg-white py-20 md:py-28">
         <div className="container mx-auto px-4">
           <FadeIn>
-            <div className="mb-12 max-w-2xl text-right md:mb-16" dir="rtl">
-              <p className="mb-3 text-sm font-black tracking-widest text-[#C45B6A]">رونق</p>
-              <h2 className="text-4xl font-black leading-tight text-[#1C1412] md:text-5xl">
-                شعرك… كما هو
+            <div className="mb-12 max-w-xl text-right md:mb-16" dir="rtl">
+              <p className="text-sm font-black tracking-[0.25em] text-[#C45B6A]">اختاري</p>
+              <h2 className="mt-3 text-4xl font-black text-[#1C1412] md:text-5xl">
+                شنو بغيتي يبان؟
               </h2>
-              <p className="mt-4 text-base leading-relaxed text-[#1C1412]/65 md:text-lg">
-                ما خاصكش تبدّلي شعرك باش تستعملي أدواتنا. رونق كيتأقلم معاك —
-                كل قوام، كل حجم، وكل شكل كيستحق أدوات كتخدم بصح.
+              <p className="mt-4 text-lg text-[#1C1412]/60">
+                كل نتيجة عندها أداتها — اختاري الحجم، النعومة، أو اللمعان اللي كيشبهك.
               </p>
             </div>
           </FadeIn>
 
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-            {hairTypes.map((type, i) => (
-              <FadeIn key={type.labelEn} delay={i * 80}>
-                <Link
-                  href={type.href}
-                  className="group relative block aspect-[3/4] overflow-hidden"
-                >
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
+            {looks.map((look, i) => (
+              <FadeIn key={look.en} delay={i * 70}>
+                <Link href={look.href} className="group relative block aspect-[3/4] overflow-hidden">
                   <img
-                    src={type.image}
-                    alt={type.label}
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    src={look.image}
+                    alt={look.title}
+                    className="h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412]/60 via-transparent to-[#1C1412]/10" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412]/80 via-[#1C1412]/10 to-transparent" />
                   <span
-                    className="absolute left-3 top-8 text-lg font-black tracking-[0.2em] text-white md:left-5 md:top-10 md:text-2xl"
+                    className="absolute left-3 top-8 text-base font-black tracking-[0.22em] text-white/90 md:left-4 md:top-10 md:text-xl"
                     style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
                   >
-                    {type.labelEn}
+                    {look.en}
                   </span>
-                  <p className="absolute inset-x-3 bottom-4 text-right text-[11px] font-bold leading-snug text-white/95 md:inset-x-5 md:bottom-6 md:text-sm" dir="rtl">
-                    {type.line}
-                  </p>
+                  <div className="absolute inset-x-3 bottom-4 text-right md:inset-x-4 md:bottom-5" dir="rtl">
+                    <p className="text-lg font-black text-white md:text-xl">{look.title}</p>
+                    <p className="mt-1 text-[11px] font-medium text-white/80 md:text-sm">{look.line}</p>
+                    <p className="mt-2 text-[10px] font-black tracking-wide text-[#C4A484] md:text-xs">
+                      {look.product}
+                    </p>
+                  </div>
                 </Link>
               </FadeIn>
             ))}
@@ -303,175 +365,213 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════ BEST SELLERS ══════════ */}
-      <section id="products" className="py-24 bg-[#F7F1EC]">
+      {/* ═══════════════ المجموعة ═══════════════ */}
+      <section id="shop" className="bg-[#F7F1EC] py-20 md:py-28">
         <div className="container mx-auto px-4">
           <FadeIn>
-            <div className="text-center mb-16">
-              <span className="text-sm font-bold tracking-widest text-[#C45B6A] uppercase">اختاري اللي يناسبك</span>
-              <h2 className="text-4xl md:text-5xl font-black text-[#1C1412] mt-3 mb-4">مجموعة رونق</h2>
-              <p className="text-gray-500 text-lg">4 أدوات مختارة للنتيجة فدارك — بلا تعقيد وبلا دفع مسبق</p>
+            <div className="mb-14 text-center" dir="rtl">
+              <p className="text-sm font-black tracking-[0.25em] text-[#C45B6A]">المجموعة</p>
+              <h2 className="mt-3 text-4xl font-black text-[#1C1412] md:text-5xl">أربع أدوات. هوية واحدة.</h2>
+              <p className="mx-auto mt-4 max-w-lg text-lg text-[#1C1412]/60">
+                مختارة لنتيجة احترافية مع حماية الشعر · 199 د.م · خلصي عند الباب
+              </p>
             </div>
           </FadeIn>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {products.map((product, i) => (
-              <FadeIn key={product.id} delay={i * 100}>
-                <div className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 border border-[#C4A484]/20 flex flex-col h-full">
-                  <div className="relative aspect-square overflow-hidden bg-[#F7F1EC]">
+              <FadeIn key={product.id} delay={i * 90}>
+                <article className="flex h-full flex-col bg-white">
+                  <Link
+                    href={`/products/${product.slug}`}
+                    className="relative block aspect-[4/5] overflow-hidden bg-[#F7F1EC]"
+                  >
                     {product.tag && (
-                      <span className="absolute top-4 right-4 bg-[#C45B6A] text-white text-xs font-black px-4 py-1.5 rounded-full z-10 shadow-md">
+                      <span className="absolute right-0 top-0 z-10 bg-[#1C1412] px-3 py-1.5 text-[11px] font-black text-white">
                         {product.tag}
                       </span>
                     )}
-                    <img src={product.images[0]} alt={product.name} className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-700" />
-                    <div className="absolute inset-x-4 bottom-4 rounded-2xl bg-white/90 px-4 py-3 text-right shadow-lg backdrop-blur">
-                      <p className="text-xs font-black text-[#C45B6A]">{product.tagline}</p>
-                    </div>
-                  </div>
+                    <img
+                      src={product.images[0]}
+                      alt={product.name}
+                      className="h-full w-full object-contain p-5 transition-transform duration-700 hover:scale-105"
+                    />
+                  </Link>
 
-                  <div className="p-5 flex flex-col flex-1" dir="rtl">
-                    <div className="flex gap-1 text-yellow-400 text-sm mb-2">
-                      {"★".repeat(product.stars)}
-                      <span className="text-gray-400 text-xs mr-1 font-medium">({product.reviewCount})</span>
-                    </div>
-                    <h3 className="font-black text-lg text-[#1C1412] mb-3 leading-snug">{product.name}</h3>
-                    <ul className="mb-4 space-y-2 text-sm text-gray-600 flex-1">
-                      {product.features.slice(0, 2).map((feature) => (
-                        <li key={feature} className="flex items-center gap-2">
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#F7F1EC] text-xs font-black text-[#C45B6A]">✓</span>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
+                  <div className="flex flex-1 flex-col p-5 text-right" dir="rtl">
+                    <p className="text-[11px] font-bold text-[#C45B6A]">{product.bestFor}</p>
+                    <h3 className="mt-1 text-xl font-black text-[#1C1412]">{product.name}</h3>
+                    <p className="mt-1 text-sm text-[#1C1412]/55">{product.tagline}</p>
+                    <p className="mt-3 text-sm font-medium text-[#1C1412]/70">{product.result}</p>
 
-                    <div className="space-y-3 mt-auto">
+                    <div className="mt-auto space-y-2 pt-6">
                       <button
-                        onClick={() => addToCart({ id: product.id, name: product.name, price: product.price1, quantity: 1, image: product.images[0] })}
-                        className="w-full flex justify-between items-center p-3 border-2 border-gray-100 rounded-xl hover:border-[#C45B6A] hover:bg-red-50 transition-all text-sm font-bold"
+                        onClick={() =>
+                          addOne(product.id, product.name, product.price1, product.images[0], 1)
+                        }
+                        className="flex w-full items-center justify-between border border-[#1C1412]/12 px-4 py-3 text-sm font-bold transition-colors hover:border-[#C45B6A]"
                       >
-                        <span className="text-gray-600">قطعة واحدة</span>
-                        <span className="text-[#C45B6A] text-lg">{product.price1} د.م</span>
+                        <span className="text-[#1C1412]/55">قطعة</span>
+                        <span className="text-lg text-[#C45B6A]">{product.price1} د.م</span>
                       </button>
                       <button
-                        onClick={() => addToCart({ id: product.id, name: product.name, price: product.price2, quantity: 2, image: product.images[0] })}
-                        className="w-full flex justify-between items-center p-3 bg-[#1C1412] text-white rounded-xl hover:bg-[#C45B6A] transition-all text-sm font-black shadow-lg"
+                        onClick={() =>
+                          addOne(product.id, product.name, product.price2, product.images[0], 2)
+                        }
+                        className="flex w-full items-center justify-between bg-[#1C1412] px-4 py-3 text-sm font-black text-white transition-colors hover:bg-[#C45B6A]"
                       >
-                        <span>قطعتين 🔥</span>
+                        <span>قطعتين</span>
                         <span className="text-lg">{product.price2} د.م</span>
                       </button>
-                      <Link href={`/products/${product.slug}`} className="block text-center text-sm font-black text-[#C45B6A] hover:text-[#1C1412] transition-colors">
-                        التفاصيل والصور
+                      <Link
+                        href={`/products/${product.slug}`}
+                        className="block pt-1 text-center text-sm font-bold text-[#C45B6A] hover:text-[#1C1412]"
+                      >
+                        شوفي التفاصيل
                       </Link>
                     </div>
                   </div>
-                </div>
+                </article>
               </FadeIn>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ══════════ BEFORE / AFTER ══════════ */}
-      <section className="py-24 bg-white">
-        <div className="container mx-auto px-4 grid md:grid-cols-2 gap-16 items-center">
-          <FadeIn className="order-2 md:order-1">
-            <BeforeAfterSlider
-              src={heroImage}
-              beforeLabel="قبل"
-              afterLabel="بعد الاستعمال ✨"
+      {/* ═══════════════ الثقة ═══════════════ */}
+      <section className="bg-white">
+        <div className="grid lg:grid-cols-2">
+          <div className="relative min-h-[420px] overflow-hidden bg-[#1C1412]">
+            <img
+              src={toolsImage}
+              alt="أدوات رونق — نتيجة صالون في المنزل"
+              className="absolute inset-0 h-full w-full object-cover object-center"
             />
-          </FadeIn>
-
-          <FadeIn delay={150} className="space-y-6 text-right" dir="rtl">
-            <span className="text-sm font-bold tracking-widest text-[#C45B6A] uppercase">النتيجة بعينيك</span>
-            <h2 className="text-4xl md:text-5xl font-black text-[#1C1412] leading-tight">شعر أنعم وألمع،<br/>من أول أيام الاستعمال</h2>
-            <p className="text-gray-600 leading-relaxed text-lg">
-              تقنية الأيونات والكيراتين كتخلي الشعرك مرتب، لامع، ومحمي من الحرارة — بلا ما تمشي للصالون.
-            </p>
-            <div className="bg-[#F7F1EC] rounded-2xl p-6 mt-4">
-              <h3 className="font-black text-lg mb-3 text-[#C45B6A]">علاش البنات كتختار رونق؟</h3>
-              <ul className="space-y-3">
-                <li className="flex items-center gap-3"><span className="text-[#C45B6A] font-black">✓</span> خلصي غير ملي تقلبي السلعة</li>
-                <li className="flex items-center gap-3"><span className="text-[#C45B6A] font-black">✓</span> توصيل مجاني حتى لباب الدار</li>
-                <li className="flex items-center gap-3"><span className="text-[#C45B6A] font-black">✓</span> نتيجة واضحة فاستعمال سهل فدارك</li>
-              </ul>
-            </div>
-          </FadeIn>
+          </div>
+          <div className="flex items-center bg-[#F7F1EC] px-6 py-16 md:px-14 md:py-24" dir="rtl">
+            <FadeIn>
+              <div className="max-w-md space-y-6 text-right">
+                <p className="text-sm font-black tracking-[0.25em] text-[#C45B6A]">الثقة</p>
+                <h2 className="text-4xl font-black leading-tight text-[#1C1412] md:text-5xl">
+                  ما تخلصي حتى
+                  <br />
+                  تشوفي بديك
+                </h2>
+                <p className="text-lg leading-relaxed text-[#1C1412]/65">
+                  رونق كيبني الثقة من أول طلب: نتيجة احترافية، حماية للشعر، والطلب كيوصل للدار — تقلبيه، وعاد تخلصي.
+                </p>
+                <div className="space-y-3 pt-2 text-[#1C1412]/80">
+                  {[
+                    "توصيل مجاني حتى لباب الدار",
+                    "تفتحي وتتأكدي قدام الليفور",
+                    "خلصي غير إلا عجبك",
+                  ].map((line) => (
+                    <p key={line} className="flex items-center gap-3 font-bold">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#C45B6A]" />
+                      {line}
+                    </p>
+                  ))}
+                </div>
+                <Link
+                  href="#shop"
+                  className="mt-4 inline-block bg-[#1C1412] px-8 py-4 font-black text-white transition-colors hover:bg-[#C45B6A]"
+                >
+                  ابدئي الطلب
+                </Link>
+              </div>
+            </FadeIn>
+          </div>
         </div>
       </section>
 
-      {/* ══════════ SOCIAL PROOF ══════════ */}
-      <section className="py-24 bg-[#F7F1EC]">
+      {/* ═══════════════ أصوات ═══════════════ */}
+      <section className="bg-[#F7F1EC] py-20 md:py-28">
         <div className="container mx-auto px-4">
           <FadeIn>
-            <div className="text-center mb-14">
-              <span className="text-sm font-bold tracking-widest text-[#C45B6A] uppercase">تجارب من المغرب</span>
-              <h2 className="text-4xl md:text-5xl font-black text-[#1C1412] mt-3 mb-4">شنو كيقولو على رونق؟</h2>
-              <p className="text-gray-500 text-lg">الثقة كتبدأ من التوصيل والدفع عند الاستلام</p>
+            <div className="mb-12 text-center" dir="rtl">
+              <p className="text-sm font-black tracking-[0.25em] text-[#C45B6A]">من المغرب</p>
+              <h2 className="mt-3 text-4xl font-black text-[#1C1412] md:text-5xl">كلمات البنات</h2>
             </div>
           </FadeIn>
 
-          <div className="grid md:grid-cols-3 gap-6" dir="rtl">
-            {testimonials.map((testimonial, i) => (
-              <FadeIn key={testimonial.name} delay={i * 100}>
-                <div className="h-full rounded-3xl bg-white p-7 shadow-sm border border-[#C4A484]/20">
-                  <div className="mb-4 flex gap-1 text-xl text-yellow-400">★★★★★</div>
-                  <p className="text-gray-700 leading-relaxed">«{testimonial.text}»</p>
-                  <div className="mt-6 flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#C45B6A]/15 font-black text-[#C45B6A]">
-                      {testimonial.name[0]}
-                    </div>
-                    <div>
-                      <p className="font-black text-[#1C1412]">{testimonial.name}</p>
-                      <p className="text-xs font-bold text-green-600">عملية شراء مؤكدة</p>
-                    </div>
-                  </div>
-                </div>
+          <div className="grid gap-6 md:grid-cols-3" dir="rtl">
+            {voices.map((v, i) => (
+              <FadeIn key={v.name} delay={i * 100}>
+                <blockquote className="flex h-full flex-col border border-[#C4A484]/30 bg-white p-7">
+                  <p className="flex-1 text-base leading-relaxed text-[#1C1412]/75">«{v.text}»</p>
+                  <footer className="mt-8">
+                    <p className="font-black text-[#1C1412]">{v.name}</p>
+                    <p className="text-sm text-[#C45B6A]">{v.city}</p>
+                  </footer>
+                </blockquote>
               </FadeIn>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ══════════ FAQ ══════════ */}
-      <section className="py-24 bg-white">
-        <div className="container mx-auto px-4 max-w-3xl">
+      {/* ═══════════════ FAQ ═══════════════ */}
+      <section className="bg-white py-20 md:py-28">
+        <div className="container mx-auto max-w-3xl px-4">
           <FadeIn>
-            <div className="text-center mb-12">
-              <span className="text-sm font-bold tracking-widest text-[#C45B6A] uppercase">أجوبة صريحة</span>
-              <h2 className="text-4xl md:text-5xl font-black text-[#1C1412] mt-3 mb-4">كلشي واضح قبل ما تطلبي</h2>
-              <p className="text-gray-500 text-lg">أسئلة البنات اللي كيطلبو من رونق — جواب مباشر بلا لف ودوران</p>
+            <div className="mb-12 text-center" dir="rtl">
+              <p className="text-sm font-black tracking-[0.25em] text-[#C45B6A]">أسئلة</p>
+              <h2 className="mt-3 text-4xl font-black text-[#1C1412] md:text-5xl">قبل ما تطلبي</h2>
             </div>
           </FadeIn>
 
-          <div className="space-y-4" dir="rtl">
-            {faqs.map((faq, i) => (
-              <FadeIn key={i} delay={i * 100}>
-                <div 
-                  className={`border-2 rounded-2xl overflow-hidden transition-all duration-300 ${openFaq === i ? 'border-[#C45B6A] bg-[#F7F1EC]/60' : 'border-gray-100 hover:border-[#C4A484]/40'}`}
-                >
-                  <button 
-                    className="w-full text-right p-6 flex justify-between items-center gap-4 font-black text-lg text-[#1C1412]"
-                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  >
-                    {faq.q}
-                    <span className={`text-[#C45B6A] transition-transform duration-300 shrink-0 ${openFaq === i ? 'rotate-180' : ''}`}>
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                      </svg>
-                    </span>
-                  </button>
-                  <div className={`px-6 overflow-hidden transition-all duration-300 ease-in-out ${openFaq === i ? 'max-h-56 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}>
-                    <p className="text-gray-600 leading-relaxed text-base">{faq.a}</p>
+          <div className="space-y-2" dir="rtl">
+            {faqs.map((faq, i) => {
+              const open = openFaq === i;
+              return (
+                <FadeIn key={faq.q} delay={i * 50}>
+                  <div className={`border transition-colors ${open ? "border-[#C45B6A] bg-[#F7F1EC]/60" : "border-[#1C1412]/10"}`}>
+                    <button
+                      type="button"
+                      className="flex w-full items-center justify-between gap-4 p-5 text-right text-lg font-black text-[#1C1412]"
+                      onClick={() => setOpenFaq(open ? null : i)}
+                      aria-expanded={open}
+                    >
+                      {faq.q}
+                      <span className={`shrink-0 text-[#C45B6A] transition-transform ${open ? "rotate-180" : ""}`}>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-5 w-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                      </span>
+                    </button>
+                    <div className={`overflow-hidden px-5 transition-all ${open ? "max-h-40 pb-5 opacity-100" : "max-h-0 opacity-0"}`}>
+                      <p className="leading-relaxed text-[#1C1412]/65">{faq.a}</p>
+                    </div>
                   </div>
-                </div>
-              </FadeIn>
-            ))}
+                </FadeIn>
+              );
+            })}
           </div>
         </div>
       </section>
 
+      {/* ═══════════════ ختام ═══════════════ */}
+      <section className="relative overflow-hidden bg-[#1C1412] py-24 text-center text-white md:py-32">
+        <img
+          src={heroImage}
+          alt=""
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[center_15%] opacity-25"
+        />
+        <div className="absolute inset-0 bg-[#1C1412]/70" />
+        <div className="relative z-10 container mx-auto max-w-xl px-4" dir="rtl">
+          <p className="text-4xl font-black tracking-wide text-[#C4A484]">رونق</p>
+          <h2 className="mt-5 text-4xl font-black md:text-5xl">نتيجة صالون فدارك</h2>
+          <p className="mt-4 text-lg text-white/70">
+            أدوات رونق — حجم · نعومة · لمعان مع حماية الشعر
+          </p>
+          <Link
+            href="/collection"
+            className="mt-10 inline-block bg-[#C45B6A] px-12 py-4 text-lg font-black text-white transition-colors hover:bg-[#a64d5a]"
+          >
+            شوفي المجموعة
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }

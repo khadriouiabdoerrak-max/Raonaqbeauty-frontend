@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCart, type CartItem } from "../context/CartContext";
 import { useState } from "react";
@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 type CheckoutCustomerData = {
   name: string;
   phone: string;
+  city: string;
+  address: string;
 };
 
 export type StoredCustomerData = CheckoutCustomerData & {
@@ -54,7 +56,7 @@ export default function CartDrawer() {
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-xl font-bold text-[#1C1412]">سلة المشتريات</h2>
+          <h2 className="text-xl font-bold text-warm-black">سلة المشتريات</h2>
           <button 
             onClick={() => setIsCartOpen(false)}
             className="p-2 text-gray-500 hover:text-gray-900 bg-gray-100 rounded-full"
@@ -82,7 +84,7 @@ export default function CartDrawer() {
                 </div>
                 <div className="flex-1 flex flex-col justify-between">
                   <div className="flex justify-between items-start">
-                    <h3 className="font-bold text-[#1C1412] text-sm">{item.name}</h3>
+                    <h3 className="font-bold text-warm-black text-sm">{item.name}</h3>
                     <button 
                       onClick={() => removeFromCart(item.id)}
                       className="text-gray-400 hover:text-red-500"
@@ -104,7 +106,7 @@ export default function CartDrawer() {
                         className="text-gray-500 font-bold px-1"
                       >+</button>
                     </div>
-                    <p className="font-bold text-[#C45B6A]">{item.price * item.quantity} درهم</p>
+                    <p className="font-bold text-rosewood">{item.price * item.quantity} درهم</p>
                   </div>
                 </div>
               </div>
@@ -117,11 +119,11 @@ export default function CartDrawer() {
           <div className="border-t p-4 bg-white shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
             <div className="flex justify-between items-center mb-4">
               <span className="text-gray-500">المجموع:</span>
-              <span className="text-2xl font-bold text-[#1C1412]">{cartTotal} درهم</span>
+              <span className="text-2xl font-bold text-warm-black">{cartTotal} درهم</span>
             </div>
             <button 
               onClick={() => setIsCheckoutOpen(true)}
-              className="w-full bg-[#C45B6A] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#a64d5a] transition-colors shadow-lg shadow-red-200"
+              className="w-full bg-rosewood text-white py-4 rounded-xl font-bold text-lg hover:bg-rosewood-deep transition-colors shadow-lg shadow-rosewood/20"
             >
               إتمام الطلب والدفع عند الاستلام
             </button>

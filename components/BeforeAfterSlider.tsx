@@ -76,7 +76,7 @@ export default function BeforeAfterSlider({
         className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-12 h-12 bg-white rounded-full shadow-2xl flex items-center justify-center border-2 border-white/80 z-10 transition-transform hover:scale-110"
         style={{ left: `${pos}%` }}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#C45B6A" strokeWidth={2.5} className="w-6 h-6">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-6 h-6 text-rosewood">
           <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l-4 3 4 3M16 9l4 3-4 3" />
         </svg>
       </div>
@@ -86,7 +86,7 @@ export default function BeforeAfterSlider({
         <span className="w-2 h-2 rounded-full bg-gray-400 inline-block" />
         {beforeLabel}
       </div>
-      <div className="absolute top-5 left-5 flex items-center gap-2 bg-[#C45B6A]/90 backdrop-blur-sm text-white text-sm font-bold px-4 py-2 rounded-full pointer-events-none">
+      <div className="absolute top-5 left-5 flex items-center gap-2 bg-rosewood/90 backdrop-blur-sm text-white text-sm font-bold px-4 py-2 rounded-full pointer-events-none">
         <span className="w-2 h-2 rounded-full bg-white inline-block animate-pulse" />
         {afterLabel}
       </div>

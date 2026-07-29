@@ -1,10 +1,27 @@
 @import "tailwindcss";
 
+/*
+  رونق — Raonaq Beauty · نظام الألوان الرسمي
+  ──────────────────────────────────────────
+  هوية: براند مغربي لنتائج تصفيف احترافية مع حماية الشعر
+  تموضع: «نتيجة صالون فدارك» — حجم، نعومة، لمعان بلا موعد
+
+  pearl-blush   #F7F1EC  خلفية ناعمة (~60%)
+  surface       #FFFFFF  أسطح بيضاء
+  rosewood      #C45B6A  دعوة للعمل + السعر (~7%)
+  rosewood-deep #B84E5C  هوفر الزر
+  champagne     #C4A484  ثقة وأناقة العلامة (~3%)
+  warm-black    #1C1412  حضور وقوة النص/الفوتر (~10%)
+*/
+
 @theme {
   --color-pearl-blush: #F7F1EC;
+  --color-surface: #FFFFFF;
   --color-rosewood: #C45B6A;
+  --color-rosewood-deep: #B84E5C;
   --color-champagne: #C4A484;
   --color-warm-black: #1C1412;
+  --color-whatsapp: #25D366;
 }
 
 @keyframes marquee {
@@ -22,8 +39,13 @@
   to { opacity: 1; transform: translateX(0) scale(1); }
 }
 
-@keyframes hair-panel-in {
-  from { opacity: 0; transform: translateY(16px); }
+@keyframes hero-media-in {
+  from { opacity: 0; transform: scale(1.04); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes hero-copy-in {
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -35,12 +57,43 @@
   animation: salon-tools-in 1.1s ease-out 0.15s both;
 }
 
+.hero-media {
+  animation: hero-media-in 1.4s ease-out both;
+}
+
+.hero-copy {
+  animation: hero-copy-in 0.9s ease-out 0.2s both;
+}
+
 body {
   background-color: var(--color-pearl-blush);
   color: var(--color-warm-black);
 }
 
-/* Custom Scrollbar */
+/* أزرار الشراء — Rosewood فقط */
+.btn-rosewood {
+  background-color: var(--color-rosewood);
+  color: #fff;
+  transition: background-color 0.3s ease;
+}
+
+.btn-rosewood:hover {
+  background-color: var(--color-rosewood-deep);
+}
+
+.btn-rosewood:disabled {
+  opacity: 0.7;
+}
+
+/* عنوان قسم صغير — Champagne */
+.eyebrow {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-champagne);
+}
+
 ::-webkit-scrollbar {
   width: 6px;
 }

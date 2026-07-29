@@ -241,13 +241,13 @@ export default function Home() {
 
             <FadeIn delay={120} className="order-1 space-y-6 text-right lg:order-2" >
               <div dir="rtl">
-                <p className="text-sm font-black tracking-[0.25em] text-[#C45B6A]">الأكثر طلباً</p>
+                <p className="text-sm font-black tracking-[0.25em] text-[#C45B6A]">الاختيار الذكي</p>
                 <p className="mt-4 text-3xl font-black text-[#C4A484]">رونق</p>
                 <h2 className="mt-1 text-4xl font-black leading-tight text-[#1C1412] md:text-5xl">
                   {featured.name}
                 </h2>
                 <p className="mt-4 max-w-md text-lg leading-relaxed text-[#1C1412]/65">
-                  {featured.tagline}. طقم كامل فباكة وحدة — نتيجة احترافية مع حماية للشعر، ليك أو كهدية.
+                  طقم واحد كيجمع الفرد، الويفي، والحجم فباكة مرتبة — نتيجة صالون فدارك مع حماية للشعر، ليك أو كهدية.
                 </p>
 
                 <ul className="mt-6 space-y-2 text-[#1C1412]/75">
@@ -261,7 +261,7 @@ export default function Home() {
 
                 <div className="mt-8 flex flex-wrap items-end gap-4">
                   <div>
-                    <p className="text-xs font-bold text-[#1C1412]/45">من</p>
+                    <p className="text-xs font-bold text-[#1C1412]/45">ابتداءً من</p>
                     <p className="text-4xl font-black text-[#C45B6A]">
                       {featured.price1}
                       <span className="mr-1 text-lg font-bold">د.م</span>
@@ -273,18 +273,18 @@ export default function Home() {
                     }
                     className="bg-[#C45B6A] px-8 py-4 text-base font-black text-white transition-colors hover:bg-[#a64d5a]"
                   >
-                    أضيفي للسلة
+                    طلبي دابا
                   </button>
                   <Link
                     href={`/products/${featured.slug}`}
                     className="px-2 py-4 text-base font-bold text-[#1C1412] underline-offset-4 hover:underline"
                   >
-                    التفاصيل
+                    شوفي التفاصيل
                   </Link>
                 </div>
 
                 <p className="mt-4 text-sm text-[#1C1412]/50">
-                  قطعتين بـ {featured.price2} د.م — وفّري{" "}
+                  عرض قطعتين بـ {featured.price2} د.م — كتوفري{" "}
                   {featured.price1 * 2 - featured.price2} درهم
                 </p>
               </div>

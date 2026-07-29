@@ -50,8 +50,8 @@ const faqs = [
   },
 ];
 
-const heroImage = "/images/raonaq-hero-premium-v2.png";
-const featuredImage = "/images/raonaq-hero-hair-styling.png";
+const heroImage = "/images/raonaq-hero-hair-styling.png";
+const featuredImage = "/images/raonaq-hero-premium-v2.png";
 const salonResultsImage = "/images/raonaq-salon-results.png";
 
 const hairTypes = [
@@ -126,12 +126,11 @@ export default function Home() {
           <img
             src={heroImage}
             alt="نتيجة تصفيف الشعر مع رونق بيوتي"
-            className="w-full h-full object-cover object-[center_18%] opacity-80"
+            className="w-full h-full object-cover object-[center_25%]"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#1C1412]/95 via-[#1C1412]/70 to-[#1C1412]/15" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412] via-transparent to-transparent" />
-          <div className="absolute -bottom-32 -right-20 h-80 w-80 rounded-full bg-[#C45B6A]/30 blur-3xl" />
-          <div className="absolute top-20 left-10 h-72 w-72 rounded-full bg-[#C4A484]/20 blur-3xl" />
+          {/* تدرج خفيف باش الصورة تبان — ماشي تغطية كاملة */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1C1412]/80 via-[#1C1412]/45 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412]/70 via-transparent to-[#1C1412]/20" />
         </div>
 
         <div className="container mx-auto px-4 grid lg:grid-cols-[1.05fr_0.95fr] gap-10 items-center relative z-10 py-20">
@@ -181,24 +180,25 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="hidden lg:block" dir="rtl">
-            <div className="relative rounded-[2rem] border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-md">
-              <div className="absolute -top-4 right-8 rounded-full bg-[#C4A484] px-5 py-2 text-sm font-black text-[#1C1412] shadow-xl">
+          {/* الصورة ظاهرة حتى فالموبايل */}
+          <div className="relative" dir="rtl">
+            <div className="relative rounded-[2rem] border border-white/15 bg-white/10 p-3 md:p-5 shadow-2xl backdrop-blur-md overflow-hidden">
+              <div className="absolute top-4 right-4 z-10 rounded-full bg-[#C4A484] px-4 py-1.5 text-xs md:text-sm font-black text-[#1C1412]">
                 الاختيار الأول للبنات
               </div>
               <img
-                src={featuredImage}
-                alt={products[0].name}
-                className="aspect-[4/3] w-full rounded-[1.5rem] object-cover object-center"
+                src={heroImage}
+                alt="رونق — تصفيف الشعر"
+                className="aspect-[4/3] w-full rounded-[1.25rem] object-cover object-[center_20%]"
               />
-              <div className="mt-5 space-y-4 text-white">
+              <div className="mt-4 space-y-3 text-white px-1 pb-1">
                 <div>
                   <p className="text-sm font-bold text-[#C4A484]">{products[0].tag}</p>
-                  <h2 className="mt-1 text-2xl font-black">{products[0].name}</h2>
+                  <h2 className="mt-1 text-xl md:text-2xl font-black">{products[0].name}</h2>
                 </div>
                 <div className="flex items-end justify-between gap-4">
-                  <p className="text-sm text-white/70">3 أدوات فباك واحد — النتيجة واضحة من أول استعمال.</p>
-                  <p className="text-3xl font-black text-[#C4A484]">{products[0].price1} د.م</p>
+                  <p className="text-sm text-white/70">النتيجة واضحة من أول استعمال.</p>
+                  <p className="text-2xl md:text-3xl font-black text-[#C4A484]">{products[0].price1} د.م</p>
                 </div>
               </div>
             </div>

@@ -198,19 +198,6 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="fixed bottom-4 right-4 z-40 w-[min(78vw,300px)] rounded-full bg-[#1C1412]/95 p-1.5 shadow-[0_16px_42px_rgba(28,20,18,0.28)] backdrop-blur-xl md:hidden" dir="rtl">
-        <button
-          onClick={() => addOne(featured.id, featured.name, featured.price1, featured.images[0])}
-          className="flex w-full items-center justify-between rounded-full bg-[#C45B6A] px-4 py-2.5 text-white"
-        >
-          <span className="text-right">
-            <span className="block text-xs font-black">طلبي تريو</span>
-            <span className="block text-[9px] font-bold text-white/70">الدفع عند الاستلام</span>
-          </span>
-          <span className="text-base font-black">{featured.price1} د.م</span>
-        </button>
-      </div>
-
       {/* وعد واحد */}
       <div className="border-b border-[#1C1412]/10 bg-[#C4A484]">
         <div

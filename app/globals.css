@@ -22,6 +22,11 @@
   to { opacity: 1; transform: translateX(0) scale(1); }
 }
 
+@keyframes hair-panel-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .salon-copy {
   animation: salon-rise 0.9s ease-out both;
 }

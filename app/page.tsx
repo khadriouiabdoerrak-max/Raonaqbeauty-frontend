@@ -46,13 +46,44 @@ const faqs = [
   },
   {
     q: "كيفاش نطلب؟ واش ساهل؟",
-    a: "اختاري المنتج، دخلي الاسم ورقم الهاتف، وأكدي الطلب. حنا كندوزو التوصيل، ونتا ما تخلصي حتى توصلك السلعة للدار.",
+    a: "اختاري المنتج، دخلي الاسم ورقم الهاتف والمدينة والعنوان، وأكدي الطلب. حنا كندوزو التوصيل، ونتا ما تخلصي حتى توصلك السلعة للدار.",
   },
 ];
 
 const heroImage = "/images/raonaq-hero-premium-v2.png";
 const featuredImage = "/images/raonaq-hero-hair-styling.png";
 const salonResultsImage = "/images/raonaq-salon-results.png";
+
+const hairTypes = [
+  {
+    label: "حجم",
+    labelEn: "Blowout",
+    image: "/images/raonaq-hair-blowout.png",
+    line: "للّي كتحرك بسرعة… وما كتساومش على النتيجة",
+    href: "/products/raonaq-volume",
+  },
+  {
+    label: "ناعم",
+    labelEn: "Straight",
+    image: "/images/raonaq-hair-straight.png",
+    line: "للّي كتشوف البساطة هي الأناقة الحقيقية",
+    href: "/products/raonaq-trio",
+  },
+  {
+    label: "كيرلز",
+    labelEn: "Curls",
+    image: "/images/raonaq-hair-curls.png",
+    line: "للّي كتحب الحجم، القوة، والحضور",
+    href: "/products/raonaq-air-soft",
+  },
+  {
+    label: "موجات",
+    labelEn: "Waves",
+    image: "/images/raonaq-hair-waves.png",
+    line: "للّي عايشة بين السهولة والأناقة",
+    href: "/products/raonaq-air-pink",
+  },
+];
 
 const proofStats = [
   { value: "عند الباب", label: "خلصي بعد ما تقلبي" },
@@ -227,6 +258,51 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ══════════ YOUR HAIR AS IT IS ══════════ */}
+      <section className="bg-[#F7F1EC] py-20 md:py-28">
+        <div className="container mx-auto px-4">
+          <FadeIn>
+            <div className="mb-12 max-w-2xl text-right md:mb-16" dir="rtl">
+              <p className="mb-3 text-sm font-black tracking-widest text-[#C45B6A]">رونق</p>
+              <h2 className="text-4xl font-black leading-tight text-[#1C1412] md:text-5xl">
+                شعرك… كما هو
+              </h2>
+              <p className="mt-4 text-base leading-relaxed text-[#1C1412]/65 md:text-lg">
+                ما خاصكش تبدّلي شعرك باش تستعملي أدواتنا. رونق كيتأقلم معاك —
+                كل قوام، كل حجم، وكل شكل كيستحق أدوات كتخدم بصح.
+              </p>
+            </div>
+          </FadeIn>
+
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+            {hairTypes.map((type, i) => (
+              <FadeIn key={type.labelEn} delay={i * 80}>
+                <Link
+                  href={type.href}
+                  className="group relative block aspect-[3/4] overflow-hidden"
+                >
+                  <img
+                    src={type.image}
+                    alt={type.label}
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412]/60 via-transparent to-[#1C1412]/10" />
+                  <span
+                    className="absolute left-3 top-8 text-lg font-black tracking-[0.2em] text-white md:left-5 md:top-10 md:text-2xl"
+                    style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+                  >
+                    {type.labelEn}
+                  </span>
+                  <p className="absolute inset-x-3 bottom-4 text-right text-[11px] font-bold leading-snug text-white/95 md:inset-x-5 md:bottom-6 md:text-sm" dir="rtl">
+                    {type.line}
+                  </p>
+                </Link>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ══════════ BEST SELLERS ══════════ */}
       <section id="products" className="py-24 bg-[#F7F1EC]">
         <div className="container mx-auto px-4">
@@ -325,7 +401,48 @@ export default function Home() {
         </div>
       </section>
 
-      {/* قسم UGC — سيتم إضافته لاحقاً بفيديوهات حقيقية */}
+      {/* ══════════ UGC / لحظات رونق ══════════ */}
+      <section className="py-24 bg-[#1C1412] text-white overflow-hidden">
+        <div className="container mx-auto px-4">
+          <FadeIn>
+            <div className="text-center mb-14" dir="rtl">
+              <span className="text-sm font-bold tracking-widest text-[#C4A484] uppercase">من الدار للصالون</span>
+              <h2 className="text-4xl md:text-5xl font-black mt-3 mb-4">لحظات رونق</h2>
+              <p className="text-white/60 text-lg max-w-xl mx-auto">
+                نتائج حقيقية من أدوات مختارة — غادي نزيدو فيديوهات الزبونات هنا كل أسبوع
+              </p>
+            </div>
+          </FadeIn>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4" dir="rtl">
+            {[
+              { src: "/images/raonaq-trio.png", label: "TRIO", city: "كازا" },
+              { src: "/images/raonaq-air-soft.png", label: "AIR Soft", city: "طنجة" },
+              { src: "/images/raonaq-air-pink.png", label: "AIR Pink", city: "مراكش" },
+              { src: "/images/raonaq-volume.png", label: "VOLUME", city: "فاس" },
+              { src: "/images/raonaq-salon-results.png", label: "النتيجة", city: "الرباط" },
+              { src: "/images/raonaq-hero-hair-styling.png", label: "تصفيف", city: "أكادير" },
+              { src: "/images/raonaq-trio-tools.png", label: "الأدوات", city: "وجدة" },
+              { src: "/images/raonaq-air-soft-tool.png", label: "كيراتين", city: "تمارة" },
+            ].map((shot, i) => (
+              <FadeIn key={shot.src + shot.city} delay={(i % 4) * 80}>
+                <div className={`relative overflow-hidden rounded-2xl bg-white/5 ${i === 4 || i === 5 ? "md:col-span-1 aspect-[3/4]" : "aspect-[3/4]"}`}>
+                  <img
+                    src={shot.src}
+                    alt={`${shot.label} — رونق`}
+                    className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                  <div className="absolute bottom-3 right-3 left-3 flex items-end justify-between text-sm">
+                    <span className="font-black">{shot.label}</span>
+                    <span className="text-white/70 text-xs">{shot.city}</span>
+                  </div>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ══════════ SOCIAL PROOF ══════════ */}
       <section className="py-24 bg-[#F7F1EC]">

@@ -49,6 +49,11 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes before-after-sweep {
+  0%, 100% { left: 68%; }
+  50% { left: 32%; }
+}
+
 .salon-copy {
   animation: salon-rise 0.9s ease-out both;
 }
@@ -63,6 +68,10 @@
 
 .hero-copy {
   animation: hero-copy-in 0.9s ease-out 0.2s both;
+}
+
+.before-after-sweep {
+  animation: before-after-sweep 4s ease-in-out infinite;
 }
 
 body {

@@ -29,6 +29,77 @@ function FadeIn({
   );
 }
 
+function BeforeAfterResultVisual() {
+  return (
+    <div
+      className="relative mx-auto w-full max-w-xl overflow-hidden rounded-[36px] border border-white/70 bg-white p-3 shadow-[0_30px_80px_rgba(28,20,18,0.14)]"
+      dir="rtl"
+      aria-label="قبل وبعد استعمال رونق"
+    >
+      <div className="relative aspect-[4/5] overflow-hidden rounded-[28px] bg-[#F7F1EC] sm:aspect-[5/4]">
+        <div className="grid h-full grid-cols-2">
+          <div className="relative overflow-hidden bg-[#F2E5DE]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_12%,rgba(196,91,106,0.16),transparent_34%)]" />
+            <span className="absolute right-4 top-4 rounded-full bg-[#1C1412]/70 px-4 py-2 text-xs font-black text-white">
+              قبل
+            </span>
+            <svg
+              viewBox="0 0 260 320"
+              className="absolute bottom-0 left-1/2 h-[88%] w-[118%] -translate-x-1/2"
+              role="img"
+              aria-label="شعر قبل التصفيف"
+            >
+              <path d="M78 300c-30-50-33-131-8-179 24-46 79-63 122-30 45 34 48 126 14 209Z" fill="#4B2D25" />
+              <path d="M88 105c-24 18-38 48-39 82 21-16 34-39 42-70Z" fill="#6A3A30" opacity=".78" />
+              <path d="M166 92c39 22 54 62 48 105-22-22-32-56-40-92Z" fill="#6A3A30" opacity=".72" />
+              <circle cx="133" cy="130" r="44" fill="#C98F74" />
+              <path d="M87 133c23-32 64-54 109-19-9-44-67-66-106-34-18 15-26 36-21 63 5-5 11-8 18-10Z" fill="#3A211B" />
+              <path d="M94 188c-27 19-33 49-28 83M117 185c-13 25-15 55-8 86M145 184c18 27 20 55 10 88M171 186c27 21 33 52 22 87" stroke="#2A1713" strokeWidth="10" strokeLinecap="round" fill="none" />
+              <path d="M66 162c-20 14-29 34-24 57M203 160c24 17 33 38 26 66M107 78c-16 3-28 14-38 31M156 74c22 3 40 16 52 36" stroke="#7B4A3F" strokeWidth="8" strokeLinecap="round" fill="none" opacity=".75" />
+            </svg>
+            <p className="absolute bottom-5 right-4 max-w-[11rem] text-sm font-black leading-relaxed text-[#1C1412]/70">
+              نفشة وتعب قبل الخروج
+            </p>
+          </div>
+
+          <div className="relative overflow-hidden bg-gradient-to-br from-[#C45B6A] to-[#C4A484]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_15%,rgba(255,255,255,0.35),transparent_32%)]" />
+            <span className="absolute left-4 top-4 rounded-full bg-white px-4 py-2 text-xs font-black text-[#C45B6A] shadow-lg">
+              بعد رونق
+            </span>
+            <svg
+              viewBox="0 0 260 320"
+              className="absolute bottom-0 left-1/2 h-[88%] w-[112%] -translate-x-1/2"
+              role="img"
+              aria-label="شعر مرتب بعد التصفيف"
+            >
+              <path d="M72 300c-12-56-15-141 18-184 28-36 86-45 120 2 29 40 24 126 7 182Z" fill="#2F1B17" />
+              <path d="M95 112c-17 43-16 122-7 188h28c-12-61-8-129 12-190Z" fill="#5D342C" opacity=".82" />
+              <path d="M163 110c20 54 24 124 9 190h30c13-69 10-144-19-188Z" fill="#5D342C" opacity=".76" />
+              <circle cx="134" cy="132" r="44" fill="#C98F74" />
+              <path d="M89 137c21-51 82-72 117-17-1-42-31-70-75-70-39 0-65 27-68 72 6 4 15 9 26 15Z" fill="#24120F" />
+              <path d="M91 199c31 26 73 29 112 1M94 227c32 24 70 24 105 0M101 254c26 18 60 19 91 0" stroke="#8D5A4B" strokeWidth="7" strokeLinecap="round" fill="none" opacity=".6" />
+              <path d="M83 177c31 15 68 18 109 0" stroke="#F7D7C5" strokeWidth="5" strokeLinecap="round" fill="none" opacity=".65" />
+            </svg>
+            <p className="absolute bottom-5 left-4 max-w-[11rem] text-left text-sm font-black leading-relaxed text-white">
+              نعومة، لمعان وحجم مرتب
+            </p>
+          </div>
+        </div>
+
+        <div className="before-after-sweep absolute bottom-0 top-0 z-10 w-[3px] bg-white shadow-[0_0_22px_rgba(255,255,255,0.9)]" />
+        <div className="before-after-sweep absolute top-1/2 z-20 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/80 bg-white text-lg font-black text-[#C45B6A] shadow-2xl">
+          ←
+        </div>
+
+        <div className="absolute bottom-4 left-1/2 z-30 -translate-x-1/2 rounded-full bg-[#1C1412]/55 px-4 py-2 text-[11px] font-black text-white backdrop-blur">
+          الخط كيبين الفرق من اليمين لليسار
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const heroImage = "/images/raonaq-hero-branded.png";
 const heroMobileImage = "/images/raonaq-hero-mobile.png";
 const lifestyleImage = "/images/raonaq-lifestyle-home.png";
@@ -198,17 +269,27 @@ export default function Home() {
         </div>
       </section>
 
-      {/* وعد واحد */}
-      <div className="border-b border-[#1C1412]/10 bg-[#C4A484]">
-        <div
-          className="container mx-auto flex flex-wrap items-center justify-center gap-x-10 gap-y-2 px-4 py-4 text-center text-sm font-black text-[#1C1412] md:text-base"
-          dir="rtl"
-        >
-          <span>أدوات رونق — نتيجة صالون في المنزل</span>
-          <span className="hidden text-[#1C1412]/35 sm:inline">|</span>
-          <span>قلبي قبل ما تخلصي</span>
-          <span className="hidden text-[#1C1412]/35 sm:inline">|</span>
-          <span>توصيل مجاني لكل المغرب</span>
+      {/* بروبو منتج */}
+      <div className="border-y border-[#1C1412]/10 bg-[#F7F1EC]" dir="rtl">
+        <div className="container mx-auto flex items-center justify-between gap-4 px-4 py-3 md:py-4">
+          <div className="flex items-center gap-3">
+            <span className="shrink-0 rounded-full bg-[#C45B6A] px-3 py-1 text-[11px] font-black text-white">
+              الأكثر طلباً اليوم
+            </span>
+            <div>
+              <p className="text-sm font-black text-[#1C1412] leading-tight">رونق تريو</p>
+              <p className="text-[11px] text-[#1C1412]/55 leading-tight">3 أدوات فباكة وحدة · قلبي قبل الدفع</p>
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-3">
+            <span className="text-base font-black text-[#1C1412]">{featured.price1} د.م</span>
+            <button
+              onClick={() => addOne(featured.id, featured.name, featured.price1, featured.images[0])}
+              className="rounded-full bg-[#C45B6A] px-4 py-2 text-xs font-black text-white shadow-sm transition-opacity hover:opacity-90"
+            >
+              طلبي الأكثر طلباً
+            </button>
+          </div>
         </div>
       </div>
 
@@ -217,19 +298,12 @@ export default function Home() {
         <div className="container mx-auto px-4 py-20 md:py-28">
           <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-6">
             <FadeIn className="order-2 lg:order-1">
-              <div className="relative">
-                <img
-                  src={featured.images[0]}
-                  alt={featured.name}
-                  className="mx-auto w-full max-w-lg object-contain drop-shadow-[0_30px_60px_rgba(28,20,18,0.12)]"
-                />
-              </div>
+              <BeforeAfterResultVisual />
             </FadeIn>
 
             <FadeIn delay={120} className="order-1 space-y-6 text-right lg:order-2" >
               <div dir="rtl">
-                <p className="text-sm font-black tracking-[0.25em] text-[#C45B6A]">الاختيار الذكي</p>
-                <p className="mt-4 text-3xl font-black text-[#C4A484]">رونق</p>
+                <p className="text-3xl font-black text-[#C4A484]">رونق</p>
                 <h2 className="mt-1 text-4xl font-black leading-tight text-[#1C1412] md:text-5xl">
                   {featured.name}
                 </h2>

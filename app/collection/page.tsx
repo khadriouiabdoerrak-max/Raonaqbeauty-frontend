@@ -1,28 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
 import { useCart } from "../../context/CartContext";
 import { products } from "../../lib/products";
 
-const filters = [
-  { id: "all", label: "الكل" },
-  { id: "volume", label: "حجم", match: "raonaq-volume" },
-  { id: "soft", label: "نعومة", match: "raonaq-air-soft" },
-  { id: "daily", label: "يومي", match: "raonaq-air-pink" },
-  { id: "set", label: "طقم", match: "raonaq-trio" },
-] as const;
-
 export default function CollectionPage() {
   const { addToCart } = useCart();
-  const [filter, setFilter] = useState<(typeof filters)[number]["id"]>("all");
-
-  const list = useMemo(() => {
-    if (filter === "all") return products;
-    const f = filters.find((x) => x.id === filter);
-    if (!f || f.id === "all" || !("match" in f)) return products;
-    return products.filter((p) => p.slug === f.match);
-  }, [filter]);
+  const list = products;
 
   return (
     <div className="min-h-screen bg-white">
@@ -50,21 +34,6 @@ export default function CollectionPage() {
       </div>
 
       <div className="container mx-auto px-4 py-10 md:py-14" dir="rtl">
-        <div className="mb-8 flex gap-2 overflow-x-auto pb-2 md:mb-12 md:flex-wrap md:justify-center">
-          {filters.map((f) => (
-            <button
-              key={f.id}
-              onClick={() => setFilter(f.id)}
-              className={`shrink-0 rounded-full px-5 py-3 text-sm font-black transition-colors ${
-                filter === f.id
-                  ? "bg-warm-black text-white shadow-[0_10px_28px_rgba(28,20,18,0.16)]"
-                  : "bg-pearl-blush text-warm-black hover:bg-champagne/30"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
           {list.map((product) => (
@@ -83,9 +52,9 @@ export default function CollectionPage() {
                     {product.price1} د.م
                   </span>
                   <img
-                    src={product.images[0]}
+                    src={product.heroImage}
                     alt={product.name}
-                    className="h-full w-full object-contain p-5 transition-transform duration-700 group-hover:scale-105"
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 </Link>
 

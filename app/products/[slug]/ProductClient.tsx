@@ -33,6 +33,7 @@ function FadeIn({
 export default function ProductClient({ product }: { product: Product }) {
   const { addToCart } = useCart();
   const [selectedImage, setSelectedImage] = useState(0);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [isSticky, setIsSticky] = useState(false);
   const ctaRef = useRef<HTMLDivElement>(null);
   const others = products.filter((p) => p.id !== product.id).slice(0, 3);
@@ -47,214 +48,360 @@ export default function ProductClient({ product }: { product: Product }) {
   }, [product.id, product.name, product.price1]);
 
   useEffect(() => {
+    setSelectedImage(0);
+    setOpenFaq(0);
+  }, [product.id]);
+
+  useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => setIsSticky(!entry.isIntersecting),
       { threshold: 0 }
     );
     if (ctaRef.current) observer.observe(ctaRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [product.id]);
 
-  const bundleOptions = [
-    {
-      label: "قطعة واحدة",
-      sub: "الخيار الأساسي",
-      price: product.price1,
-      qty: 1,
-      highlight: false,
-    },
-    {
-      label: "قطعتين",
-      sub: `وفّري ${save2} درهم — مثالية ليك ولصاحبتك`,
-      price: product.price2,
-      qty: 2,
-      highlight: true,
-    },
-  ];
+  const add = (price: number, qty: number) => {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price,
+      quantity: qty,
+      image: product.images[0],
+    });
+  };
 
   return (
-    <div className="min-h-screen bg-white">
-      <section className="container mx-auto px-4 py-10 md:py-16">
-        <div className="grid md:grid-cols-2 gap-12 items-start">
-          <div className="sticky top-24 space-y-3" dir="ltr">
-            <div className="aspect-square overflow-hidden bg-pearl-blush">
-              <img
-                src={product.images[selectedImage]}
-                alt={product.name}
-                className="w-full h-full object-contain p-4 transition-all duration-500"
-              />
-            </div>
-            <div className="grid grid-cols-4 gap-2">
-              {product.images.map((img, i) => (
-                <button
-                  key={img}
-                  onClick={() => setSelectedImage(i)}
-                  className={`aspect-square overflow-hidden border-2 transition-all ${
-                    selectedImage === i ? "border-rosewood" : "border-transparent hover:border-gray-200"
-                  }`}
-                >
-                  <img src={img} alt="" className="w-full h-full object-contain p-1" />
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="text-right space-y-6" dir="rtl">
+    <div className="min-h-screen overflow-x-hidden bg-[#F7F1EC] pb-24 md:pb-0">
+      {/* ═══ HERO — موبايل أولاً ═══ */}
+      <section className="relative bg-[#1C1412]">
+        <div className="relative aspect-[4/5] w-full overflow-hidden sm:aspect-[5/4] md:aspect-[16/9] md:max-h-[72vh]">
+          <img
+            src={product.heroImage}
+            alt={`${product.name} — نتيجة صالون فدارك`}
+            className="h-full w-full object-cover object-[center_20%]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412] via-[#1C1412]/45 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 p-4 pb-6 text-right text-white md:p-10" dir="rtl">
             {product.tag && (
-              <span className="inline-block bg-rosewood text-white text-sm font-bold px-4 py-1.5">
+              <span className="mb-3 inline-block bg-[#C45B6A] px-3 py-1 text-[11px] font-black">
                 {product.tag}
               </span>
             )}
+            <p className="text-lg font-black tracking-[0.12em] text-[#C4A484] md:text-2xl">رونق</p>
+            <h1 className="mt-1 text-3xl font-black leading-tight md:text-5xl">{product.name}</h1>
+            <p className="mt-2 max-w-md text-sm text-white/80 md:text-base">{product.tagline}</p>
+          </div>
+        </div>
+      </section>
 
+      {/* ═══ سعر + CTA أساسي ═══ */}
+      <section className="border-b border-[#1C1412]/8 bg-white" dir="rtl">
+        <div className="container mx-auto px-4 py-5">
+          <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="text-champagne font-black text-2xl mb-1">رونق</p>
-              <h1 className="text-3xl md:text-4xl font-black text-warm-black leading-tight mb-2">
-                {product.name}
-              </h1>
-              <p className="text-rosewood font-semibold text-lg">{product.tagline}</p>
-              <p className="text-sm text-gray-400 mt-1">{product.modelNote}</p>
+              <p className="text-xs font-black text-[#1C1412]/45">السعر</p>
+              <p className="text-4xl font-black text-[#C45B6A]">
+                {product.price1}
+                <span className="mr-1 text-base font-bold">د.م</span>
+              </p>
+              <p className="mt-1 text-xs font-bold text-[#1C1412]/55">خلصي عند الباب بعد ما تقلبي</p>
             </div>
+            <p className="max-w-[10rem] text-left text-[11px] font-bold leading-relaxed text-[#1C1412]/55 md:max-w-xs md:text-sm">
+              {product.promise}
+            </p>
+          </div>
 
-            <div className="space-y-3">
-              <p className="text-gray-600 leading-relaxed">{product.description}</p>
-              <p className="rounded-3xl bg-pearl-blush p-4 text-sm font-bold leading-relaxed text-warm-black/70">
-                {product.cardCopy}
+          <div ref={ctaRef} className="mt-4 space-y-2">
+            <button
+              onClick={() => add(product.price1, 1)}
+              className="flex w-full items-center justify-center bg-[#C45B6A] px-6 py-4 text-base font-black text-white transition-colors hover:bg-[#a64d5a]"
+            >
+              طلبي {product.name} — {product.price1} د.م
+            </button>
+            <button
+              onClick={() => add(product.price2, 2)}
+              className="flex w-full items-center justify-center border border-[#C4A484]/50 bg-[#F7F1EC] px-6 py-3.5 text-sm font-black text-[#1C1412] transition-colors hover:border-[#C45B6A]"
+            >
+              عرض قطعتين بـ {product.price2} د.م — وفّري {save2} درهم
+            </button>
+          </div>
+
+          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+            {[
+              ["COD", "قلبي قبل الدفع"],
+              ["مجاني", "توصيل المغرب"],
+              ["24–48h", "غالباً"],
+            ].map(([t, s]) => (
+              <div key={t} className="border border-[#1C1412]/08 bg-[#F7F1EC] px-2 py-3">
+                <p className="text-xs font-black text-[#C45B6A] md:text-sm">{t}</p>
+                <p className="mt-0.5 text-[10px] font-bold text-[#1C1412]/55">{s}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ ألم → نتيجة ═══ */}
+      <section className="container mx-auto px-4 py-10 md:py-14" dir="rtl">
+        <FadeIn>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="bg-[#1C1412] p-5 text-white md:p-7">
+              <p className="text-xs font-black tracking-[0.2em] text-[#C4A484]">قبل رونق</p>
+              <p className="mt-3 text-base font-bold leading-relaxed md:text-lg">{product.pain}</p>
+            </div>
+            <div className="border border-[#C4A484]/35 bg-white p-5 md:p-7">
+              <p className="text-xs font-black tracking-[0.2em] text-[#C45B6A]">بعد رونق</p>
+              <p className="mt-3 text-base font-bold leading-relaxed text-[#1C1412] md:text-lg">
+                {product.promise}
               </p>
             </div>
+          </div>
+        </FadeIn>
+      </section>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="bg-pearl-blush p-4">
-                <p className="text-xs font-black text-rosewood mb-1">الأحسن لـ</p>
-                <p className="text-sm font-bold text-warm-black">{product.bestFor}</p>
-              </div>
-              <div className="bg-pearl-blush p-4">
-                <p className="text-xs font-black text-rosewood mb-1">النتيجة</p>
-                <p className="text-sm font-bold text-warm-black">{product.result}</p>
-              </div>
-            </div>
+      {/* ═══ لمن؟ + النتيجة ═══ */}
+      <section className="bg-white py-10 md:py-14" dir="rtl">
+        <div className="container mx-auto px-4">
+          <FadeIn>
+            <p className="text-sm font-black tracking-[0.2em] text-[#C45B6A]">اختاري بثقة</p>
+            <h2 className="mt-2 text-3xl font-black text-[#1C1412] md:text-4xl">لمن هاد الأداة؟</h2>
+            <p className="mt-3 max-w-xl text-[#1C1412]/60">{product.cardCopy}</p>
+          </FadeIn>
 
-            <div className="bg-pearl-blush p-5">
-              <h3 className="font-black text-lg mb-4">مزايا واضحة</h3>
-              <ul className="space-y-2.5">
-                {product.features.map((f) => (
-                  <li key={f} className="flex gap-3 items-center text-gray-700 text-sm">
-                    <span className="w-5 h-5 bg-rosewood text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
-                      ✓
-                    </span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div ref={ctaRef} className="space-y-3">
-              <h3 className="font-black text-xl text-warm-black">اختاري عرضك</h3>
-              {bundleOptions.map((opt) => (
-                <button
-                  key={opt.label}
-                  onClick={() =>
-                    addToCart({
-                      id: product.id,
-                      name: product.name,
-                      price: opt.price,
-                      quantity: opt.qty,
-                      image: product.images[0],
-                    })
-                  }
-                  className={`w-full rounded-3xl text-right p-5 border-2 transition-colors ${
-                    opt.highlight
-                      ? "border-rosewood bg-rosewood text-white hover:bg-rosewood-deep"
-                      : "border-champagne/40 hover:border-rosewood hover:bg-pearl-blush"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className={`font-black text-lg ${opt.highlight ? "text-white" : "text-warm-black"}`}>
-                        {opt.label}
-                        {opt.highlight ? " — الأكثر طلباً" : ""}
-                      </p>
-                      <p className={`text-xs mt-0.5 ${opt.highlight ? "text-white/75" : "text-gray-400"}`}>
-                        {opt.sub}
-                      </p>
-                    </div>
-                    <span className={`font-black text-2xl ${opt.highlight ? "text-white" : "text-rosewood"}`}>
-                      {opt.price} <span className="text-sm font-medium">د.م</span>
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-3 gap-3 pt-2 border-t border-gray-100">
-              {[
-                ["خلصي عند الباب", "بعد ما تقلبي"],
-                ["توصيل مجاني", "لكل المغرب"],
-                ["24–48 ساعة", "غالباً"],
-              ].map(([title, sub]) => (
-                <div key={title} className="text-center py-3 bg-gray-50">
-                  <p className="text-xs font-black text-warm-black">{title}</p>
-                  <p className="text-[11px] text-gray-500 mt-0.5">{sub}</p>
+          <div className="mt-6 space-y-2">
+            {product.forWho.map((item, i) => (
+              <FadeIn key={item} delay={i * 60}>
+                <div className="flex items-start gap-3 border border-[#1C1412]/08 bg-[#F7F1EC] px-4 py-3.5">
+                  <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[#C45B6A]" />
+                  <p className="text-sm font-bold text-[#1C1412] md:text-base">{item}</p>
                 </div>
-              ))}
+              </FadeIn>
+            ))}
+          </div>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <div className="bg-[#F7F1EC] p-4">
+              <p className="text-xs font-black text-[#C45B6A]">الأحسن لـ</p>
+              <p className="mt-1 text-sm font-black text-[#1C1412] md:text-base">{product.bestFor}</p>
+            </div>
+            <div className="bg-[#F7F1EC] p-4">
+              <p className="text-xs font-black text-[#C45B6A]">النتيجة</p>
+              <p className="mt-1 text-sm font-black text-[#1C1412] md:text-base">{product.result}</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="bg-pearl-blush py-20">
-        <div className="container mx-auto px-4 grid md:grid-cols-2 gap-12" dir="rtl">
+      {/* ═══ معرض صور ═══ */}
+      <section className="border-y border-[#1C1412]/8 bg-[#F7F1EC] py-10 md:py-14" dir="rtl">
+        <div className="container mx-auto px-4">
           <FadeIn>
-            <h2 className="text-3xl font-black text-warm-black mb-6">كيفاش تستعمليها؟</h2>
-            <ol className="space-y-4">
+            <p className="text-sm font-black tracking-[0.2em] text-[#C45B6A]">شوفي</p>
+            <h2 className="mt-2 text-3xl font-black text-[#1C1412]">الشكل والنتيجة</h2>
+          </FadeIn>
+
+          <div className="mt-5 overflow-hidden bg-white">
+            <div className="aspect-[4/5] sm:aspect-[5/4] md:aspect-[16/10]">
+              <img
+                src={product.images[selectedImage]}
+                alt={product.name}
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </div>
+
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-1" dir="ltr">
+            {product.images.map((img, i) => (
+              <button
+                key={img}
+                onClick={() => setSelectedImage(i)}
+                className={`h-16 w-16 shrink-0 overflow-hidden border-2 transition-colors md:h-20 md:w-20 ${
+                  selectedImage === i ? "border-[#C45B6A]" : "border-transparent"
+                }`}
+              >
+                <img src={img} alt="" className="h-full w-full object-cover" />
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ مزايا تبيع ═══ */}
+      <section className="bg-white py-10 md:py-14" dir="rtl">
+        <div className="container mx-auto px-4">
+          <FadeIn>
+            <p className="text-sm font-black tracking-[0.2em] text-[#C45B6A]">علاش هادي؟</p>
+            <h2 className="mt-2 text-3xl font-black text-[#1C1412]">مزايا كتبان فالنتيجة</h2>
+            <p className="mt-3 max-w-xl text-[#1C1412]/60">{product.description}</p>
+          </FadeIn>
+
+          <ul className="mt-6 space-y-3">
+            {product.features.map((f, i) => (
+              <FadeIn key={f} delay={i * 50}>
+                <li className="flex items-start gap-3 border-b border-[#1C1412]/08 pb-3">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center bg-[#C45B6A] text-xs font-black text-white">
+                    ✓
+                  </span>
+                  <span className="text-sm font-bold text-[#1C1412] md:text-base">{f}</span>
+                </li>
+              </FadeIn>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* ═══ كيفاش تستعملي + شنو فالصندوق ═══ */}
+      <section className="bg-[#F7F1EC] py-10 md:py-14" dir="rtl">
+        <div className="container mx-auto grid gap-10 px-4 md:grid-cols-2">
+          <FadeIn>
+            <h2 className="text-3xl font-black text-[#1C1412]">كيفاش تستعمليها؟</h2>
+            <ol className="mt-5 space-y-4">
               {product.howTo.map((step, i) => (
-                <li key={step} className="flex gap-4 items-start">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-rosewood text-white font-black text-sm">
+                <li key={step} className="flex gap-3">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-[#C45B6A] text-sm font-black text-white">
                     {i + 1}
                   </span>
-                  <p className="text-gray-700 pt-1">{step}</p>
+                  <p className="pt-1 text-sm font-medium text-[#1C1412]/80 md:text-base">{step}</p>
                 </li>
               ))}
             </ol>
           </FadeIn>
-          <FadeIn delay={120}>
-            <h2 className="text-3xl font-black text-warm-black mb-6">شنو فالصندوق؟</h2>
-            <ul className="space-y-3 mb-10">
+
+          <FadeIn delay={100}>
+            <h2 className="text-3xl font-black text-[#1C1412]">شنو فالصندوق؟</h2>
+            <ul className="mt-5 space-y-2">
               {product.inBox.map((item) => (
-                <li key={item} className="flex gap-3 items-center bg-white p-4 border border-champagne/20">
-                  <span className="text-rosewood font-black">·</span>
-                  <span className="font-bold text-warm-black">{item}</span>
+                <li
+                  key={item}
+                  className="flex items-center gap-3 border border-[#C4A484]/25 bg-white px-4 py-3"
+                >
+                  <span className="text-[#C45B6A] font-black">·</span>
+                  <span className="text-sm font-bold text-[#1C1412]">{item}</span>
                 </li>
               ))}
             </ul>
-            <div className="bg-white p-6 border border-champagne/20">
-              <p className="text-sm font-black text-rosewood mb-2">وعد رونق</p>
-              <p className="text-gray-600 leading-relaxed">
-                نتيجة احترافية مع حماية للشعر — كيوصلك الطلب، تقلبيه قدام الليفور، وعاد تخلصي. ما
-                كاين حتى دفع مسبق.
+            <p className="mt-4 text-xs font-bold text-[#1C1412]/45">{product.modelNote}</p>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* ═══ شهادة ═══ */}
+      <section className="bg-white py-10 md:py-14" dir="rtl">
+        <div className="container mx-auto px-4">
+          <FadeIn>
+            <div className="border border-[#C4A484]/30 bg-[#F7F1EC] p-6 md:p-8">
+              <p className="text-sm font-black tracking-[0.2em] text-[#C45B6A]">تجربة حقيقية</p>
+              <p className="mt-4 text-lg font-bold leading-relaxed text-[#1C1412] md:text-xl">
+                «{product.voice.text}»
+              </p>
+              <p className="mt-4 text-sm font-black text-[#1C1412]">
+                {product.voice.name}
+                <span className="mx-2 text-[#1C1412]/35">·</span>
+                <span className="font-bold text-[#1C1412]/55">{product.voice.city}</span>
               </p>
             </div>
           </FadeIn>
         </div>
       </section>
 
+      {/* ═══ عروض ═══ */}
+      <section className="border-y border-[#1C1412]/8 bg-[#1C1412] py-10 text-white md:py-14" dir="rtl">
+        <div className="container mx-auto px-4">
+          <FadeIn>
+            <p className="text-sm font-black tracking-[0.2em] text-[#C4A484]">اختاري عرضك</p>
+            <h2 className="mt-2 text-3xl font-black md:text-4xl">{product.name}</h2>
+          </FadeIn>
+
+          <div className="mt-6 space-y-3">
+            <button
+              onClick={() => add(product.price1, 1)}
+              className="flex w-full items-center justify-between border border-white/20 bg-white/5 px-5 py-5 text-right transition-colors hover:bg-white/10"
+            >
+              <div>
+                <p className="text-lg font-black">قطعة واحدة</p>
+                <p className="mt-1 text-xs text-white/60">الخيار الأساسي · خلصي عند الباب</p>
+              </div>
+              <p className="text-2xl font-black text-[#C4A484]">
+                {product.price1}
+                <span className="mr-1 text-sm">د.م</span>
+              </p>
+            </button>
+
+            <button
+              onClick={() => add(product.price2, 2)}
+              className="flex w-full items-center justify-between bg-[#C45B6A] px-5 py-5 text-right transition-colors hover:bg-[#a64d5a]"
+            >
+              <div>
+                <p className="text-lg font-black">قطعتين — الأكثر طلباً</p>
+                <p className="mt-1 text-xs text-white/80">
+                  وفّري {save2} درهم · مثالية ليك ولصاحبتك
+                </p>
+              </div>
+              <p className="text-2xl font-black">
+                {product.price2}
+                <span className="mr-1 text-sm">د.م</span>
+              </p>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ أسئلة ═══ */}
+      <section className="bg-white py-10 md:py-14" dir="rtl">
+        <div className="container mx-auto px-4">
+          <FadeIn>
+            <p className="text-sm font-black tracking-[0.2em] text-[#C45B6A]">قبل ما تطلبي</p>
+            <h2 className="mt-2 text-3xl font-black text-[#1C1412]">أسئلة كتتردد</h2>
+          </FadeIn>
+
+          <div className="mt-6 space-y-2">
+            {product.faqs.map((faq, i) => {
+              const open = openFaq === i;
+              return (
+                <div key={faq.q} className="border border-[#1C1412]/10">
+                  <button
+                    onClick={() => setOpenFaq(open ? null : i)}
+                    className="flex w-full items-center justify-between gap-4 px-4 py-4 text-right"
+                  >
+                    <span className="text-sm font-black text-[#1C1412] md:text-base">{faq.q}</span>
+                    <span className="text-lg font-black text-[#C45B6A]">{open ? "−" : "+"}</span>
+                  </button>
+                  {open && (
+                    <p className="border-t border-[#1C1412]/08 px-4 py-4 text-sm leading-relaxed text-[#1C1412]/70">
+                      {faq.a}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ أدوات أخرى ═══ */}
       {others.length > 0 && (
-        <section className="py-20 bg-white">
-          <div className="container mx-auto px-4" dir="rtl">
-            <h2 className="text-3xl font-black text-warm-black mb-8 text-center">أدوات أخرى من رونق</h2>
-            <div className="grid sm:grid-cols-3 gap-6">
+        <section className="bg-[#F7F1EC] py-10 md:py-14" dir="rtl">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-black text-[#1C1412]">أدوات أخرى من رونق</h2>
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
               {others.map((p) => (
                 <Link
                   key={p.id}
                   href={`/products/${p.slug}`}
-                  className="group border border-champagne/20 hover:border-rosewood transition-colors"
+                  className="group overflow-hidden border border-[#1C1412]/08 bg-white transition-colors hover:border-[#C45B6A]"
                 >
-                  <div className="aspect-square bg-pearl-blush">
-                    <img src={p.images[0]} alt={p.name} className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" />
+                  <div className="aspect-[4/3] overflow-hidden bg-[#F7F1EC]">
+                    <img
+                      src={p.heroImage}
+                      alt={p.name}
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
                   </div>
-                  <div className="p-4 text-right">
-                    <p className="font-black text-warm-black">{p.name}</p>
-                    <p className="text-sm text-gray-500 mt-1">{p.tagline}</p>
-                    <p className="text-rosewood font-black mt-2">{p.price1} د.م</p>
+                  <div className="p-4">
+                    <p className="font-black text-[#1C1412]">{p.name}</p>
+                    <p className="mt-1 text-xs font-bold text-[#1C1412]/50">{p.tagline}</p>
+                    <p className="mt-2 font-black text-[#C45B6A]">{p.price1} د.م</p>
                   </div>
                 </Link>
               ))}
@@ -263,50 +410,39 @@ export default function ProductClient({ product }: { product: Product }) {
         </section>
       )}
 
-      <section className="py-16 bg-warm-black text-white text-center" dir="rtl">
+      {/* ═══ ختام ═══ */}
+      <section className="bg-[#1C1412] py-12 text-center text-white" dir="rtl">
         <div className="container mx-auto px-4">
-          <p className="text-champagne text-xl font-black mb-2">رونق</p>
-          <h2 className="text-3xl font-black mb-3">{product.name}</h2>
-          <p className="text-gray-400 mb-8">
-            نتيجة صالون فدارك · حماية للشعر · خلصي عند الباب
+          <p className="text-xl font-black text-[#C4A484]">رونق</p>
+          <h2 className="mt-2 text-3xl font-black">{product.name}</h2>
+          <p className="mx-auto mt-3 max-w-md text-sm text-white/65">
+            نتيجة صالون فدارك · حماية للشعر · خلصي عند الباب بعد ما تقلبي
           </p>
           <button
-            onClick={() =>
-              addToCart({
-                id: product.id,
-                name: product.name,
-                price: product.price1,
-                quantity: 1,
-                image: product.images[0],
-              })
-            }
-            className="bg-rosewood text-white px-12 py-5 rounded-2xl font-black text-xl hover:bg-rosewood-deep transition-colors"
+            onClick={() => add(product.price1, 1)}
+            className="mt-6 bg-[#C45B6A] px-10 py-4 text-base font-black transition-colors hover:bg-[#a64d5a]"
           >
             أضيفي للسلة — {product.price1} د.م
           </button>
         </div>
       </section>
 
+      {/* ═══ Sticky CTA موبايل ═══ */}
       {isSticky && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 p-3 bg-white border-t border-gray-200 md:hidden pb-[max(0.75rem,env(safe-area-inset-bottom))]" dir="rtl">
-          <div className="flex gap-3 items-center">
+        <div
+          className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#1C1412]/10 bg-white/95 p-3 backdrop-blur md:hidden pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+          dir="rtl"
+        >
+          <div className="flex items-center gap-3">
             <button
-              onClick={() =>
-                addToCart({
-                  id: product.id,
-                  name: product.name,
-                  price: product.price1,
-                  quantity: 1,
-                  image: product.images[0],
-                })
-              }
-              className="flex-1 bg-rosewood text-white py-3.5 rounded-xl font-black text-base hover:bg-rosewood-deep transition-colors"
+              onClick={() => add(product.price1, 1)}
+              className="flex-1 bg-[#C45B6A] py-3.5 text-base font-black text-white"
             >
               اطلبي — {product.price1} د.م
             </button>
-            <div className="text-right text-xs text-gray-500 leading-tight">
-              <p className="font-bold text-warm-black">توصيل مجاني</p>
-              <p>خلصي عند الباب</p>
+            <div className="text-right text-[11px] leading-tight text-[#1C1412]/55">
+              <p className="font-black text-[#1C1412]">توصيل مجاني</p>
+              <p>قلبي قبل الدفع</p>
             </div>
           </div>
         </div>

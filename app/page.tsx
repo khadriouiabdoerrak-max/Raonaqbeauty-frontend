@@ -284,41 +284,6 @@ export default function Home() {
                   ))}
                 </ul>
 
-                <div className="mt-8 max-w-md rounded-[28px] border border-[#C4A484]/35 bg-white p-4 shadow-[0_18px_55px_rgba(28,20,18,0.08)]">
-                  <div className="flex items-end justify-between gap-4">
-                    <div>
-                      <p className="text-xs font-black text-[#1C1412]/45">السعر</p>
-                      <p className="text-4xl font-black text-[#C45B6A]">
-                        {featured.price1}
-                        <span className="mr-1 text-lg font-bold">د.م</span>
-                      </p>
-                    </div>
-                    <p className="rounded-full bg-[#F7F1EC] px-3 py-1.5 text-[11px] font-black text-[#1C1412]/65">
-                      خلصي عند الاستلام
-                    </p>
-                  </div>
-
-                  <div className="mt-4 space-y-2">
-                    <button
-                      onClick={() =>
-                        addOne(featured.id, featured.name, featured.price1, featured.images[0])
-                      }
-                      className="flex w-full items-center justify-center rounded-full bg-[#C45B6A] px-6 py-4 text-base font-black text-white shadow-[0_14px_34px_rgba(196,91,106,0.24)] transition-colors hover:bg-[#a64d5a]"
-                    >
-                      طلبي رونق تريو دابا
-                    </button>
-                    <Link
-                      href={`/products/${featured.slug}`}
-                      className="flex w-full items-center justify-center rounded-full border border-[#1C1412]/12 px-6 py-3 text-sm font-black text-[#1C1412] transition-colors hover:border-[#C45B6A] hover:bg-[#F7F1EC]"
-                    >
-                      شوفي التفاصيل والصور
-                    </Link>
-                  </div>
-
-                  <p className="mt-3 text-center text-xs font-bold text-[#1C1412]/50">
-                    عرض قطعتين بـ {featured.price2} د.م — كتوفري {featured.price1 * 2 - featured.price2} درهم
-                  </p>
-                </div>
               </div>
             </FadeIn>
           </div>
@@ -428,9 +393,9 @@ export default function Home() {
                         {product.price1} د.م
                       </span>
                       <img
-                        src={product.images[0]}
+                        src={product.heroImage}
                         alt={product.name}
-                        className="h-full w-full object-contain p-5 transition-transform duration-700 group-hover:scale-105"
+                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
                     </div>
 

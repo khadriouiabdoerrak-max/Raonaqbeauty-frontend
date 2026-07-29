@@ -11,11 +11,13 @@ export default function AboutPage() {
           className="absolute inset-0 w-full h-full object-cover object-[center_25%] opacity-45"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412] via-[#1C1412]/70 to-[#1C1412]/40" />
-        <div className="relative container mx-auto px-4 py-24 md:py-32 text-center max-w-2xl">
-          <p className="text-[#C4A484] text-3xl font-black mb-4">رونق</p>
-          <h1 className="text-4xl md:text-5xl font-black mb-4">من نحن</h1>
-          <p className="text-white/75 text-lg leading-relaxed">
-            أدوات رونق — نتيجة صالون في المنزل. نتيجة احترافية مع حماية الشعر، وثقة من أول طلب.
+        <div className="relative container mx-auto max-w-3xl px-4 py-24 text-right md:py-32">
+          <p className="mb-4 text-sm font-black tracking-[0.28em] text-[#C4A484]">رونق · Raonaq</p>
+          <h1 className="mb-5 text-4xl font-black leading-tight md:text-6xl">
+            براند مغربي لنتيجة صالون فدارك
+          </h1>
+          <p className="max-w-2xl text-lg leading-relaxed text-white/78">
+            رونق ماشي كتالوج عشوائي. كنختارو أدوات قليلة وواضحة، كل وحدة عندها دور: حجم، نعومة، لمعان، وحماية للشعر — باش تديري نتيجة مرتبة فدارك وبثقة.
           </p>
         </div>
       </div>
@@ -29,38 +31,45 @@ export default function AboutPage() {
           />
         </div>
         <div className="space-y-6">
-          <h2 className="text-3xl font-black text-warm-black">الهوية</h2>
+          <p className="text-sm font-black tracking-[0.24em] text-rosewood">علاش بدات رونق؟</p>
+          <h2 className="text-3xl font-black leading-tight text-warm-black md:text-4xl">
+            لأن الزبونة المغربية خاصها نتيجة زوينة بلا مخاطرة
+          </h2>
           <p className="text-gray-600 leading-relaxed text-lg">
-            رونق براند مغربي لأدوات تصفيف تحمي الشعر وتعطي نتيجة احترافية: حجم، نعومة، ولمعان —
-            بلا ما تحتاجي موعد ولا زيارة صالون.
+            بزاف ديال البنات كيبغيو شعر مرتب بحال الصالون، ولكن بلا موعد، بلا تنقل، وبلا ما يشريو أدوات كثيرة ما معروفاش. رونق جا باش يبسط الاختيار: أدوات مختارة، وعد واضح، وتجربة شراء فيها الثقة.
           </p>
           <p className="text-gray-600 leading-relaxed text-lg">
-            كنختارو كل أداة بعناية، وكنخليو الطلب يوصل حتى للدار — تفتحي، تقلبي، وعاد تخلصي. هاد
-            الوعد هو أساس الثقة ديالنا.
+            كنخليو الطلب يوصل حتى للدار — تفتحي، تقلبي، وتشوفي السلعة بيدك، عاد تخلصي. الثقة عندنا ماشي جملة فالإعلان، هي جزء من طريقة البيع.
           </p>
-          <p className="text-gray-600 leading-relaxed text-lg">{SITE.positioning}</p>
+          <div className="border-r-4 border-rosewood bg-pearl-blush p-5 text-warm-black">
+            <p className="font-black">وعد رونق:</p>
+            <p className="mt-2 leading-relaxed text-warm-black/70">{SITE.positioning}</p>
+          </div>
         </div>
       </section>
 
       <section className="bg-pearl-blush py-20">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-black text-center text-warm-black mb-14">علاش رونق؟</h2>
+          <div className="mx-auto mb-14 max-w-2xl text-center">
+            <p className="text-sm font-black tracking-[0.24em] text-rosewood">الثقة قبل البيع</p>
+            <h2 className="mt-3 text-3xl font-black text-warm-black md:text-4xl">علاش رونق كتقدر تكون اختيارك الأول؟</h2>
+          </div>
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
               {
-                title: "نتيجة احترافية",
-                desc: "حجم، نعومة، ولمعان كيبانو — بنفس الإحساس اللي كتقلّبي عليه من الصالون، فدارك.",
+                title: "اختيار قليل وواضح",
+                desc: "ما كنغرقوكش بمنتجات كثيرة. كل أداة عندها نتيجة مفهومة: حجم، نعومة، ترتيب، أو طقم كامل.",
               },
               {
-                title: "حماية للشعر",
-                desc: "ماشي غير تصفيف. كنختارو أدوات كتخدم بذكاء مع الشعر المغربي وبلا ما تضعّفو.",
+                title: "نتيجة كتبيع راسها",
+                desc: "الهدف ماشي غير تسخين الشعر؛ الهدف شعر يبان مرتب، لامع، وحاضر من أول استعمال.",
               },
               {
-                title: "ثقة بلا لف",
-                desc: "الدفع عند الاستلام مش خيار ثانوي — هو وعد: ما تخلصي حتى تشوفي السلعة.",
+                title: "شراء بلا خوف",
+                desc: "توصيل للدار، تفقدي السلعة، عاد خلصي. هادي هي الثقة اللي كتخلي أول طلب ساهل.",
               },
             ].map((v) => (
-              <div key={v.title} className="bg-white p-8 text-right border border-champagne/20">
+              <div key={v.title} className="bg-white p-8 text-right border border-champagne/20 shadow-[0_18px_50px_rgba(28,20,18,0.06)]">
                 <h3 className="font-black text-xl mb-3 text-warm-black">{v.title}</h3>
                 <p className="text-gray-600 leading-relaxed">{v.desc}</p>
               </div>
@@ -71,10 +80,13 @@ export default function AboutPage() {
 
       <section className="py-16 text-center container mx-auto px-4">
         <p className="text-champagne text-xl font-black mb-2">رونق</p>
-        <h2 className="text-2xl font-black text-warm-black mb-6">جرّبي الفرق بنفسك</h2>
+        <h2 className="text-2xl font-black text-warm-black mb-3">بداي بالأداة اللي كتشبه شعرك</h2>
+        <p className="mx-auto mb-7 max-w-md text-warm-black/60">
+          شوفي المجموعة، اختاري النتيجة اللي بغيتي، والطلب كيوصل حتى للدار.
+        </p>
         <Link
           href="/collection"
-          className="inline-block bg-rosewood text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-rosewood-deep transition-colors"
+          className="inline-block rounded-full bg-rosewood text-white px-10 py-4 font-black text-lg shadow-[0_14px_36px_rgba(196,91,106,0.28)] hover:bg-rosewood-deep transition-colors"
         >
           شوفي المجموعة
         </Link>

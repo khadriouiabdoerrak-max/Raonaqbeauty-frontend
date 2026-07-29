@@ -421,24 +421,27 @@ export default function Home() {
                     </div>
                   </Link>
 
-                  <div className="grid grid-cols-2 border-t border-[#1C1412]/8" dir="rtl">
+                  <div className="space-y-2 px-5 pb-5 pt-1" dir="rtl">
                     <button
                       onClick={() =>
                         addOne(product.id, product.name, product.price1, product.images[0], 1)
                       }
-                      className="px-3 py-4 text-right transition-colors hover:bg-[#F7F1EC]"
+                      className="flex w-full items-center justify-between rounded-full border border-[#1C1412]/12 bg-white px-5 py-3 text-right transition-colors hover:border-[#C45B6A] hover:bg-[#F7F1EC]"
                     >
-                      <span className="block text-[11px] font-bold text-[#1C1412]/45">قطعة واحدة</span>
-                      <span className="block text-lg font-black text-[#C45B6A]">{product.price1} د.م</span>
+                      <span className="text-sm font-black text-[#1C1412]">طلبي قطعة</span>
+                      <span className="text-lg font-black text-[#C45B6A]">{product.price1} د.م</span>
                     </button>
                     <button
                       onClick={() =>
                         addOne(product.id, product.name, product.price2, product.images[0], 2)
                       }
-                      className="bg-[#1C1412] px-3 py-4 text-right text-white transition-colors hover:bg-[#C45B6A]"
+                      className="flex w-full items-center justify-between rounded-full bg-[#1C1412] px-5 py-3 text-right text-white shadow-[0_12px_30px_rgba(28,20,18,0.18)] transition-colors hover:bg-[#C45B6A]"
                     >
-                      <span className="block text-[11px] font-bold text-white/65">عرض قطعتين</span>
-                      <span className="block text-lg font-black">{product.price2} د.م</span>
+                      <span>
+                        <span className="block text-sm font-black">عرض قطعتين</span>
+                        <span className="block text-[10px] font-bold text-white/65">وفري 119 درهم</span>
+                      </span>
+                      <span className="text-lg font-black">{product.price2} د.م</span>
                     </button>
                   </div>
                 </article>

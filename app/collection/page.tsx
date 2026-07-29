@@ -95,7 +95,7 @@ export default function CollectionPage() {
                     <Link href={`/products/${product.slug}`} className="block">
                       <h2 className="text-2xl font-black leading-snug text-warm-black">{product.name}</h2>
                       <p className="mt-2 text-base font-black text-warm-black/80">{product.tagline}</p>
-                      <p className="mt-3 text-sm leading-relaxed text-warm-black/60">{product.result}</p>
+                      <p className="mt-3 text-sm leading-relaxed text-warm-black/60">{product.cardCopy}</p>
                     </Link>
                     <ul className="mt-5 space-y-2">
                       {product.features.slice(0, 3).map((feature) => (

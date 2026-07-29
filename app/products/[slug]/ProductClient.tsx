@@ -115,7 +115,12 @@ export default function ProductClient({ product }: { product: Product }) {
               <p className="text-sm text-gray-400 mt-1">{product.modelNote}</p>
             </div>
 
-            <p className="text-gray-600 leading-relaxed">{product.description}</p>
+            <div className="space-y-3">
+              <p className="text-gray-600 leading-relaxed">{product.description}</p>
+              <p className="rounded-3xl bg-pearl-blush p-4 text-sm font-bold leading-relaxed text-warm-black/70">
+                {product.cardCopy}
+              </p>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="bg-pearl-blush p-4">
@@ -156,7 +161,7 @@ export default function ProductClient({ product }: { product: Product }) {
                       image: product.images[0],
                     })
                   }
-                  className={`w-full text-right p-5 border-2 transition-colors ${
+                  className={`w-full rounded-3xl text-right p-5 border-2 transition-colors ${
                     opt.highlight
                       ? "border-rosewood bg-rosewood text-white hover:bg-rosewood-deep"
                       : "border-champagne/40 hover:border-rosewood hover:bg-pearl-blush"

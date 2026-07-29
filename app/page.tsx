@@ -378,58 +378,68 @@ export default function Home() {
             </div>
           </FadeIn>
 
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
             {products.map((product, i) => (
               <FadeIn key={product.id} delay={i * 90}>
-                <article className="flex h-full flex-col bg-white">
+                <article className="group flex h-full flex-col overflow-hidden border border-[#C4A484]/25 bg-white shadow-[0_18px_55px_rgba(28,20,18,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(28,20,18,0.12)]">
                   <Link
                     href={`/products/${product.slug}`}
-                    className="relative block aspect-[4/5] overflow-hidden bg-[#F7F1EC]"
+                    className="block flex-1"
                   >
-                    {product.tag && (
-                      <span className="absolute right-0 top-0 z-10 bg-[#1C1412] px-3 py-1.5 text-[11px] font-black text-white">
-                        {product.tag}
+                    <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-b from-[#F7F1EC] to-white">
+                      {product.tag && (
+                        <span className="absolute right-3 top-3 z-10 bg-[#1C1412] px-3 py-1.5 text-[10px] font-black text-white shadow-lg">
+                          {product.tag}
+                        </span>
+                      )}
+                      <span className="absolute bottom-3 left-3 z-10 bg-white/90 px-3 py-1.5 text-xs font-black text-[#C45B6A] shadow-lg backdrop-blur">
+                        {product.price1} د.م
                       </span>
-                    )}
-                    <img
-                      src={product.images[0]}
-                      alt={product.name}
-                      className="h-full w-full object-contain p-5 transition-transform duration-700 hover:scale-105"
-                    />
+                      <img
+                        src={product.images[0]}
+                        alt={product.name}
+                        className="h-full w-full object-contain p-5 transition-transform duration-700 group-hover:scale-105"
+                      />
+                    </div>
+
+                    <div className="p-5 text-right" dir="rtl">
+                      <p className="text-[11px] font-black tracking-wide text-[#C45B6A]">
+                        {product.bestFor}
+                      </p>
+                      <h3 className="mt-1 text-2xl font-black leading-tight text-[#1C1412]">
+                        {product.name}
+                      </h3>
+                      <p className="mt-2 text-sm font-black text-[#1C1412]/80">
+                        {product.tagline}
+                      </p>
+                      <p className="mt-3 min-h-[44px] text-sm leading-relaxed text-[#1C1412]/58">
+                        {product.result}
+                      </p>
+                      <p className="mt-4 text-xs font-black text-[#C45B6A]">
+                        اضغطي على الكارت وشوفي التفاصيل
+                      </p>
+                    </div>
                   </Link>
 
-                  <div className="flex flex-1 flex-col p-5 text-right" dir="rtl">
-                    <p className="text-[11px] font-bold text-[#C45B6A]">{product.bestFor}</p>
-                    <h3 className="mt-1 text-xl font-black text-[#1C1412]">{product.name}</h3>
-                    <p className="mt-1 text-sm text-[#1C1412]/55">{product.tagline}</p>
-                    <p className="mt-3 text-sm font-medium text-[#1C1412]/70">{product.result}</p>
-
-                    <div className="mt-auto space-y-2 pt-6">
-                      <button
-                        onClick={() =>
-                          addOne(product.id, product.name, product.price1, product.images[0], 1)
-                        }
-                        className="flex w-full items-center justify-between border border-[#1C1412]/12 px-4 py-3 text-sm font-bold transition-colors hover:border-[#C45B6A]"
-                      >
-                        <span className="text-[#1C1412]/55">قطعة واحدة</span>
-                        <span className="text-lg text-[#C45B6A]">{product.price1} د.م</span>
-                      </button>
-                      <button
-                        onClick={() =>
-                          addOne(product.id, product.name, product.price2, product.images[0], 2)
-                        }
-                        className="flex w-full items-center justify-between bg-[#1C1412] px-4 py-3 text-sm font-black text-white transition-colors hover:bg-[#C45B6A]"
-                      >
-                        <span>عرض قطعتين</span>
-                        <span className="text-lg">{product.price2} د.م</span>
-                      </button>
-                      <Link
-                        href={`/products/${product.slug}`}
-                        className="block pt-1 text-center text-sm font-bold text-[#C45B6A] hover:text-[#1C1412]"
-                      >
-                        شوفي التفاصيل
-                      </Link>
-                    </div>
+                  <div className="grid grid-cols-2 border-t border-[#1C1412]/8" dir="rtl">
+                    <button
+                      onClick={() =>
+                        addOne(product.id, product.name, product.price1, product.images[0], 1)
+                      }
+                      className="px-3 py-4 text-right transition-colors hover:bg-[#F7F1EC]"
+                    >
+                      <span className="block text-[11px] font-bold text-[#1C1412]/45">قطعة واحدة</span>
+                      <span className="block text-lg font-black text-[#C45B6A]">{product.price1} د.م</span>
+                    </button>
+                    <button
+                      onClick={() =>
+                        addOne(product.id, product.name, product.price2, product.images[0], 2)
+                      }
+                      className="bg-[#1C1412] px-3 py-4 text-right text-white transition-colors hover:bg-[#C45B6A]"
+                    >
+                      <span className="block text-[11px] font-bold text-white/65">عرض قطعتين</span>
+                      <span className="block text-lg font-black">{product.price2} د.م</span>
+                    </button>
                   </div>
                 </article>
               </FadeIn>

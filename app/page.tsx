@@ -401,49 +401,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════ UGC / لحظات رونق ══════════ */}
-      <section className="py-24 bg-[#1C1412] text-white overflow-hidden">
-        <div className="container mx-auto px-4">
-          <FadeIn>
-            <div className="text-center mb-14" dir="rtl">
-              <span className="text-sm font-bold tracking-widest text-[#C4A484] uppercase">من الدار للصالون</span>
-              <h2 className="text-4xl md:text-5xl font-black mt-3 mb-4">لحظات رونق</h2>
-              <p className="text-white/60 text-lg max-w-xl mx-auto">
-                نتائج حقيقية من أدوات مختارة — غادي نزيدو فيديوهات الزبونات هنا كل أسبوع
-              </p>
-            </div>
-          </FadeIn>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4" dir="rtl">
-            {[
-              { src: "/images/raonaq-trio.png", label: "TRIO", city: "كازا" },
-              { src: "/images/raonaq-air-soft.png", label: "AIR Soft", city: "طنجة" },
-              { src: "/images/raonaq-air-pink.png", label: "AIR Pink", city: "مراكش" },
-              { src: "/images/raonaq-volume.png", label: "VOLUME", city: "فاس" },
-              { src: "/images/raonaq-salon-results.png", label: "النتيجة", city: "الرباط" },
-              { src: "/images/raonaq-hero-hair-styling.png", label: "تصفيف", city: "أكادير" },
-              { src: "/images/raonaq-trio-tools.png", label: "الأدوات", city: "وجدة" },
-              { src: "/images/raonaq-air-soft-tool.png", label: "كيراتين", city: "تمارة" },
-            ].map((shot, i) => (
-              <FadeIn key={shot.src + shot.city} delay={(i % 4) * 80}>
-                <div className={`relative overflow-hidden rounded-2xl bg-white/5 ${i === 4 || i === 5 ? "md:col-span-1 aspect-[3/4]" : "aspect-[3/4]"}`}>
-                  <img
-                    src={shot.src}
-                    alt={`${shot.label} — رونق`}
-                    className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                  <div className="absolute bottom-3 right-3 left-3 flex items-end justify-between text-sm">
-                    <span className="font-black">{shot.label}</span>
-                    <span className="text-white/70 text-xs">{shot.city}</span>
-                  </div>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ══════════ SOCIAL PROOF ══════════ */}
       <section className="py-24 bg-[#F7F1EC]">
         <div className="container mx-auto px-4">

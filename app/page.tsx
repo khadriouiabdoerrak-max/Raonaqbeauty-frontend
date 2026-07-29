@@ -411,7 +411,7 @@ export default function Home() {
                         }
                         className="flex w-full items-center justify-between border border-[#1C1412]/12 px-4 py-3 text-sm font-bold transition-colors hover:border-[#C45B6A]"
                       >
-                        <span className="text-[#1C1412]/55">قطعة</span>
+                        <span className="text-[#1C1412]/55">قطعة واحدة</span>
                         <span className="text-lg text-[#C45B6A]">{product.price1} د.م</span>
                       </button>
                       <button
@@ -420,7 +420,7 @@ export default function Home() {
                         }
                         className="flex w-full items-center justify-between bg-[#1C1412] px-4 py-3 text-sm font-black text-white transition-colors hover:bg-[#C45B6A]"
                       >
-                        <span>قطعتين</span>
+                        <span>عرض قطعتين</span>
                         <span className="text-lg">{product.price2} د.م</span>
                       </button>
                       <Link

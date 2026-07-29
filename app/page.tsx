@@ -198,16 +198,16 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="fixed inset-x-3 bottom-3 z-40 border border-[#C4A484]/30 bg-[#1C1412]/95 p-2 shadow-2xl backdrop-blur-xl md:hidden" dir="rtl">
+      <div className="fixed bottom-4 right-4 z-40 w-[min(78vw,300px)] rounded-full bg-[#1C1412]/95 p-1.5 shadow-[0_16px_42px_rgba(28,20,18,0.28)] backdrop-blur-xl md:hidden" dir="rtl">
         <button
           onClick={() => addOne(featured.id, featured.name, featured.price1, featured.images[0])}
-          className="flex w-full items-center justify-between bg-[#C45B6A] px-4 py-3 text-white"
+          className="flex w-full items-center justify-between rounded-full bg-[#C45B6A] px-4 py-2.5 text-white"
         >
           <span className="text-right">
-            <span className="block text-sm font-black">طلبي رونق تريو</span>
-            <span className="block text-[10px] font-bold text-white/75">الدفع عند الاستلام</span>
+            <span className="block text-xs font-black">طلبي تريو</span>
+            <span className="block text-[9px] font-bold text-white/70">الدفع عند الاستلام</span>
           </span>
-          <span className="text-xl font-black">{featured.price1} د.م</span>
+          <span className="text-base font-black">{featured.price1} د.م</span>
         </button>
       </div>
 

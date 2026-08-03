@@ -88,8 +88,9 @@ export const products: Product[] = [
     },
     price1: 199,
     price2: 279,
-    heroImage: "/images/raonaq-pdp-trio.png",
+    heroImage: "/images/raonaq-trio-woman.png",
     images: [
+      "/images/raonaq-trio-woman.png",
       "/images/raonaq-pdp-trio.png",
       "/images/raonaq-trio-pack.png",
       "/images/raonaq-trio.png",
@@ -153,8 +154,9 @@ export const products: Product[] = [
     },
     price1: 199,
     price2: 279,
-    heroImage: "/images/raonaq-pdp-air-soft.png",
+    heroImage: "/images/raonaq-air-soft-woman.png",
     images: [
+      "/images/raonaq-air-soft-woman.png",
       "/images/raonaq-pdp-air-soft.png",
       "/images/raonaq-air-soft.png",
       "/images/raonaq-air-soft-tool.png",
@@ -218,8 +220,9 @@ export const products: Product[] = [
     },
     price1: 199,
     price2: 279,
-    heroImage: "/images/raonaq-pdp-air-pink.png",
+    heroImage: "/images/raonaq-air-pink-woman.png",
     images: [
+      "/images/raonaq-air-pink-woman.png",
       "/images/raonaq-pdp-air-pink.png",
       "/images/raonaq-air-pink.png",
       "/images/raonaq-air-pink-tool.png",
@@ -283,8 +286,9 @@ export const products: Product[] = [
     },
     price1: 199,
     price2: 279,
-    heroImage: "/images/raonaq-pdp-volume.png",
+    heroImage: "/images/raonaq-volume-woman.png",
     images: [
+      "/images/raonaq-volume-woman.png",
       "/images/raonaq-pdp-volume.png",
       "/images/raonaq-volume.png",
       "/images/raonaq-volume-tool.png",

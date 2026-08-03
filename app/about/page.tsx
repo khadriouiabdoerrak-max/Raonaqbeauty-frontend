@@ -86,7 +86,7 @@ export default function AboutPage() {
         </p>
         <Link
           href="/collection"
-          className="inline-block rounded-full bg-rosewood text-white px-10 py-4 font-black text-lg shadow-[0_14px_36px_rgba(196,91,106,0.28)] hover:bg-rosewood-deep transition-colors"
+          className="btn btn-primary btn-lg shadow-[0_14px_36px_rgba(196,91,106,0.28)]"
         >
           شوفي المجموعة
         </Link>

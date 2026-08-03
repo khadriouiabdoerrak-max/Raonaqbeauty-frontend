@@ -71,12 +71,6 @@ const toolsImage = "/images/raonaq-tools-editorial.png";
 
 const featured = products[0]; // تريو — البطلة
 
-const heroProof = [
-  { value: "24–48h", label: "توصيل سريع" },
-  { value: "COD", label: "خلصي عند الباب" },
-  { value: "4.8/5", label: "تجارب مؤكدة" },
-];
-
 const looks = [
   {
     title: "حجم",
@@ -154,7 +148,13 @@ export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const addOne = (id: string, name: string, price: number, image: string, qty = 1) => {
-    addToCart({ id, name, price, quantity: qty, image });
+    addToCart({
+      id,
+      name,
+      price: qty > 1 ? price / qty : price,
+      quantity: qty,
+      image,
+    });
   };
 
   return (
@@ -169,103 +169,65 @@ export default function Home() {
             className="hero-media absolute inset-0 h-full w-full object-cover object-[center_top] md:object-[center_18%]"
           />
         </picture>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412] via-[#1C1412]/62 to-[#1C1412]/5" />
-        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#1C1412]/45 to-transparent md:hidden" />
-        <div className="absolute inset-0 bg-gradient-to-l from-[#1C1412]/75 via-[#1C1412]/25 to-transparent hidden md:block" />
+        {/* تدرج ناعم — الصورة هي البطلة */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412] via-[#1C1412]/45 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#1C1412]/50 to-transparent md:h-36" />
+        <div className="absolute inset-y-0 right-0 hidden w-[55%] bg-gradient-to-l from-[#1C1412]/70 via-[#1C1412]/20 to-transparent md:block" />
 
         <div className="relative z-10 flex min-h-[calc(100svh-112px)] w-full items-end md:min-h-[100svh]">
-          <div className="container mx-auto px-4 pb-8 pt-20 md:pb-24 md:pt-40">
-            <div className="hero-copy me-auto max-w-xl text-right text-white" dir="rtl">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[11px] font-black text-[#F7F1EC] backdrop-blur-md md:text-sm">
-                <span className="h-2 w-2 rounded-full bg-[#C4A484]" />
-                براند مغربي لأدوات الشعر الاحترافية
-              </div>
-
-              <p className="mb-3 text-3xl font-black tracking-[0.08em] text-[#C4A484] md:text-5xl">رونق</p>
-              <h1 className="max-w-[10ch] text-4xl font-black leading-[1.08] md:max-w-none md:text-7xl">
-                نتيجة صالون
-                <br />
-                فدارك
-              </h1>
-              <p className="mt-5 max-w-md text-base leading-relaxed text-white/85 md:text-xl">
-                حجم، نعومة، ولمعان مع حماية للشعر — أدوات مختارة للبنات اللي بغاو نتيجة احترافية بلا موعد.
+          <div className="container mx-auto px-4 pb-10 pt-24 md:pb-28 md:pt-40">
+            <div className="hero-copy me-auto max-w-lg text-right text-white" dir="rtl">
+              <p className="text-[11px] font-bold tracking-[0.42em] text-white/55">RAONAQ</p>
+              <p className="mt-2 text-5xl font-black leading-none tracking-[0.14em] text-[#C4A484] md:text-7xl">
+                رونق
               </p>
 
-              <div className="mt-6 grid grid-cols-3 gap-2 text-center md:max-w-md">
-                {heroProof.map((item) => (
-                  <div key={item.label} className="border border-white/14 bg-white/10 px-2 py-3 backdrop-blur-md">
-                    <p className="text-sm font-black text-[#C4A484] md:text-lg">{item.value}</p>
-                    <p className="mt-1 text-[10px] font-bold text-white/75 md:text-xs">{item.label}</p>
-                  </div>
-                ))}
-              </div>
+              <div className="mt-5 mr-auto h-px w-16 bg-[#C4A484]/70" />
 
-              <div className="mt-6 w-full max-w-md border border-white/14 bg-[#F7F1EC]/95 p-4 text-[#1C1412] shadow-2xl backdrop-blur-md">
-                <p className="text-[11px] font-black text-[#C45B6A] md:text-xs">الأكثر طلباً اليوم</p>
-                <div className="mt-2 flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-lg font-black leading-tight md:text-xl">{featured.name}</p>
-                    <p className="mt-1 text-[11px] font-bold leading-snug text-[#1C1412]/55 md:text-xs">
-                      3 أدوات فباكة وحدة · قلبي قبل الدفع
-                    </p>
-                  </div>
-                  <p className="shrink-0 text-2xl font-black leading-none text-[#C45B6A] md:text-3xl">
-                    {featured.price1}
-                    <span className="mr-1 text-xs md:text-sm">د.م</span>
-                  </p>
-                </div>
+              <h1 className="mt-6 text-[2rem] font-black leading-[1.15] text-white md:text-5xl">
+                نتيجة صالون
+                <span className="text-[#C4A484]"> فدارك</span>
+              </h1>
+              <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/75 md:text-base">
+                حجم · نعومة · لمعان — مع حماية للشعر، بلا موعد.
+              </p>
+
+              <div className="mt-8 flex w-full max-w-md flex-col gap-3 sm:flex-row sm:items-stretch">
                 <button
+                  type="button"
                   onClick={() => addOne(featured.id, featured.name, featured.price1, productThumb(featured))}
-                  className="mt-4 flex w-full items-center justify-center bg-[#C45B6A] px-4 py-3.5 text-sm font-black text-white transition-colors hover:bg-[#a64d5a] md:py-4 md:text-base"
+                  className="btn btn-primary btn-lg flex-1 shadow-[0_12px_40px_rgba(196,91,106,0.35)]"
                 >
                   اطلبي تريو — {featured.price1} د.م
                 </button>
-              </div>
-
-              <div className="mt-4 max-w-md">
                 <Link
                   href="#shop"
-                  className="block w-full border border-white/35 px-8 py-3.5 text-center text-sm font-black text-white transition-colors hover:bg-white hover:text-[#1C1412] md:py-4 md:text-base"
+                  className="btn btn-outline-light btn-lg flex-1 border-white/45 backdrop-blur-sm"
                 >
                   شوفي المجموعة
                 </Link>
               </div>
+
+              <p className="mt-4 text-[11px] font-medium tracking-wide text-white/55 md:text-xs">
+                قلبي قبل الدفع · توصيل مجاني للمغرب
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* بروبو منتج */}
-      <div className="border-y border-[#1C1412]/10 bg-[#F7F1EC]" dir="rtl">
-        <div className="container mx-auto px-4 py-3 md:py-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-            <div className="min-w-0">
-              <span className="mb-1.5 inline-block rounded-full bg-[#C45B6A] px-2.5 py-0.5 text-[10px] font-black text-white md:text-[11px]">
-                الأكثر طلباً اليوم
-              </span>
-              <p className="text-sm font-black leading-tight text-[#1C1412] md:text-base">
-                {featured.name}
-              </p>
-              <p className="mt-0.5 text-[11px] leading-snug text-[#1C1412]/55">
-                3 أدوات فباكة وحدة · قلبي قبل الدفع
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="shrink-0 text-lg font-black text-[#1C1412]">
-                {featured.price1}
-                <span className="mr-1 text-sm">د.م</span>
-              </span>
-              <button
-                onClick={() => addOne(featured.id, featured.name, featured.price1, productThumb(featured))}
-                className="flex-1 rounded-full bg-[#C45B6A] px-4 py-2.5 text-xs font-black text-white shadow-sm transition-opacity hover:opacity-90 sm:flex-none sm:py-2"
-              >
-                <span className="sm:hidden">اطلبي الآن</span>
-                <span className="hidden sm:inline">طلبي الأكثر طلباً</span>
-              </button>
-            </div>
-          </div>
+      {/* وعد أنيق — ماشي بانر صاخب */}
+      <section className="border-b border-[#C4A484]/20 bg-[#1C1412]" dir="rtl">
+        <div className="container mx-auto px-4 py-10 text-center md:py-12">
+          <p className="text-[11px] font-bold tracking-[0.35em] text-[#C4A484]">الوعد ديالنا</p>
+          <p className="mx-auto mt-3 max-w-xl text-2xl font-black leading-snug text-white md:text-3xl">
+            تفتحي · تقلبي · عاد تخلصي
+          </p>
+          <p className="mx-auto mt-3 max-w-md text-sm font-medium text-white/55">
+            ما كاين حتى دفع مسبق — الليفور كيستنى حتى تتأكدي.
+          </p>
         </div>
-      </div>
+      </section>
 
       {/* ═══════════════ المنتج البطلة ═══════════════ */}
       <section className="relative overflow-hidden bg-[#F7F1EC]" id="featured">
@@ -275,17 +237,18 @@ export default function Home() {
               <BeforeAfterResultVisual />
             </FadeIn>
 
-            <FadeIn delay={120} className="order-1 space-y-6 text-right lg:order-2" >
+            <FadeIn delay={120} className="order-1 space-y-6 text-right lg:order-2">
               <div dir="rtl">
-                <p className="text-3xl font-black text-[#C4A484]">رونق</p>
+                <p className="text-[11px] font-bold tracking-[0.3em] text-[#C45B6A]">البطلة</p>
+                <p className="mt-2 text-2xl font-black tracking-[0.12em] text-[#C4A484]">رونق</p>
                 <h2 className="mt-1 text-4xl font-black leading-tight text-[#1C1412] md:text-5xl">
                   {featured.name}
                 </h2>
-                <p className="mt-4 max-w-md text-lg leading-relaxed text-[#1C1412]/65">
-                  طقم واحد كيجمع الفرد، الويفي، والحجم فباكة مرتبة — نتيجة صالون فدارك مع حماية للشعر، ليك أو كهدية.
+                <p className="mt-4 max-w-md text-base leading-relaxed text-[#1C1412]/65 md:text-lg">
+                  طقم واحد: فرد، ويفي، وحجم فباكة مرتبة — نتيجة صالون فدارك، ليك أو كهدية.
                 </p>
 
-                <ul className="mt-6 space-y-2 text-[#1C1412]/75">
+                <ul className="mt-6 space-y-2.5 text-[#1C1412]/75">
                   {featured.features.slice(0, 3).map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm font-medium md:text-base">
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#C45B6A]" />
@@ -294,6 +257,23 @@ export default function Home() {
                   ))}
                 </ul>
 
+                <div className="mt-8 flex max-w-md flex-col gap-3 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      addOne(featured.id, featured.name, featured.price1, productThumb(featured))
+                    }
+                    className="btn btn-primary btn-lg flex-1"
+                  >
+                    اطلبي — {featured.price1} د.م
+                  </button>
+                  <Link
+                    href={`/products/${featured.slug}`}
+                    className="btn btn-secondary btn-lg flex-1"
+                  >
+                    شوفي التفاصيل
+                  </Link>
+                </div>
               </div>
             </FadeIn>
           </div>
@@ -433,7 +413,7 @@ export default function Home() {
                       onClick={() =>
                         addOne(product.id, product.name, product.price1, productThumb(product), 1)
                       }
-                      className="flex w-full items-center justify-between rounded-full border border-[#1C1412]/12 bg-white px-5 py-3 text-right transition-colors hover:border-[#C45B6A] hover:bg-[#F7F1EC]"
+                      className="btn btn-secondary btn-block justify-between px-5 py-3 text-right"
                     >
                       <span className="text-sm font-black text-[#1C1412]">طلبي قطعة</span>
                       <span className="text-lg font-black text-[#C45B6A]">{product.price1} د.م</span>
@@ -442,7 +422,7 @@ export default function Home() {
                       onClick={() =>
                         addOne(product.id, product.name, product.price2, productThumb(product), 2)
                       }
-                      className="flex w-full items-center justify-between rounded-full bg-[#1C1412] px-5 py-3 text-right text-white shadow-[0_12px_30px_rgba(28,20,18,0.18)] transition-colors hover:bg-[#C45B6A]"
+                      className="btn btn-dark btn-block justify-between px-5 py-3 text-right"
                     >
                       <span>
                         <span className="block text-sm font-black">عرض قطعتين</span>
@@ -494,7 +474,7 @@ export default function Home() {
                 </div>
                 <Link
                   href="#shop"
-                  className="mt-4 inline-block bg-[#1C1412] px-8 py-4 font-black text-white transition-colors hover:bg-[#C45B6A]"
+                  className="btn btn-dark btn-lg mt-4"
                 >
                   ابدئي الطلب
                 </Link>
@@ -586,7 +566,7 @@ export default function Home() {
           </p>
           <Link
             href="/collection"
-            className="mt-10 inline-block bg-[#C45B6A] px-12 py-4 text-lg font-black text-white transition-colors hover:bg-[#a64d5a]"
+            className="btn btn-primary btn-lg mt-10"
           >
             شوفي المجموعة
           </Link>

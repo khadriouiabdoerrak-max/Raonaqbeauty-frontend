@@ -14,6 +14,7 @@ export type CartItem = {
 type CartContextType = {
   cart: CartItem[];
   addToCart: (item: CartItem) => void;
+  replaceInCart: (item: CartItem) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -47,6 +48,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setIsCartOpen(true);
   };
 
+  const replaceInCart = (item: CartItem) => {
+    setCart((prev) => [...prev.filter((i) => i.id !== item.id), item]);
+    setIsCartOpen(true);
+  };
+
   const removeFromCart = (id: string) => {
     setCart((prev) => prev.filter((i) => i.id !== id));
   };
@@ -67,6 +73,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       value={{
         cart,
         addToCart,
+        replaceInCart,
         removeFromCart,
         updateQuantity,
         clearCart,

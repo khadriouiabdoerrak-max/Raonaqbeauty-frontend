@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useCart } from "../context/CartContext";
 import { MOROCCO_CITIES } from "../lib/contact";
 import { trackInitiateCheckout } from "../lib/pixels";
+import { createOrder, type CreatedOrder } from "../lib/orders";
 
 type CheckoutCustomerData = {
   name: string;
@@ -15,7 +16,7 @@ type CheckoutCustomerData = {
 type CheckoutModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (customerData: CheckoutCustomerData) => void;
+  onSuccess: (customerData: CheckoutCustomerData, order: CreatedOrder) => void;
 };
 
 export default function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps) {
@@ -77,72 +78,110 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutMo
       return;
     }
 
+    if (cart.length === 0) {
+      setError("السلة فارغة");
+      return;
+    }
+
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      setIsSubmitting(false);
-      onSuccess({
+    try {
+      const customer = {
         name: name.trim(),
         phone: phone.replace(/\s/g, ""),
         city,
         address: address.trim(),
+      };
+
+      const order = await createOrder({
+        ...customer,
+        cart,
+        total: cartTotal,
+        acceptedUpsell: false,
       });
-    }, 600);
+
+      onSuccess(customer, order);
+    } catch (err) {
+      console.error(err);
+      setError("ما تسجلاتش الطلبية. عاودي المحاولة أو تواصلي معنا عبر واتساب.");
+      setIsSubmitting(false);
+    }
   };
 
+  const fieldClass =
+    "w-full rounded-xl border border-[#1C1412]/12 bg-white px-4 py-3 text-right outline-none transition-all focus:border-rosewood focus:ring-2 focus:ring-rosewood/25";
+
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl relative max-h-[90vh] overflow-y-auto" dir="rtl">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#1C1412]/55 p-4 backdrop-blur-sm">
+      <div
+        className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-champagne/25 bg-white shadow-2xl"
+        dir="rtl"
+      >
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-4 left-4 p-2 text-gray-400 hover:text-gray-900 bg-gray-100 rounded-full transition-colors z-10"
+          className="absolute left-4 top-4 z-10 rounded-xl bg-pearl-blush p-2 text-warm-black/50 transition-colors hover:text-warm-black"
+          aria-label="إغلاق"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
         <div className="p-6">
-          <h2 className="text-2xl font-bold text-warm-black mb-2 text-center">إتمام الطلب</h2>
-          <p className="text-sm text-gray-500 text-center mb-6">الدفع عند الاستلام — الشحن مجاني لجميع مدن المغرب</p>
+          <p className="text-center text-sm font-black tracking-[0.2em] text-champagne">رونق</p>
+          <h2 className="mt-1 text-center text-2xl font-black text-warm-black">إتمام الطلب</h2>
+          <p className="mt-2 text-center text-sm font-medium text-warm-black/55">
+            خلصي عند الباب بعد ما تقلبي · توصيل مجاني
+          </p>
 
-          <div className="bg-pearl-blush text-warm-black p-3 rounded-lg mb-6 text-sm font-medium text-center border border-champagne/30">
-            خلصي عند الباب بعد ما تقلبي السلعة — توصيل مجاني
+          {/* ملخص السلة */}
+          <div className="mt-5 space-y-2 rounded-xl border border-champagne/25 bg-pearl-blush p-3">
+            {cart.map((item) => (
+              <div key={item.id} className="flex items-center gap-3">
+                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-white">
+                  <img src={item.image} alt="" className="h-full w-full object-cover" />
+                </div>
+                <div className="min-w-0 flex-1 text-right">
+                  <p className="truncate text-sm font-black text-warm-black">{item.name}</p>
+                  <p className="text-[11px] font-bold text-warm-black/45">× {item.quantity}</p>
+                </div>
+                <p className="shrink-0 text-sm font-black text-rosewood">
+                  {item.price * item.quantity} د.م
+                </p>
+              </div>
+            ))}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="mt-5 space-y-3.5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">الاسم الكامل</label>
+              <label className="mb-1 block text-sm font-bold text-warm-black">الاسم الكامل</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="الاسم والنسب"
                 autoComplete="name"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rosewood focus:border-rosewood outline-none transition-all text-right"
+                className={fieldClass}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">رقم الهاتف</label>
+              <label className="mb-1 block text-sm font-bold text-warm-black">رقم الهاتف</label>
               <input
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="مثال: 0612345678"
                 autoComplete="tel"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rosewood focus:border-rosewood outline-none transition-all text-left"
+                className={`${fieldClass} text-left`}
                 dir="ltr"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">المدينة</label>
-              <select
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rosewood focus:border-rosewood outline-none transition-all text-right bg-white"
-              >
+              <label className="mb-1 block text-sm font-bold text-warm-black">المدينة</label>
+              <select value={city} onChange={(e) => setCity(e.target.value)} className={fieldClass}>
                 <option value="">اختاري مدينتك</option>
                 {MOROCCO_CITIES.map((c) => (
                   <option key={c} value={c}>
@@ -153,30 +192,37 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutMo
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">العنوان الكامل</label>
+              <label className="mb-1 block text-sm font-bold text-warm-black">العنوان الكامل</label>
               <textarea
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="الحي، الشارع، رقم المنزل أو أقرب معلم"
                 rows={2}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rosewood focus:border-rosewood outline-none transition-all text-right resize-none"
+                className={`${fieldClass} resize-none`}
               />
             </div>
 
-            {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
+            {error && (
+              <p className="rounded-xl border border-rosewood/30 bg-pearl-blush px-3 py-2 text-sm font-bold text-rosewood">
+                {error}
+              </p>
+            )}
 
-            <div className="border-t border-gray-100 pt-4 mt-2">
-              <div className="flex justify-between items-center mb-4 text-lg font-bold">
-                <span>المجموع الإجمالي:</span>
-                <span className="text-rosewood">{cartTotal} درهم</span>
+            <div className="border-t border-[#1C1412]/08 pt-4">
+              <div className="mb-4 flex items-center justify-between text-lg font-black">
+                <span className="text-warm-black">المجموع</span>
+                <span className="text-rosewood">{cartTotal} د.م</span>
               </div>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-rosewood text-white py-4 rounded-xl font-bold text-lg hover:bg-rosewood-deep transition-colors disabled:opacity-70 shadow-lg shadow-rosewood/20"
+                className="btn btn-primary btn-block btn-lg disabled:opacity-70"
               >
-                {isSubmitting ? "جاري التأكيد..." : "تأكيد الطلب الآن"}
+                {isSubmitting ? "جاري تسجيل الطلب..." : "أكّدي الطلب — خلصي عند الباب"}
               </button>
+              <p className="mt-3 text-center text-[11px] font-medium text-warm-black/45">
+                الطلب كيتسجّل دابا · الليفور كيستنى حتى تقلبي
+              </p>
             </div>
           </form>
         </div>

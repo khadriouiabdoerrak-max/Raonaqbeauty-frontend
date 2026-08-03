@@ -134,7 +134,7 @@ export default function ContactPage() {
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-rosewood text-white py-4 font-bold text-lg hover:bg-rosewood-deep transition-colors"
+                  className="btn btn-primary btn-block btn-lg"
                 >
                   {whatsappHref ? "إرسال عبر واتساب" : "إرسال الرسالة"}
                 </button>

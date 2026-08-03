@@ -87,7 +87,7 @@ export default function CollectionPage() {
                           image: productThumb(product),
                         })
                       }
-                      className="flex w-full items-center justify-between rounded-full border border-warm-black/12 bg-white px-5 py-3 transition-colors hover:border-rosewood hover:bg-pearl-blush"
+                      className="btn btn-secondary btn-block justify-between px-5 py-3"
                     >
                       <span className="font-black text-warm-black">طلبي قطعة</span>
                       <span className="text-lg font-black text-rosewood">{product.price1} د.م</span>
@@ -97,12 +97,12 @@ export default function CollectionPage() {
                         addToCart({
                           id: product.id,
                           name: product.name,
-                          price: product.price2,
+                          price: product.price2 / 2,
                           quantity: 2,
                           image: productThumb(product),
                         })
                       }
-                      className="flex w-full items-center justify-between rounded-full bg-warm-black px-5 py-3 text-white shadow-[0_12px_30px_rgba(28,20,18,0.18)] transition-colors hover:bg-rosewood"
+                      className="btn btn-dark btn-block justify-between px-5 py-3"
                     >
                       <span>
                         <span className="block font-black">عرض قطعتين</span>

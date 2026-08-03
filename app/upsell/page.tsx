@@ -2,185 +2,145 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { CartItem } from "../../context/CartContext";
-import type { LastPurchase } from "../../lib/pixels";
+import {
+  attachUpsell,
+  clearPendingOrder,
+  readPendingOrder,
+  toLastPurchase,
+  type PendingOrder,
+} from "../../lib/orders";
 import { UPSELL } from "../../lib/products";
-
-type CustomerData = {
-  name: string;
-  phone: string;
-  city: string;
-  address: string;
-  cart: CartItem[];
-  total: number;
-};
-
-type OrderItem = {
-  product_name: string;
-  quantity: number;
-  price: number;
-};
-
-function readCustomerData(): CustomerData | null {
-  if (typeof window === "undefined") return null;
-  const data = localStorage.getItem("temp_customer_data");
-  if (!data) return null;
-  try {
-    return JSON.parse(data) as CustomerData;
-  } catch {
-    return null;
-  }
-}
 
 export default function UpsellPage() {
   const router = useRouter();
-  const [customerData] = useState<CustomerData | null>(() => readCustomerData());
+  const [pending] = useState<PendingOrder | null>(() => readPendingOrder());
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!customerData) router.push("/");
-  }, [customerData, router]);
+    if (!pending) router.push("/");
+  }, [pending, router]);
 
-  const submitOrder = async (acceptedUpsell: boolean) => {
-    if (!customerData || isProcessing) return;
+  const finish = (acceptedUpsell: boolean, total: number, contents = pending?.cart.map((item) => ({
+    id: item.id,
+    name: item.name,
+    price: item.price,
+    quantity: item.quantity,
+  })) ?? []) => {
+    if (!pending) return;
+
+    const finalContents = [...contents];
+    if (acceptedUpsell) {
+      finalContents.push({
+        id: UPSELL.id,
+        name: UPSELL.name,
+        price: UPSELL.price,
+        quantity: 1,
+      });
+    }
+
+    sessionStorage.setItem(
+      "last_purchase",
+      JSON.stringify(
+        toLastPurchase({
+          orderId: pending.orderId,
+          eventId: pending.eventId,
+          total,
+          contents: finalContents,
+        })
+      )
+    );
+    clearPendingOrder();
+    router.push("/thank-you");
+  };
+
+  const continueWithoutUpsell = () => {
+    if (!pending || isProcessing) return;
+    finish(false, pending.total);
+  };
+
+  const acceptUpsell = async () => {
+    if (!pending || isProcessing) return;
     setIsProcessing(true);
     setError("");
 
-    const items: OrderItem[] = customerData.cart.map((item) => ({
-      product_name: item.name,
-      quantity: item.quantity,
-      price: item.price,
-    }));
-
-    if (acceptedUpsell) {
-      items.push({
-        product_name: UPSELL.name,
-        quantity: 1,
+    try {
+      await attachUpsell(pending.orderId, {
+        id: UPSELL.id,
+        name: UPSELL.name,
         price: UPSELL.price,
       });
-    }
-
-    const totalPrice = acceptedUpsell ? customerData.total + UPSELL.price : customerData.total;
-    const eventId =
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        : `order_${Date.now()}`;
-
-    const payload = {
-      customer_name: customerData.name,
-      customer_phone: customerData.phone,
-      customer_city: customerData.city,
-      customer_address: customerData.address,
-      total_price: totalPrice,
-      accepted_upsell: acceptedUpsell,
-      event_id: eventId,
-      items,
-    };
-
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://Api.raonaqbeauty.com";
-      const res = await fetch(`${apiUrl}/api/v1/orders/webhook`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const details = await res.text();
-        throw new Error(details || "فشل إرسال الطلب");
-      }
-
-      const order = (await res.json()) as { id: number };
-      const contents = [
-        ...customerData.cart.map((item) => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-        })),
-      ];
-      if (acceptedUpsell) {
-        contents.push({
-          id: UPSELL.id,
-          name: UPSELL.name,
-          price: UPSELL.price,
-          quantity: 1,
-        });
-      }
-
-      const lastPurchase: LastPurchase = {
-        orderId: order.id,
-        value: totalPrice,
-        eventId: eventId || `order_${order.id}`,
-        contents,
-      };
-      sessionStorage.setItem("last_purchase", JSON.stringify(lastPurchase));
-      localStorage.removeItem("temp_customer_data");
-      router.push("/thank-you");
+      finish(true, pending.total + UPSELL.price);
     } catch (err) {
-      console.error("Order submission error:", err);
-      setError("ما تسجلاتش الطلبية. عاود المحاولة أو تواصل معنا عبر واتساب.");
-      setIsProcessing(false);
+      console.error(err);
+      // الطلب الأصلي أصلاً مسجّل — كمّلي شكراً بلا upsell
+      setError("العرض ما تزادش، ولكن طلبك الأصلي مسجّل. غادي نكمّلو.");
+      setTimeout(() => finish(false, pending.total), 1200);
     }
   };
 
-  if (!customerData) return null;
+  if (!pending) return null;
 
   return (
-    <div className="min-h-screen bg-pearl-blush flex items-center justify-center p-4" dir="rtl">
-      <div className="max-w-2xl w-full bg-white overflow-hidden border border-champagne/20">
-        <div className="bg-warm-black text-white text-center py-3 px-4">
-          <p className="font-bold text-sm">طلبك تسجّل — عرض إضافي لمرة واحدة مع هاد الطلب</p>
+    <div className="flex min-h-screen items-center justify-center bg-pearl-blush p-4" dir="rtl">
+      <div className="w-full max-w-2xl overflow-hidden border border-champagne/25 bg-white">
+        <div className="bg-warm-black px-4 py-3 text-center text-white">
+          <p className="text-sm font-bold">
+            طلبك رقم {pending.orderId} تسجّل — عرض إضافي لمرة واحدة
+          </p>
         </div>
 
-        <div className="p-6 md:p-10 text-center">
-          <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-7 h-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
+        <div className="p-6 text-center md:p-10">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-rosewood text-xl font-black text-white">
+            ✓
           </div>
 
-          <h1 className="text-2xl md:text-3xl font-extrabold text-warm-black mb-2">
-            شكراً {customerData.name}
+          <p className="text-sm font-black tracking-[0.2em] text-champagne">رونق</p>
+          <h1 className="mt-2 text-2xl font-black text-warm-black md:text-3xl">
+            شكراً {pending.name}
           </h1>
-          <p className="text-gray-500 mb-8 leading-relaxed">
-            قبل ما نجهّزو الشحن لـ {customerData.city}، تقدري تضيفي رونق لمعان باش تثبّتي اللمعان وتحمي التصفيفة.
+          <p className="mt-3 leading-relaxed text-warm-black/55">
+            طلبك لـ {pending.city} مسجّل. قبل الشحن، تقدري تضيفي رونق لمعان باش تثبّتي
+            اللمعان.
           </p>
 
-          <div className="w-full aspect-[16/10] bg-pearl-blush overflow-hidden mb-8 relative">
-            <img src={UPSELL.image} alt={UPSELL.name} className="w-full h-full object-cover" />
+          <div className="relative mb-8 mt-8 aspect-[16/10] overflow-hidden bg-pearl-blush">
+            <img src={UPSELL.image} alt={UPSELL.name} className="h-full w-full object-cover" />
           </div>
 
-          <div className="bg-pearl-blush p-6 mb-8 text-right">
-            <p className="text-champagne font-black text-lg mb-1">رونق</p>
-            <h2 className="text-xl font-extrabold text-warm-black mb-2">{UPSELL.name}</h2>
-            <p className="text-gray-500 text-sm mb-4">{UPSELL.description}</p>
-            <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-extrabold text-rosewood">{UPSELL.price} درهم</span>
-              <span className="text-gray-400 line-through text-lg">{UPSELL.compareAt} درهم</span>
+          <div className="mb-8 bg-pearl-blush p-6 text-right">
+            <p className="text-lg font-black text-champagne">رونق</p>
+            <h2 className="mt-1 text-xl font-black text-warm-black">{UPSELL.name}</h2>
+            <p className="mt-2 text-sm text-warm-black/55">{UPSELL.description}</p>
+            <div className="mt-4 flex items-baseline gap-3">
+              <span className="text-3xl font-black text-rosewood">{UPSELL.price} د.م</span>
+              <span className="text-lg text-warm-black/35 line-through">{UPSELL.compareAt} د.م</span>
             </div>
           </div>
 
           {error && (
-            <div className="bg-orange-50 text-orange-700 p-3 rounded-xl mb-4 text-sm font-medium">{error}</div>
+            <div className="mb-4 rounded-xl border border-rosewood/25 bg-pearl-blush p-3 text-sm font-medium text-rosewood">
+              {error}
+            </div>
           )}
 
           <div className="space-y-3">
             <button
-              onClick={() => submitOrder(true)}
+              type="button"
+              onClick={acceptUpsell}
               disabled={isProcessing}
-              className="w-full bg-rosewood text-white py-4 rounded-xl font-extrabold text-lg hover:bg-rosewood-deep transition-colors disabled:opacity-70"
+              className="btn btn-primary btn-block btn-lg disabled:opacity-70"
             >
-              {isProcessing ? "جاري تأكيد الطلب..." : `أضيفي رونق لمعان بـ ${UPSELL.price} درهم`}
+              {isProcessing ? "جاري الإضافة..." : `أضيفي رونق لمعان بـ ${UPSELL.price} د.م`}
             </button>
 
             <button
-              onClick={() => submitOrder(false)}
+              type="button"
+              onClick={continueWithoutUpsell}
               disabled={isProcessing}
-              className="w-full text-gray-400 py-3 font-medium hover:text-gray-600 transition-colors underline text-sm"
+              className="w-full py-3 text-sm font-medium text-warm-black/45 underline transition-colors hover:text-warm-black"
             >
-              كمّلي الطلب بدون العرض
+              كمّلي بدون العرض — الطلب أصلاً مسجّل
             </button>
           </div>
         </div>

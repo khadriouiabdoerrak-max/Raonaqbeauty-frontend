@@ -66,14 +66,14 @@ function BuyPanel({
         <button
           type="button"
           onClick={() => onAdd(product.price1, 1)}
-          className="flex w-full items-center justify-center bg-[#C45B6A] px-5 py-4 text-[15px] font-black text-white transition-colors hover:bg-[#B84E5C]"
+          className="btn btn-primary btn-block btn-lg text-[15px]"
         >
           اطلبي الآن — {product.price1} د.م
         </button>
         <button
           type="button"
           onClick={() => onAdd(product.price2, 2)}
-          className="flex w-full items-center justify-between gap-3 border border-[#1C1412]/12 bg-[#F7F1EC] px-5 py-3.5 text-right transition-colors hover:border-[#C45B6A]"
+          className="btn btn-secondary btn-block justify-between gap-3 px-5 py-3.5 text-right"
         >
           <span>
             <span className="block text-sm font-black text-[#1C1412]">عرض قطعتين</span>
@@ -128,7 +128,8 @@ export default function ProductClient({ product }: { product: Product }) {
     addToCart({
       id: product.id,
       name: product.name,
-      price,
+      // السعر للوحدة — عرض قطعتين كيدوز price2 كمجموع
+      price: qty > 1 ? price / qty : price,
       quantity: qty,
       image: productThumb(product),
     });
@@ -181,7 +182,7 @@ export default function ProductClient({ product }: { product: Product }) {
                   type="button"
                   onClick={() => setSelectedImage(i)}
                   aria-label={img.label}
-                  className={`h-[72px] w-[72px] shrink-0 overflow-hidden border transition-colors ${
+                  className={`h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl border transition-colors ${
                     selectedImage === i ? "border-[#C45B6A]" : "border-[#1C1412]/10"
                   }`}
                 >
@@ -226,7 +227,7 @@ export default function ProductClient({ product }: { product: Product }) {
               type="button"
               onClick={() => setSelectedImage(i)}
               aria-label={img.label}
-              className={`h-16 w-16 shrink-0 overflow-hidden border-2 transition-colors ${
+              className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 transition-colors ${
                 selectedImage === i ? "border-[#C45B6A]" : "border-transparent"
               }`}
             >
@@ -381,7 +382,7 @@ export default function ProductClient({ product }: { product: Product }) {
             <button
               type="button"
               onClick={() => add(product.price1, 1)}
-              className="mt-7 w-full bg-[#C45B6A] px-8 py-4 text-base font-black transition-colors hover:bg-[#B84E5C] sm:w-auto"
+              className="btn btn-primary btn-lg mt-7 w-full sm:w-auto"
             >
               اطلبي — {product.price1} د.م
             </button>
@@ -473,7 +474,7 @@ export default function ProductClient({ product }: { product: Product }) {
             <button
               type="button"
               onClick={() => add(product.price1, 1)}
-              className="shrink-0 bg-[#C45B6A] px-5 py-3.5 text-sm font-black text-white"
+              className="btn btn-primary btn-md shrink-0"
             >
               {product.price1} د.م
             </button>

@@ -196,7 +196,7 @@ export default function Header() {
             <Link
               href="/collection"
               onClick={() => setMobileOpen(false)}
-              className="mt-4 block bg-rosewood text-white text-center font-black py-3.5 hover:bg-rosewood-deep transition-colors"
+              className="btn btn-primary btn-block btn-md mt-4"
             >
               شوفي المجموعة
             </Link>

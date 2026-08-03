@@ -200,30 +200,32 @@ export default function Home() {
                 ))}
               </div>
 
-              <div className="mt-6 max-w-md border border-white/14 bg-[#F7F1EC]/95 p-4 text-[#1C1412] shadow-2xl backdrop-blur-md">
-                <p className="text-xs font-black text-[#C45B6A]">الأكثر طلباً اليوم</p>
-                <div className="mt-2 flex items-end justify-between gap-4">
-                  <div>
-                    <p className="text-xl font-black">{featured.name}</p>
-                    <p className="mt-1 text-xs font-bold text-[#1C1412]/55">3 أدوات فباكة وحدة · قلبي قبل الدفع</p>
+              <div className="mt-6 w-full max-w-md border border-white/14 bg-[#F7F1EC]/95 p-4 text-[#1C1412] shadow-2xl backdrop-blur-md">
+                <p className="text-[11px] font-black text-[#C45B6A] md:text-xs">الأكثر طلباً اليوم</p>
+                <div className="mt-2 flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-lg font-black leading-tight md:text-xl">{featured.name}</p>
+                    <p className="mt-1 text-[11px] font-bold leading-snug text-[#1C1412]/55 md:text-xs">
+                      3 أدوات فباكة وحدة · قلبي قبل الدفع
+                    </p>
                   </div>
-                  <p className="shrink-0 text-3xl font-black text-[#C45B6A]">
+                  <p className="shrink-0 text-2xl font-black leading-none text-[#C45B6A] md:text-3xl">
                     {featured.price1}
-                    <span className="mr-1 text-sm">د.م</span>
+                    <span className="mr-1 text-xs md:text-sm">د.م</span>
                   </p>
                 </div>
-              </div>
-
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
                 <button
                   onClick={() => addOne(featured.id, featured.name, featured.price1, featured.images[0])}
-                  className="bg-[#C45B6A] px-10 py-4 text-base font-black text-white transition-colors hover:bg-[#a64d5a] md:text-lg"
+                  className="mt-4 flex w-full items-center justify-center bg-[#C45B6A] px-4 py-3.5 text-sm font-black text-white transition-colors hover:bg-[#a64d5a] md:py-4 md:text-base"
                 >
-                  طلبي الأكثر طلباً
+                  اطلبي تريو — {featured.price1} د.م
                 </button>
+              </div>
+
+              <div className="mt-4 max-w-md">
                 <Link
                   href="#shop"
-                  className="border border-white/35 px-8 py-4 text-center text-base font-black text-white transition-colors hover:bg-white hover:text-[#1C1412] md:text-lg"
+                  className="block w-full border border-white/35 px-8 py-3.5 text-center text-sm font-black text-white transition-colors hover:bg-white hover:text-[#1C1412] md:py-4 md:text-base"
                 >
                   شوفي المجموعة
                 </Link>

@@ -235,24 +235,32 @@ export default function Home() {
 
       {/* بروبو منتج */}
       <div className="border-y border-[#1C1412]/10 bg-[#F7F1EC]" dir="rtl">
-        <div className="container mx-auto flex items-center justify-between gap-4 px-4 py-3 md:py-4">
-          <div className="flex items-center gap-3">
-            <span className="shrink-0 rounded-full bg-[#C45B6A] px-3 py-1 text-[11px] font-black text-white">
-              الأكثر طلباً اليوم
-            </span>
-            <div>
-              <p className="text-sm font-black text-[#1C1412] leading-tight">رونق تريو</p>
-              <p className="text-[11px] text-[#1C1412]/55 leading-tight">3 أدوات فباكة وحدة · قلبي قبل الدفع</p>
+        <div className="container mx-auto px-4 py-3 md:py-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <div className="min-w-0">
+              <span className="mb-1.5 inline-block rounded-full bg-[#C45B6A] px-2.5 py-0.5 text-[10px] font-black text-white md:text-[11px]">
+                الأكثر طلباً اليوم
+              </span>
+              <p className="text-sm font-black leading-tight text-[#1C1412] md:text-base">
+                {featured.name}
+              </p>
+              <p className="mt-0.5 text-[11px] leading-snug text-[#1C1412]/55">
+                3 أدوات فباكة وحدة · قلبي قبل الدفع
+              </p>
             </div>
-          </div>
-          <div className="flex shrink-0 items-center gap-3">
-            <span className="text-base font-black text-[#1C1412]">{featured.price1} د.م</span>
-            <button
-              onClick={() => addOne(featured.id, featured.name, featured.price1, featured.images[0])}
-              className="rounded-full bg-[#C45B6A] px-4 py-2 text-xs font-black text-white shadow-sm transition-opacity hover:opacity-90"
-            >
-              طلبي الأكثر طلباً
-            </button>
+            <div className="flex items-center gap-3">
+              <span className="shrink-0 text-lg font-black text-[#1C1412]">
+                {featured.price1}
+                <span className="mr-1 text-sm">د.م</span>
+              </span>
+              <button
+                onClick={() => addOne(featured.id, featured.name, featured.price1, featured.images[0])}
+                className="flex-1 rounded-full bg-[#C45B6A] px-4 py-2.5 text-xs font-black text-white shadow-sm transition-opacity hover:opacity-90 sm:flex-none sm:py-2"
+              >
+                <span className="sm:hidden">اطلبي الآن</span>
+                <span className="hidden sm:inline">طلبي الأكثر طلباً</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

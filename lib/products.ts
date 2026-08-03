@@ -1,5 +1,13 @@
 // كتالوج رونق — براند أولاً، الموديل التقني ثانوي
+// ترتيب صور PDP محسّن للمغرب: رغبة → إثبات → براند/COD → وضوح → نتيجة → الاستلام
 export type ProductFaq = { q: string; a: string };
+
+/** صورة غاليري مع ليبل يبيع (موبايل + COD) */
+export type ProductShot = {
+  src: string;
+  /** ليبل قصير بالدارجة تحت الصورة */
+  label: string;
+};
 
 export type Product = {
   id: string;
@@ -26,10 +34,17 @@ export type Product = {
   voice: { name: string; city: string; text: string };
   price1: number;
   price2: number;
-  /** صورة البيع الرئيسية (موبايل) */
+  /** هيرو الصفحة — رغبة + هوية رونق */
   heroImage: string;
-  images: string[];
+  /**
+   * غاليري البيع (6 صور) — ترتيب التحويل فالمغرب:
+   * 1 نتيجة مرأة · 2 قبل/بعد · 3 باكة براند · 4 الأداة · 5 شعر النتيجة · 6 شنو كيوصل
+   */
+  gallery: ProductShot[];
 };
+
+/** صورة مصغّرة للسلة / الكروت */
+export const productThumb = (p: Product): string => p.gallery[0]?.src ?? p.heroImage;
 
 export const products: Product[] = [
   {
@@ -89,13 +104,13 @@ export const products: Product[] = [
     price1: 199,
     price2: 279,
     heroImage: "/images/raonaq-trio-woman.png",
-    images: [
-      "/images/raonaq-trio-woman.png",
-      "/images/raonaq-pdp-trio.png",
-      "/images/raonaq-trio-pack.png",
-      "/images/raonaq-trio.png",
-      "/images/raonaq-trio-tools.png",
-      "/raonaq-before-after-woman.png",
+    gallery: [
+      { src: "/images/raonaq-trio-woman.png", label: "النتيجة على الشعر" },
+      { src: "/images/raonaq-trio-before-after.png", label: "قبل ← بعد" },
+      { src: "/images/raonaq-trio-pack.png", label: "باكة رونق" },
+      { src: "/images/raonaq-trio-tools.png", label: "3 أدوات فباكة" },
+      { src: "/images/raonaq-hair-straight.png", label: "فرد ناعم" },
+      { src: "/images/raonaq-trio-box.png", label: "شنو كيوصل ليك" },
     ],
   },
   {
@@ -155,13 +170,13 @@ export const products: Product[] = [
     price1: 199,
     price2: 279,
     heroImage: "/images/raonaq-air-soft-woman.png",
-    images: [
-      "/images/raonaq-air-soft-woman.png",
-      "/images/raonaq-pdp-air-soft.png",
-      "/images/raonaq-air-soft.png",
-      "/images/raonaq-air-soft-tool.png",
-      "/images/raonaq-hair-curls.png",
-      "/images/raonaq-air-soft-box.png",
+    gallery: [
+      { src: "/images/raonaq-air-soft-woman.png", label: "النتيجة على الشعر" },
+      { src: "/images/raonaq-air-soft-before-after.png", label: "قبل ← بعد · نفشة" },
+      { src: "/images/raonaq-air-soft-pack.png", label: "باكة رونق" },
+      { src: "/images/raonaq-air-soft-tool.png", label: "الأداة عن قرب" },
+      { src: "/images/raonaq-hair-curls.png", label: "نعومة بلا نفشة" },
+      { src: "/images/raonaq-air-soft-box.png", label: "شنو كيوصل ليك" },
     ],
   },
   {
@@ -221,13 +236,13 @@ export const products: Product[] = [
     price1: 199,
     price2: 279,
     heroImage: "/images/raonaq-air-pink-woman.png",
-    images: [
-      "/images/raonaq-air-pink-woman.png",
-      "/images/raonaq-pdp-air-pink.png",
-      "/images/raonaq-air-pink.png",
-      "/images/raonaq-air-pink-tool.png",
-      "/images/raonaq-hair-waves.png",
-      "/images/raonaq-air-pink-box.png",
+    gallery: [
+      { src: "/images/raonaq-air-pink-woman.png", label: "النتيجة على الشعر" },
+      { src: "/images/raonaq-air-pink-before-after.png", label: "قبل ← بعد" },
+      { src: "/images/raonaq-air-pink-pack.png", label: "باكة رونق" },
+      { src: "/images/raonaq-air-pink-tool.png", label: "الأداة عن قرب" },
+      { src: "/images/raonaq-hair-waves.png", label: "لوك مرتب بسرعة" },
+      { src: "/images/raonaq-air-pink-box.png", label: "شنو كيوصل ليك" },
     ],
   },
   {
@@ -287,13 +302,13 @@ export const products: Product[] = [
     price1: 199,
     price2: 279,
     heroImage: "/images/raonaq-volume-woman.png",
-    images: [
-      "/images/raonaq-volume-woman.png",
-      "/images/raonaq-pdp-volume.png",
-      "/images/raonaq-volume.png",
-      "/images/raonaq-volume-tool.png",
-      "/images/raonaq-hair-blowout.png",
-      "/images/raonaq-volume-box.png",
+    gallery: [
+      { src: "/images/raonaq-volume-woman.png", label: "النتيجة على الشعر" },
+      { src: "/images/raonaq-volume-before-after.png", label: "قبل ← بعد · حجم" },
+      { src: "/images/raonaq-volume-pack.png", label: "باكة رونق" },
+      { src: "/images/raonaq-volume-tool.png", label: "الأداة عن قرب" },
+      { src: "/images/raonaq-hair-blowout.png", label: "حجم من الجذور" },
+      { src: "/images/raonaq-volume-box.png", label: "شنو كيوصل ليك" },
     ],
   },
 ];

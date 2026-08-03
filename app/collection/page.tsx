@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCart } from "../../context/CartContext";
-import { products } from "../../lib/products";
+import { products, productThumb } from "../../lib/products";
 
 export default function CollectionPage() {
   const { addToCart } = useCart();
@@ -84,7 +84,7 @@ export default function CollectionPage() {
                           name: product.name,
                           price: product.price1,
                           quantity: 1,
-                          image: product.images[0],
+                          image: productThumb(product),
                         })
                       }
                       className="flex w-full items-center justify-between rounded-full border border-warm-black/12 bg-white px-5 py-3 transition-colors hover:border-rosewood hover:bg-pearl-blush"
@@ -99,7 +99,7 @@ export default function CollectionPage() {
                           name: product.name,
                           price: product.price2,
                           quantity: 2,
-                          image: product.images[0],
+                          image: productThumb(product),
                         })
                       }
                       className="flex w-full items-center justify-between rounded-full bg-warm-black px-5 py-3 text-white shadow-[0_12px_30px_rgba(28,20,18,0.18)] transition-colors hover:bg-rosewood"

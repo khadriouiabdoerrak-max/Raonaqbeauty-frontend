@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
-import { products } from "../lib/products";
+import { products, productThumb } from "../lib/products";
 import { useInView } from "../lib/useInView";
 
 function FadeIn({
@@ -215,7 +215,7 @@ export default function Home() {
                   </p>
                 </div>
                 <button
-                  onClick={() => addOne(featured.id, featured.name, featured.price1, featured.images[0])}
+                  onClick={() => addOne(featured.id, featured.name, featured.price1, productThumb(featured))}
                   className="mt-4 flex w-full items-center justify-center bg-[#C45B6A] px-4 py-3.5 text-sm font-black text-white transition-colors hover:bg-[#a64d5a] md:py-4 md:text-base"
                 >
                   اطلبي تريو — {featured.price1} د.م
@@ -256,7 +256,7 @@ export default function Home() {
                 <span className="mr-1 text-sm">د.م</span>
               </span>
               <button
-                onClick={() => addOne(featured.id, featured.name, featured.price1, featured.images[0])}
+                onClick={() => addOne(featured.id, featured.name, featured.price1, productThumb(featured))}
                 className="flex-1 rounded-full bg-[#C45B6A] px-4 py-2.5 text-xs font-black text-white shadow-sm transition-opacity hover:opacity-90 sm:flex-none sm:py-2"
               >
                 <span className="sm:hidden">اطلبي الآن</span>
@@ -431,7 +431,7 @@ export default function Home() {
                   <div className="space-y-2 px-5 pb-5 pt-1" dir="rtl">
                     <button
                       onClick={() =>
-                        addOne(product.id, product.name, product.price1, product.images[0], 1)
+                        addOne(product.id, product.name, product.price1, productThumb(product), 1)
                       }
                       className="flex w-full items-center justify-between rounded-full border border-[#1C1412]/12 bg-white px-5 py-3 text-right transition-colors hover:border-[#C45B6A] hover:bg-[#F7F1EC]"
                     >
@@ -440,7 +440,7 @@ export default function Home() {
                     </button>
                     <button
                       onClick={() =>
-                        addOne(product.id, product.name, product.price2, product.images[0], 2)
+                        addOne(product.id, product.name, product.price2, productThumb(product), 2)
                       }
                       className="flex w-full items-center justify-between rounded-full bg-[#1C1412] px-5 py-3 text-right text-white shadow-[0_12px_30px_rgba(28,20,18,0.18)] transition-colors hover:bg-[#C45B6A]"
                     >

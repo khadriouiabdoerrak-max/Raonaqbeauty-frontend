@@ -391,14 +391,14 @@ export default function Home() {
           </FadeIn>
 
           <div
-            className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-5 [-ms-overflow-style:none] [scrollbar-width:none] sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:pb-0 lg:grid-cols-4 lg:gap-6 [&::-webkit-scrollbar]:hidden"
+            className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-5 [-ms-overflow-style:none] [scrollbar-width:none] lg:gap-6 [&::-webkit-scrollbar]:hidden"
             aria-label="منتجات رونق"
           >
             {products.map((product, i) => (
               <FadeIn
                 key={product.id}
                 delay={i * 90}
-                className="w-[82vw] max-w-[330px] shrink-0 snap-start sm:w-auto sm:max-w-none"
+                className="w-[82vw] max-w-[330px] shrink-0 snap-start sm:w-[44vw] lg:w-[320px]"
               >
                 <article className="group flex h-full flex-col overflow-hidden rounded-[28px] border border-[#C4A484]/25 bg-white shadow-[0_18px_55px_rgba(28,20,18,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(28,20,18,0.12)]">
                   <Link

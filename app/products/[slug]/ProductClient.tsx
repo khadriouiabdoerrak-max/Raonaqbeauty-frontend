@@ -425,14 +425,14 @@ export default function ProductClient({ product }: { product: Product }) {
         <section className="border-t border-[#1C1412]/8 bg-[#F7F1EC] py-10 md:py-14" dir="rtl">
           <div className="container mx-auto px-4">
             <h2 className="text-2xl font-black text-[#1C1412] md:text-3xl">أدوات أخرى من رونق</h2>
-            <div className="mt-5 grid grid-cols-2 gap-3 sm:mt-7 sm:grid-cols-3 sm:gap-4">
+            <div className="mt-5 grid grid-cols-1 gap-3 sm:mt-7 sm:grid-cols-3 sm:gap-4">
               {others.map((p) => (
                 <Link
                   key={p.id}
                   href={`/products/${p.slug}`}
-                  className="group block overflow-hidden rounded-2xl bg-white transition-opacity hover:opacity-90 sm:rounded-none"
+                  className="group flex overflow-hidden rounded-2xl bg-white transition-opacity hover:opacity-90 sm:block sm:rounded-none"
                 >
-                  <div className="aspect-square overflow-hidden bg-[#F7F1EC] sm:aspect-[4/5]">
+                  <div className="aspect-square w-28 shrink-0 overflow-hidden bg-[#F7F1EC] sm:w-auto sm:aspect-[4/5]">
                     <img
                       src={p.heroImage}
                       alt={p.name}
@@ -445,7 +445,7 @@ export default function ProductClient({ product }: { product: Product }) {
                       decoding="async"
                     />
                   </div>
-                  <div className="p-3 sm:p-4">
+                  <div className="flex min-w-0 flex-1 flex-col justify-center p-3 text-right sm:block sm:p-4">
                     <p className="text-sm font-black leading-tight text-[#1C1412] sm:text-base">{p.name}</p>
                     <p className="mt-1 hidden text-xs font-bold text-[#1C1412]/45 sm:block">{p.tagline}</p>
                     <p className="mt-2 text-sm font-black text-[#C45B6A] sm:text-base">{p.price1} د.م</p>

@@ -432,7 +432,7 @@ export const products: Product[] = [
     },
     price1: 199,
     price2: 279,
-    heroImage: "/images/raonaq-duo-lifestyle.png",
+    heroImage: "/images/raonaq-duo-woman.png",
     gallery: [
       { src: "/images/raonaq-duo-closeup.png", label: "النتيجة على الشعر" },
       { src: "/images/raonaq-duo-tool.png", label: "الأداة عن قرب" },

@@ -119,7 +119,7 @@ export default function CollectionPage() {
                     alt={product.name}
                       className={`absolute inset-0 h-full w-full transition-transform duration-700 group-hover:scale-105 ${
                         product.slug === "raonaq-duo"
-                          ? "object-contain"
+                          ? "object-cover object-[72%_center]"
                           : product.heroImage.includes("-tool")
                             ? "object-contain p-6"
                             : "object-cover"

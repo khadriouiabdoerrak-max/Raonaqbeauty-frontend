@@ -415,7 +415,7 @@ export default function Home() {
                         alt={product.name}
                         className={`h-full w-full transition-transform duration-700 group-hover:scale-105 ${
                           product.slug === "raonaq-duo"
-                            ? "object-contain"
+                            ? "object-cover object-[72%_center]"
                             : product.heroImage.includes("-tool")
                               ? "object-contain p-6"
                               : "object-cover"

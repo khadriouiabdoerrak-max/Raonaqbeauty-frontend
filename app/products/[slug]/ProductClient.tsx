@@ -424,27 +424,31 @@ export default function ProductClient({ product }: { product: Product }) {
       {others.length > 0 && (
         <section className="border-t border-[#1C1412]/8 bg-[#F7F1EC] py-10 md:py-14" dir="rtl">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-black text-[#1C1412]">أدوات أخرى من رونق</h2>
-            <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <h2 className="text-2xl font-black text-[#1C1412] md:text-3xl">أدوات أخرى من رونق</h2>
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:mt-7 sm:grid-cols-3 sm:gap-4">
               {others.map((p) => (
                 <Link
                   key={p.id}
                   href={`/products/${p.slug}`}
-                  className="group block overflow-hidden bg-white transition-opacity hover:opacity-90"
+                  className="group block overflow-hidden rounded-2xl bg-white transition-opacity hover:opacity-90 sm:rounded-none"
                 >
-                  <div className="aspect-[4/5] overflow-hidden bg-[#F7F1EC]">
+                  <div className="aspect-square overflow-hidden bg-[#F7F1EC] sm:aspect-[4/5]">
                     <img
                       src={p.heroImage}
                       alt={p.name}
-                      className={`h-full w-full transition-transform duration-700 group-hover:scale-[1.03] ${productImageClass(p.heroImage)}`}
+                      className={`h-full w-full transition-transform duration-700 group-hover:scale-[1.03] ${
+                        p.slug === "raonaq-duo"
+                          ? "object-cover object-[72%_center]"
+                          : productImageClass(p.heroImage)
+                      }`}
                       loading="lazy"
                       decoding="async"
                     />
                   </div>
-                  <div className="p-4">
-                    <p className="font-black text-[#1C1412]">{p.name}</p>
-                    <p className="mt-1 text-xs font-bold text-[#1C1412]/45">{p.tagline}</p>
-                    <p className="mt-2 font-black text-[#C45B6A]">{p.price1} د.م</p>
+                  <div className="p-3 sm:p-4">
+                    <p className="text-sm font-black leading-tight text-[#1C1412] sm:text-base">{p.name}</p>
+                    <p className="mt-1 hidden text-xs font-bold text-[#1C1412]/45 sm:block">{p.tagline}</p>
+                    <p className="mt-2 text-sm font-black text-[#C45B6A] sm:text-base">{p.price1} د.م</p>
                   </div>
                 </Link>
               ))}

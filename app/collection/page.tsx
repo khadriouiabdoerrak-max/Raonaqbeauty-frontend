@@ -117,7 +117,9 @@ export default function CollectionPage() {
                     <img
                     src={product.heroImage}
                     alt={product.name}
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      className={`absolute inset-0 h-full w-full transition-transform duration-700 group-hover:scale-105 ${
+                        product.heroImage.includes("-tool") ? "object-contain p-6" : "object-cover"
+                      }`}
                     loading="lazy"
                     decoding="async"
                     onError={(event) => {

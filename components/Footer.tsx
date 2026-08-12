@@ -18,8 +18,8 @@ export default function Footer() {
         }}
       />
       <div className="container mx-auto px-4">
-        <div className="relative grid md:grid-cols-4 gap-10 mb-12">
-          <div className="md:col-span-2">
+        <div className="relative grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 mb-12">
+          <div className="col-span-2 md:col-span-2">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-11 h-11 rounded-full bg-rosewood text-white flex items-center justify-center font-black text-lg">
                 ر

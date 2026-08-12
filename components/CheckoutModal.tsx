@@ -112,11 +112,15 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutMo
     "w-full rounded-xl border border-[#1C1412]/12 bg-white px-4 py-3 text-right outline-none transition-all focus:border-rosewood focus:ring-2 focus:ring-rosewood/25";
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#1C1412]/55 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-[#1C1412]/55 sm:p-4 backdrop-blur-sm">
       <div
-        className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-champagne/25 bg-white shadow-2xl"
+        className="relative max-h-[92vh] sm:max-h-[90vh] w-full sm:max-w-md overflow-y-auto rounded-t-3xl sm:rounded-2xl border border-champagne/25 bg-white shadow-2xl"
         dir="rtl"
       >
+        {/* مقبض السحب — موبايل فقط */}
+        <div className="sm:hidden flex justify-center pt-3 pb-1">
+          <div className="h-1 w-10 rounded-full bg-[#1C1412]/20" />
+        </div>
         <button
           type="button"
           onClick={onClose}

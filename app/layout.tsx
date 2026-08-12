@@ -16,6 +16,7 @@ const notoKufi = Noto_Kufi_Arabic({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://raonaqbeauty.com"),
   title: {
     default: "رونق | Raonaq — نتيجة صالون فدارك · المغرب",
     template: "%s | رونق",

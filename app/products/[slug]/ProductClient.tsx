@@ -30,6 +30,11 @@ function FadeIn({
   );
 }
 
+function productImageClass(src?: string) {
+  const shouldContain = src?.includes("-tool") || src?.includes("-box");
+  return shouldContain ? "bg-white object-contain" : "object-cover object-[center_18%]";
+}
+
 function BuyPanel({
   product,
   save2,
@@ -98,7 +103,11 @@ export default function ProductClient({ product }: { product: Product }) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [isSticky, setIsSticky] = useState(false);
   const ctaRef = useRef<HTMLDivElement>(null);
-  const others = products.filter((p) => p.id !== product.id).slice(0, 3);
+  const suggestedOrder = ["p5", "p6", "p1", "p2", "p3", "p4"];
+  const others = suggestedOrder
+    .map((id) => products.find((p) => p.id === id))
+    .filter((p): p is Product => Boolean(p && p.id !== product.id))
+    .slice(0, 3);
   const save2 = product.price1 * 2 - product.price2;
   const shot = product.gallery[selectedImage] ?? product.gallery[0];
 
@@ -137,20 +146,41 @@ export default function ProductClient({ product }: { product: Product }) {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#F7F1EC] pb-28 md:pb-0">
-      {/* موبايل: هيرو كامل الشاشة */}
-      <section className="relative bg-[#1C1412] lg:hidden">
-        <div className="relative aspect-[4/5] w-full overflow-hidden">
+      {/* موبايل: صور المنتج أولاً */}
+      <section className="bg-white lg:hidden" dir="rtl">
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#F7F1EC]">
           <img
-            src={product.heroImage}
-            alt={`${product.name} — رونق`}
-            className="h-full w-full object-cover object-[center_18%]"
+            src={shot?.src ?? product.heroImage}
+            alt={`${product.name} — ${shot?.label ?? "رونق"}`}
+            className={`h-full w-full ${productImageClass(shot?.src ?? product.heroImage)}`}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412] via-[#1C1412]/40 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-5 pb-6 text-right text-white" dir="rtl">
             <p className="text-2xl font-black tracking-[0.16em] text-[#C4A484]">رونق</p>
             <h1 className="mt-1 text-[1.75rem] font-black leading-tight">{product.name}</h1>
-            <p className="mt-1.5 text-sm text-white/80">{product.tagline}</p>
+            <p className="mt-1.5 text-sm text-white/80">{shot?.label ?? product.tagline}</p>
           </div>
+        </div>
+
+        <div className="border-b border-[#1C1412]/8 px-4 py-3">
+          <div className="flex gap-2 overflow-x-auto pb-1" dir="ltr">
+            {product.gallery.map((img, i) => (
+              <button
+                key={img.src}
+                type="button"
+                onClick={() => setSelectedImage(i)}
+                aria-label={img.label}
+                className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 bg-[#F7F1EC] transition-colors ${
+                  selectedImage === i ? "border-[#C45B6A]" : "border-[#1C1412]/10"
+                }`}
+              >
+                <img src={img.src} alt="" className={`h-full w-full ${productImageClass(img.src)}`} loading="lazy" decoding="async" />
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 text-center text-xs font-black text-[#1C1412]/60">
+            قلبي الصور وشوفي المنتج من كل جهة
+          </p>
         </div>
       </section>
 
@@ -168,7 +198,7 @@ export default function ProductClient({ product }: { product: Product }) {
                 <img
                   src={shot?.src ?? product.heroImage}
                   alt={`${product.name} — ${shot?.label ?? ""}`}
-                  className="h-full w-full object-cover"
+                  className={`h-full w-full ${productImageClass(shot?.src ?? product.heroImage)}`}
                 />
               </div>
             </div>
@@ -186,54 +216,15 @@ export default function ProductClient({ product }: { product: Product }) {
                     selectedImage === i ? "border-[#C45B6A]" : "border-[#1C1412]/10"
                   }`}
                 >
-                  <img src={img.src} alt="" className="h-full w-full object-cover" />
-                </button>
-              ))}
-            </div>
+                <img src={img.src} alt="" className={`h-full w-full ${productImageClass(img.src)}`} loading="lazy" decoding="async" />
+              </button>
+            ))}
           </div>
+        </div>
 
           <div className="xl:sticky xl:top-28 xl:self-start">
             <BuyPanel product={product} save2={save2} onAdd={add} ctaRef={ctaRef} />
           </div>
-        </div>
-      </section>
-
-      {/* موبايل: معرض */}
-      <section className="border-b border-[#1C1412]/8 bg-[#F7F1EC] py-8 lg:hidden" dir="rtl">
-        <div className="px-4">
-          <p className="text-[11px] font-black tracking-[0.2em] text-[#C45B6A]">شوفي</p>
-          <h2 className="mt-1 text-2xl font-black text-[#1C1412]">الشكل والنتيجة</h2>
-        </div>
-
-        <div className="mt-4 bg-white">
-          <div className="aspect-[4/5]">
-            <img
-              src={shot?.src ?? product.heroImage}
-              alt={`${product.name} — ${shot?.label ?? ""}`}
-              className="h-full w-full object-cover"
-            />
-          </div>
-          {shot && (
-            <p className="border-t border-[#1C1412]/08 px-4 py-3 text-center text-sm font-black text-[#1C1412]">
-              {shot.label}
-            </p>
-          )}
-        </div>
-
-        <div className="mt-3 flex gap-2 overflow-x-auto px-4 pb-1" dir="ltr">
-          {product.gallery.map((img, i) => (
-            <button
-              key={img.src}
-              type="button"
-              onClick={() => setSelectedImage(i)}
-              aria-label={img.label}
-              className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 transition-colors ${
-                selectedImage === i ? "border-[#C45B6A]" : "border-transparent"
-              }`}
-            >
-              <img src={img.src} alt="" className="h-full w-full object-cover" />
-            </button>
-          ))}
         </div>
       </section>
 
@@ -434,7 +425,7 @@ export default function ProductClient({ product }: { product: Product }) {
         <section className="border-t border-[#1C1412]/8 bg-[#F7F1EC] py-10 md:py-14" dir="rtl">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-black text-[#1C1412]">أدوات أخرى من رونق</h2>
-            <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3">
               {others.map((p) => (
                 <Link
                   key={p.id}
@@ -445,7 +436,9 @@ export default function ProductClient({ product }: { product: Product }) {
                     <img
                       src={p.heroImage}
                       alt={p.name}
-                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                      className={`h-full w-full transition-transform duration-700 group-hover:scale-[1.03] ${productImageClass(p.heroImage)}`}
+                      loading="lazy"
+                      decoding="async"
                     />
                   </div>
                   <div className="p-4">

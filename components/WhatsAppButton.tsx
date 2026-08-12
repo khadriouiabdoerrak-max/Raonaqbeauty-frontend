@@ -31,7 +31,7 @@ export default function WhatsAppButton() {
       </a>
 
       <div
-        className={`bg-white px-4 py-2 rounded-2xl shadow-xl border border-gray-100 transition-all duration-500 origin-right ${
+        className={`hidden sm:block bg-white px-4 py-2 rounded-2xl shadow-xl border border-gray-100 transition-all duration-500 origin-right ${
           showTooltip ? "opacity-100 scale-100 translate-x-0" : "opacity-0 scale-90 translate-x-4 pointer-events-none"
         }`}
         dir="rtl"

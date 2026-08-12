@@ -41,6 +41,8 @@ function BeforeAfterResultVisual() {
           src="/raonaq-before-after-woman.png"
           alt="قبل وبعد استعمال رونق على الشعر"
           className="h-full w-full object-cover"
+          loading="lazy"
+          decoding="async"
         />
 
         <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412]/28 via-transparent to-transparent" />
@@ -167,6 +169,8 @@ export default function Home() {
             src={heroImage}
             alt="أدوات رونق — نتيجة صالون في المنزل"
             className="hero-media absolute inset-0 h-full w-full object-cover object-[center_top] md:object-[center_18%]"
+            loading="eager"
+            decoding="async"
           />
         </picture>
         {/* تدرج ناعم — الصورة هي البطلة */}
@@ -192,25 +196,33 @@ export default function Home() {
                 حجم · نعومة · لمعان — مع حماية للشعر، بلا موعد.
               </p>
 
-              <div className="mt-8 flex w-full max-w-md flex-col gap-3 sm:flex-row sm:items-stretch">
-                <button
-                  type="button"
-                  onClick={() => addOne(featured.id, featured.name, featured.price1, productThumb(featured))}
-                  className="btn btn-primary btn-lg flex-1 shadow-[0_12px_40px_rgba(196,91,106,0.35)]"
-                >
-                  اطلبي تريو — {featured.price1} د.م
-                </button>
+              <div className="mt-8 flex w-full max-w-md flex-col gap-4">
                 <Link
-                  href="#shop"
-                  className="btn btn-outline-light btn-lg flex-1 border-white/45 backdrop-blur-sm"
+                  href="/collection"
+                  className="btn btn-primary btn-lg w-full shadow-[0_12px_40px_rgba(196,91,106,0.35)] py-4 text-center text-lg font-bold flex items-center justify-center"
                 >
-                  شوفي المجموعة
+                  اطلبي دابا · التوصيل مجاني
                 </Link>
               </div>
 
-              <p className="mt-4 text-[11px] font-medium tracking-wide text-white/55 md:text-xs">
-                قلبي قبل الدفع · توصيل مجاني للمغرب
-              </p>
+              <div className="mt-5 flex flex-col gap-3 text-[13px] font-medium text-white/80 md:text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#C4A484]/20 text-[#C4A484]">
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                  الدفع عند الاستلام — قلبي السلعة عاد خلصي
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#C4A484]/20 text-[#C4A484]">
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                  توصيل سريع لجميع مدن المغرب (24-48 ساعة)
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -286,6 +298,8 @@ export default function Home() {
           src={lifestyleImage}
           alt="تصفيف فدارك مع رونق"
           className="absolute inset-0 h-full w-full object-cover object-[center_25%] opacity-50"
+          loading="lazy"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-[#1C1412]/55" />
         <div className="relative z-10 flex min-h-[70vh] items-center">
@@ -330,6 +344,8 @@ export default function Home() {
                     src={look.image}
                     alt={look.title}
                     className="h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-105"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412]/80 via-[#1C1412]/10 to-transparent" />
                   <span
@@ -356,19 +372,28 @@ export default function Home() {
       <section id="shop" className="bg-[#F7F1EC] py-20 md:py-28">
         <div className="container mx-auto px-4">
           <FadeIn>
-            <div className="mb-14 text-center" dir="rtl">
+            <div className="mb-10 text-center" dir="rtl">
               <p className="text-sm font-black tracking-[0.25em] text-[#C45B6A]">المجموعة</p>
-              <h2 className="mt-3 text-4xl font-black text-[#1C1412] md:text-5xl">أربع أدوات. هوية واحدة.</h2>
-              <p className="mx-auto mt-4 max-w-lg text-lg text-[#1C1412]/60">
-                مختارة لنتيجة احترافية مع حماية الشعر · 199 د.م · خلصي عند الباب
+              <h2 className="mt-3 text-4xl font-black text-[#1C1412] md:text-5xl">
+                اختاري الأداة المناسبة ليك
+              </h2>
+              <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-[#1C1412]/62">
+                كل منتج واضح: شنو كيعطيك، شحال الثمن، وكيفاش كيوصلك حتى للدار. كتوصلك الطلبية، كتشوفيها، وعاد كتخلصي.
               </p>
+              <div className="mx-auto mt-6 grid max-w-3xl gap-2 text-right sm:grid-cols-3">
+                {["الدفع عند الاستلام", "تأكيد الطلب بالهاتف", "توصيل مجاني للمغرب"].map((line) => (
+                  <div key={line} className="rounded-full border border-[#C4A484]/35 bg-white px-4 py-3 text-center text-sm font-black text-[#1C1412] shadow-[0_12px_35px_rgba(28,20,18,0.06)]">
+                    {line}
+                  </div>
+                ))}
+              </div>
             </div>
           </FadeIn>
 
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
             {products.map((product, i) => (
               <FadeIn key={product.id} delay={i * 90}>
-                <article className="group flex h-full flex-col overflow-hidden border border-[#C4A484]/25 bg-white shadow-[0_18px_55px_rgba(28,20,18,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(28,20,18,0.12)]">
+                <article className="group flex h-full flex-col overflow-hidden rounded-[28px] border border-[#C4A484]/25 bg-white shadow-[0_18px_55px_rgba(28,20,18,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(28,20,18,0.12)]">
                   <Link
                     href={`/products/${product.slug}`}
                     className="block flex-1"
@@ -379,13 +404,19 @@ export default function Home() {
                           {product.tag}
                         </span>
                       )}
-                      <span className="absolute bottom-3 left-3 z-10 bg-white/90 px-3 py-1.5 text-xs font-black text-[#C45B6A] shadow-lg backdrop-blur">
+                      <span className="absolute bottom-3 left-3 z-10 rounded-full bg-white/95 px-4 py-2 text-sm font-black text-[#C45B6A] shadow-lg backdrop-blur">
                         {product.price1} د.م
+                      </span>
+                      <span className="absolute bottom-3 right-3 z-10 rounded-full bg-[#1C1412]/85 px-3 py-2 text-[10px] font-black text-white backdrop-blur">
+                        توصيل مجاني
                       </span>
                       <img
                         src={product.heroImage}
                         alt={product.name}
                         className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        loading="lazy"
+                        decoding="async"
+                        onError={(e) => { e.currentTarget.style.display = "none"; }}
                       />
                     </div>
 
@@ -399,12 +430,14 @@ export default function Home() {
                       <p className="mt-2 text-sm font-black text-[#1C1412]/80">
                         {product.tagline}
                       </p>
-                      <p className="mt-3 min-h-[72px] text-sm leading-relaxed text-[#1C1412]/58">
+                      <p className="mt-3 hidden sm:block min-h-[72px] text-sm leading-relaxed text-[#1C1412]/58">
                         {product.cardCopy}
                       </p>
-                      <p className="mt-4 text-xs font-black text-[#C45B6A]">
-                        اضغطي على الكارت وشوفي التفاصيل
-                      </p>
+                      <div className="mt-4 hidden sm:grid gap-2 rounded-2xl bg-[#F7F1EC] p-3 text-xs font-bold text-[#1C1412]/72">
+                        <p>✓ كنعايطو نأكدو الطلب قبل الإرسال</p>
+                        <p>✓ كتفتحي وتشوفي المنتج عاد كتخلصي</p>
+                        <p>✓ التوصيل حتى لباب الدار</p>
+                      </div>
                     </div>
                   </Link>
 
@@ -415,7 +448,10 @@ export default function Home() {
                       }
                       className="btn btn-secondary btn-block justify-between px-5 py-3 text-right"
                     >
-                      <span className="text-sm font-black text-[#1C1412]">طلبي قطعة</span>
+                      <span>
+                        <span className="block text-sm font-black text-[#1C1412]">اطلبي قطعة دابا</span>
+                        <span className="block text-[10px] font-bold text-[#1C1412]/55">الدفع عند الاستلام</span>
+                      </span>
                       <span className="text-lg font-black text-[#C45B6A]">{product.price1} د.م</span>
                     </button>
                     <button
@@ -425,8 +461,8 @@ export default function Home() {
                       className="btn btn-dark btn-block justify-between px-5 py-3 text-right"
                     >
                       <span>
-                        <span className="block text-sm font-black">عرض قطعتين</span>
-                        <span className="block text-[10px] font-bold text-white/65">وفري 119 درهم</span>
+                        <span className="block text-sm font-black">خدي جوج ووفري</span>
+                        <span className="block text-[10px] font-bold text-white/65">عرض العائلة أو الهدية</span>
                       </span>
                       <span className="text-lg font-black">{product.price2} د.م</span>
                     </button>
@@ -441,11 +477,13 @@ export default function Home() {
       {/* ═══════════════ الثقة ═══════════════ */}
       <section className="bg-white">
         <div className="grid lg:grid-cols-2">
-          <div className="relative min-h-[420px] overflow-hidden bg-[#1C1412]">
+          <div className="relative min-h-[260px] md:min-h-[420px] overflow-hidden bg-[#1C1412]">
             <img
               src={toolsImage}
               alt="أدوات رونق — نتيجة صالون في المنزل"
               className="absolute inset-0 h-full w-full object-cover object-center"
+              loading="lazy"
+              decoding="async"
             />
           </div>
           <div className="flex items-center bg-[#F7F1EC] px-6 py-16 md:px-14 md:py-24" dir="rtl">
@@ -556,6 +594,8 @@ export default function Home() {
           src={heroImage}
           alt=""
           className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[center_15%] opacity-25"
+          loading="lazy"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-[#1C1412]/70" />
         <div className="relative z-10 container mx-auto max-w-xl px-4" dir="rtl">

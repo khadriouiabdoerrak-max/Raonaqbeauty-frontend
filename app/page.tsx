@@ -7,6 +7,7 @@ import { products, productThumb } from "../lib/products";
 import { useInView } from "../lib/useInView";
 import ProductCarousel from "../components/ProductCarousel";
 import BeforeAfterSlider from "../components/BeforeAfterSlider";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 function FadeIn({
   children,
@@ -34,7 +35,9 @@ function FadeIn({
 function BeforeAfterResultVisual() {
   return (
     <div className="relative mx-auto w-full max-w-md overflow-hidden border border-[#C4A484]/25">
-      <BeforeAfterSlider />
+      <ErrorBoundary>
+        <BeforeAfterSlider />
+      </ErrorBoundary>
     </div>
   );
 }

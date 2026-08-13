@@ -6,6 +6,7 @@ import { useCart } from "../../../context/CartContext";
 import { trackViewContent } from "../../../lib/pixels";
 import { getWhatsAppLink } from "../../../lib/contact";
 import BeforeAfterSlider from "../../../components/BeforeAfterSlider";
+import ErrorBoundary from "../../../components/ErrorBoundary";
 import {
   products,
   productThumb,
@@ -375,7 +376,9 @@ export default function ProductClient({ product }: { product: Product }) {
           <p className="text-[11px] font-medium tracking-[0.32em] text-[#C4A484]">LE RÉSULTAT</p>
           <h2 className="font-display mt-2 text-3xl font-semibold text-[#1C1412] md:text-[2.6rem]">Chez vous, ça se voit</h2>
           <div className="mt-8 overflow-hidden border border-[#C4A484]/25">
-            <BeforeAfterSlider />
+            <ErrorBoundary>
+              <BeforeAfterSlider />
+            </ErrorBoundary>
           </div>
         </div>
       </section>

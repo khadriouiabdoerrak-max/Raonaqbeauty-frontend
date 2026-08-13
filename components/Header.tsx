@@ -67,8 +67,8 @@ export default function Header() {
             : "bg-pearl-blush/95 backdrop-blur-xl border-b border-champagne/25"
         }`}
       >
-        <div className="container mx-auto flex h-[4.5rem] items-center justify-between gap-4 px-4 md:h-[108px]">
-          <Link href="/" className="flex h-14 shrink-0 items-center md:h-[88px]" aria-label="Raonaq — accueil">
+        <div className="container mx-auto flex h-16 items-center justify-between gap-4 px-4 md:h-[96px]">
+          <Link href="/" className="flex h-12 shrink-0 items-center md:h-[76px]" aria-label="Raonaq — accueil">
             <BrandLogo variant={overHero ? "white" : "color"} />
           </Link>
 

@@ -6,6 +6,7 @@ import { useCart } from "../context/CartContext";
 import { products, productThumb } from "../lib/products";
 import { useInView } from "../lib/useInView";
 import ProductCarousel from "../components/ProductCarousel";
+import BeforeAfterSlider from "../components/BeforeAfterSlider";
 
 function FadeIn({
   children,
@@ -36,27 +37,8 @@ function BeforeAfterResultVisual() {
       className="relative mx-auto w-full max-w-xl overflow-hidden rounded-[36px] border border-white/70 bg-white p-3 shadow-[0_30px_80px_rgba(28,20,18,0.14)]"
       aria-label="Avant et après Raonaq"
     >
-      <div className="relative aspect-[4/3] overflow-hidden rounded-[28px] bg-[#F7F1EC]">
-        <img
-          src="/raonaq-before-after-woman.png"
-          alt="Avant et après Raonaq"
-          className="h-full w-full object-cover"
-          loading="lazy"
-          decoding="async"
-        />
-
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412]/28 via-transparent to-transparent" />
-        <span className="absolute left-4 top-4 rounded-full bg-[#1C1412]/70 px-4 py-2 text-xs font-semibold tracking-wide text-white backdrop-blur">
-          Avant
-        </span>
-        <span className="absolute right-4 top-4 rounded-full bg-white px-4 py-2 text-xs font-semibold tracking-wide text-[#C45B6A] shadow-lg">
-          Après
-        </span>
-
-        <div className="before-after-sweep absolute bottom-0 top-0 z-10 w-[3px] bg-white shadow-[0_0_22px_rgba(255,255,255,0.9)]" />
-        <div className="before-after-sweep absolute top-1/2 z-20 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/80 bg-white text-lg font-semibold text-[#C45B6A] shadow-2xl">
-          →
-        </div>
+      <div className="overflow-hidden rounded-[28px]">
+        <BeforeAfterSlider src="/images/raonaq-before-after-woman.png" />
       </div>
     </div>
   );

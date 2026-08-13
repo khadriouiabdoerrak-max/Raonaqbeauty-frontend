@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 
 const messages = [
-  "Raonaq — le salon, chez vous",
-  "Volume · lisse · brillance, avec protection",
-  "Ouvrez, inspectez, puis payez — livraison gratuite au Maroc",
+  "Livraison GRATUITE partout au Maroc — 24 à 48 h",
+  "Paiement à la livraison — inspectez, puis payez",
+  "Pièce Raonaq · 220–240 V · confirmation par téléphone",
 ];
 
 export default function AnnouncementBar() {

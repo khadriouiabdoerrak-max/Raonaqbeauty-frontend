@@ -1,100 +1,133 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Props = {
-  src: string;               // نفس الصورة كاتستعمل للطرفين
+  src: string;
   beforeLabel?: string;
   afterLabel?: string;
-  beforeFilter?: string;     // CSS filter للجهة "قبل"
+  className?: string;
 };
 
 export default function BeforeAfterSlider({
   src,
   beforeLabel = "Avant",
   afterLabel = "Après",
-  beforeFilter = "grayscale(80%) brightness(0.85) contrast(0.9) blur(1.2px)",
+  className = "",
 }: Props) {
-  const [pos, setPos] = useState(45); // تبدأ من اليمين (قبل) أكبر
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState(58);
+  const [hint, setHint] = useState(true);
+  const box = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
+  const used = useRef(false);
 
-  const move = useCallback((clientX: number) => {
-    const el = containerRef.current;
+  const setFromX = useCallback((clientX: number) => {
+    const el = box.current;
     if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const pct = Math.min(96, Math.max(4, ((clientX - rect.left) / rect.width) * 100));
-    setPos(pct);
+    const r = el.getBoundingClientRect();
+    const next = ((clientX - r.left) / r.width) * 100;
+    setPos(Math.min(92, Math.max(8, next)));
+  }, []);
+
+  const takeOver = useCallback(
+    (clientX: number) => {
+      used.current = true;
+      setHint(false);
+      setFromX(clientX);
+    },
+    [setFromX],
+  );
+
+  useEffect(() => {
+    let dir = -1;
+    const timer = window.setInterval(() => {
+      if (used.current) return;
+      setPos((current) => {
+        const next = current + dir * 0.35;
+        if (next < 38) dir = 1;
+        if (next > 68) dir = -1;
+        return next;
+      });
+    }, 40);
+    return () => window.clearInterval(timer);
   }, []);
 
   return (
     <div
-      ref={containerRef}
-      className="relative w-full overflow-hidden rounded-3xl shadow-2xl cursor-ew-resize select-none"
-      style={{ aspectRatio: "16/9" }}
-      onMouseDown={() => { dragging.current = true; }}
-      onMouseUp={() => { dragging.current = false; }}
-      onMouseLeave={() => { dragging.current = false; }}
-      onMouseMove={(e) => { if (dragging.current) move(e.clientX); }}
-      onTouchMove={(e) => { e.preventDefault(); move(e.touches[0].clientX); }}
-      onTouchStart={(e) => move(e.touches[0].clientX)}
+      ref={box}
+      role="slider"
+      tabIndex={0}
+      aria-label="Avant et après"
+      aria-valuemin={8}
+      aria-valuemax={92}
+      aria-valuenow={Math.round(pos)}
+      className={`relative aspect-[4/5] cursor-ew-resize touch-none select-none overflow-hidden bg-[#F7F1EC] outline-none md:aspect-[5/4] ${className}`}
+      onPointerDown={(e) => {
+        dragging.current = true;
+        e.currentTarget.setPointerCapture(e.pointerId);
+        takeOver(e.clientX);
+      }}
+      onPointerMove={(e) => {
+        if (!dragging.current) return;
+        takeOver(e.clientX);
+      }}
+      onPointerUp={() => {
+        dragging.current = false;
+      }}
+      onPointerCancel={() => {
+        dragging.current = false;
+      }}
+      onKeyDown={(e) => {
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        used.current = true;
+        setHint(false);
+        setPos((current) => Math.min(92, Math.max(8, current + (e.key === "ArrowRight" ? 5 : -5))));
+      }}
     >
-      {/* AFTER side — full color (underneath, full width) */}
       <img
         src={src}
-        alt={afterLabel}
+        alt={beforeLabel}
         draggable={false}
-        className="absolute inset-0 w-full h-full object-cover object-top pointer-events-none"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[100%_center]"
       />
 
-      {/* BEFORE side — filtered (clipped from right) */}
-      <div
-        className="absolute inset-0 overflow-hidden pointer-events-none"
-        style={{ right: `${100 - pos}%`, left: 0 }}
-      >
+      <div className="pointer-events-none absolute inset-y-0 left-0 overflow-hidden" style={{ width: `${pos}%` }}>
         <img
           src={src}
-          alt={beforeLabel}
+          alt={afterLabel}
           draggable={false}
-          className="absolute inset-0 h-full object-cover object-top"
-          style={{
-            width: `${(100 / pos) * 100}%`,
-            maxWidth: "none",
-            filter: beforeFilter,
-          }}
+          className="absolute inset-y-0 left-0 h-full max-w-none object-cover object-left"
+          style={{ width: `${(100 / pos) * 100}%` }}
         />
       </div>
 
-      {/* Divider line */}
       <div
-        className="absolute top-0 bottom-0 w-px bg-white/80 shadow-[0_0_12px_3px_rgba(255,255,255,0.6)] pointer-events-none"
+        className="pointer-events-none absolute inset-y-0 z-10 w-0.5 bg-white shadow-[0_0_18px_rgba(255,255,255,0.9)]"
         style={{ left: `${pos}%` }}
       />
-
-      {/* Handle */}
       <div
-        className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-12 h-12 bg-white rounded-full shadow-2xl flex items-center justify-center border-2 border-white/80 z-10 transition-transform hover:scale-110"
+        className="pointer-events-none absolute top-1/2 z-20 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/80 bg-white text-[#C45B6A] shadow-2xl"
         style={{ left: `${pos}%` }}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-6 h-6 text-rosewood">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l-4 3 4 3M16 9l4 3-4 3" />
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="h-5 w-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 9.75 4.5 12l3.75 2.25m7.5-4.5L19.5 12l-3.75 2.25" />
         </svg>
       </div>
 
-      {/* Labels */}
-      <div className="absolute top-5 left-5 flex items-center gap-2 bg-black/50 backdrop-blur-sm text-white text-sm font-medium px-4 py-2 rounded-full pointer-events-none">
-        <span className="w-2 h-2 rounded-full bg-gray-400 inline-block" />
-        {beforeLabel}
-      </div>
-      <div className="absolute top-5 right-5 flex items-center gap-2 bg-rosewood/90 backdrop-blur-sm text-white text-sm font-medium px-4 py-2 rounded-full pointer-events-none">
-        <span className="w-2 h-2 rounded-full bg-white inline-block animate-pulse" />
+      <span className="pointer-events-none absolute left-3 top-3 z-20 min-w-[4.5rem] bg-white px-3 py-1.5 text-center text-[11px] font-semibold tracking-wide text-[#C45B6A]">
         {afterLabel}
-      </div>
+      </span>
+      <span className="pointer-events-none absolute right-3 top-3 z-20 min-w-[4.5rem] bg-[#1C1412]/80 px-3 py-1.5 text-center text-[11px] font-semibold tracking-wide text-white">
+        {beforeLabel}
+      </span>
 
-      {/* Instruction hint (fades after use) */}
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 text-white/80 text-xs font-medium bg-black/30 backdrop-blur-sm px-4 py-1.5 rounded-full pointer-events-none">
-        ← Glissez pour voir la différence →
-      </div>
+      {hint && (
+        <p className="pointer-events-none absolute inset-x-0 bottom-12 z-20 text-center">
+          <span className="bg-[#1C1412]/50 px-3 py-1.5 text-[11px] font-medium tracking-wide text-white backdrop-blur-sm">
+            Glissez pour voir
+          </span>
+        </p>
+      )}
     </div>
   );
 }

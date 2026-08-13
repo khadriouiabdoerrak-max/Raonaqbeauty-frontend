@@ -1,7 +1,19 @@
 import Link from "next/link";
-import BrandLogo from "./BrandLogo";
 import { getWhatsAppDisplay, getWhatsAppLink } from "../lib/contact";
 import { getSocialLinks, SITE } from "../lib/site";
+
+const nav = [
+  { href: "/", label: "الرئيسية" },
+  { href: "/collection", label: "المجموعة" },
+  { href: "/about", label: "من نحن" },
+  { href: "/contact", label: "اتصل بنا" },
+] as const;
+
+const trust = [
+  "الدفع عند الاستلام بعد ما تقلبي",
+  "توصيل مجاني لجميع مدن المغرب",
+  "غالباً 24–48 ساعة",
+] as const;
 
 export default function Footer() {
   const social = getSocialLinks();
@@ -10,34 +22,79 @@ export default function Footer() {
   const hasSocial = Boolean(social.instagram || social.facebook || social.tiktok);
 
   return (
-    <footer className="bg-warm-black text-white pt-16 pb-8 relative overflow-hidden" dir="rtl">
-      <div
-        className="absolute inset-0 opacity-[0.06]"
-        style={{
-          backgroundImage: "radial-gradient(circle, var(--color-champagne) 1.5px, transparent 1.5px)",
-          backgroundSize: "28px 28px",
-        }}
-      />
-      <div className="container mx-auto px-4">
-        <div className="relative grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 mb-12">
-          <div className="col-span-2 md:col-span-2">
-            <Link href="/" className="mb-6 inline-flex h-24 md:h-28 items-center" aria-label="رونق — الصفحة الرئيسية">
-              <BrandLogo variant="white" />
-            </Link>
-            <p className="text-gray-400 leading-relaxed max-w-xs">
-              {SITE.description}
-            </p>
+    <footer className="bg-[#1C1412] text-white" dir="rtl">
+      <div className="h-px bg-gradient-to-l from-transparent via-[#C4A484]/50 to-transparent" />
+
+      <div className="container mx-auto px-4 py-14 md:py-20">
+        <div className="max-w-xl">
+          <p className="text-[11px] font-black tracking-[0.42em] text-[#C4A484]">RAONAQ</p>
+          <p className="mt-3 text-2xl font-black leading-tight md:text-3xl">{SITE.fullName}</p>
+          <p className="mt-4 max-w-md text-sm font-medium leading-7 text-white/55 md:text-[15px]">
+            {SITE.description}
+          </p>
+        </div>
+
+        <div className="mt-12 grid gap-10 border-t border-white/10 pt-12 sm:grid-cols-2 lg:grid-cols-3 lg:gap-16">
+          <div>
+            <p className="text-[11px] font-black tracking-[0.28em] text-[#C4A484]">روابط</p>
+            <ul className="mt-5 space-y-3">
+              {nav.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className="text-sm font-bold text-white/70 transition-colors hover:text-white"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-[11px] font-black tracking-[0.28em] text-[#C4A484]">ثقتك</p>
+            <ul className="mt-5 space-y-3">
+              {trust.map((line) => (
+                <li key={line} className="flex items-start gap-3 text-sm font-medium leading-6 text-white/70">
+                  <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-[#C4A484]" />
+                  {line}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-[11px] font-black tracking-[0.28em] text-[#C4A484]">تواصل</p>
+            <div className="mt-5 space-y-3 text-sm font-medium">
+              <a
+                href={`mailto:${SITE.email}`}
+                className="block text-white/70 transition-colors hover:text-white"
+              >
+                {SITE.email}
+              </a>
+              {whatsapp && (
+                <a
+                  href={whatsapp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-white/70 transition-colors hover:text-white"
+                >
+                  واتساب {whatsappDisplay}
+                </a>
+              )}
+              <p className="text-white/45">{SITE.city}</p>
+            </div>
             {hasSocial && (
-              <div className="flex gap-3 mt-6">
+              <div className="mt-6 flex gap-2">
                 {social.instagram && (
                   <a
                     href={social.instagram}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-rosewood transition-colors"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/12 text-white/70 hover:border-[#C4A484] hover:text-white"
                     aria-label="Instagram"
                   >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
                     </svg>
                   </a>
@@ -47,10 +104,10 @@ export default function Footer() {
                     href={social.facebook}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-rosewood transition-colors"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/12 text-white/70 hover:border-[#C4A484] hover:text-white"
                     aria-label="Facebook"
                   >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                     </svg>
                   </a>
@@ -60,10 +117,10 @@ export default function Footer() {
                     href={social.tiktok}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-rosewood transition-colors"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/12 text-white/70 hover:border-[#C4A484] hover:text-white"
                     aria-label="TikTok"
                   >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.79a8.18 8.18 0 004.78 1.52V6.85a4.85 4.85 0 01-1.01-.16z" />
                     </svg>
                   </a>
@@ -71,60 +128,13 @@ export default function Footer() {
               </div>
             )}
           </div>
-
-          <div>
-            <h3 className="font-bold text-lg mb-5 text-champagne">روابط</h3>
-            <ul className="space-y-3 text-gray-400">
-              <li>
-                <Link href="/" className="hover:text-white transition-colors">
-                  الرئيسية
-                </Link>
-              </li>
-              <li>
-                <Link href="/collection" className="hover:text-white transition-colors">
-                  المجموعة
-                </Link>
-              </li>
-              <li>
-                <Link href="/about" className="hover:text-white transition-colors">
-                  من نحن
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="hover:text-white transition-colors">
-                  اتصل بنا
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="font-bold text-lg mb-5 text-champagne">ثقتك</h3>
-            <ul className="space-y-3 text-gray-400 text-sm">
-              <li>الدفع عند الاستلام بعد ما تقلبي</li>
-              <li>توصيل مجاني لجميع مدن المغرب</li>
-              <li>غالباً 24–48 ساعة</li>
-              {whatsapp && (
-                <li>
-                  <a href={whatsapp} className="hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">
-                    واتساب {whatsappDisplay}
-                  </a>
-                </li>
-              )}
-              <li>
-                <a href={`mailto:${SITE.email}`} className="hover:text-white transition-colors">
-                  {SITE.email}
-                </a>
-              </li>
-            </ul>
-          </div>
         </div>
+      </div>
 
-        <div className="relative border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-3 text-gray-500 text-sm">
-          <p>
-            © {new Date().getFullYear()} رونق — Raonaq Beauty. جميع الحقوق محفوظة.
-          </p>
-          <p>{SITE.domain}</p>
+      <div className="border-t border-white/10">
+        <div className="container mx-auto flex flex-col gap-2 px-4 py-5 text-[12px] font-medium text-white/35 md:flex-row md:items-center md:justify-between">
+          <p>© {new Date().getFullYear()} رونق — Raonaq Beauty. جميع الحقوق محفوظة.</p>
+          <p className="tracking-wide">{SITE.domain}</p>
         </div>
       </div>
     </footer>

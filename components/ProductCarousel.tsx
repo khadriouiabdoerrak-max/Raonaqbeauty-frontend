@@ -72,27 +72,29 @@ export default function ProductCarousel({ onAdd }: ProductCarouselProps) {
                   alt={product.name}
                   draggable={false}
                   className={`pointer-events-none h-full w-full ${
-                    product.heroImage.includes("-tool")
+                    product.heroImage.includes("-tool") || product.heroImage.includes("-box")
                       ? "object-contain p-8"
-                      : "object-cover object-[center_18%]"
+                      : product.slug === "raonaq-duo"
+                        ? "object-cover object-center"
+                        : "object-cover object-[center_18%]"
                   }`}
                   loading="lazy"
                   decoding="async"
                 />
               </div>
-              <div className="p-5 text-right">
+              <div className="px-4 pb-1 text-right">
                 <h3 className="text-xl font-black text-[#1C1412]">{product.name}</h3>
                 <p className="mt-1 text-sm font-medium text-[#1C1412]/55">{product.tagline}</p>
                 <p className="mt-3 text-lg font-black text-[#C45B6A]">{product.price1} د.م</p>
               </div>
             </Link>
-            <div className="mt-auto px-5 pb-5">
+            <div className="mt-auto px-4 pb-4">
               <button
                 type="button"
                 onClick={() => onAdd(product)}
-                className="btn btn-primary btn-block"
+                className="btn btn-primary btn-block h-12 whitespace-nowrap px-4 text-[13px] md:h-[52px] md:text-sm"
               >
-                اطلبي دابا
+                اطلبي دابا · {product.price1} د.م
               </button>
             </div>
           </article>

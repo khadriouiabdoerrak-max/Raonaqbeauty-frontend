@@ -32,7 +32,9 @@ function FadeIn({
 
 function productImageClass(src?: string) {
   const shouldContain = src?.includes("-tool") || src?.includes("-box");
-  return shouldContain ? "bg-white object-contain" : "object-cover object-[center_18%]";
+  if (shouldContain) return "bg-white object-contain p-4";
+  if (src?.includes("raonaq-duo")) return "object-cover object-center";
+  return "object-cover object-[center_18%]";
 }
 
 function BuyPanel({
@@ -435,11 +437,7 @@ export default function ProductClient({ product }: { product: Product }) {
                     <img
                       src={p.heroImage}
                       alt={p.name}
-                      className={`h-full w-full transition-transform duration-700 group-hover:scale-[1.03] ${
-                        p.slug === "raonaq-duo"
-                          ? "object-cover object-[72%_center]"
-                          : productImageClass(p.heroImage)
-                      }`}
+                      className={`h-full w-full transition-transform duration-700 group-hover:scale-[1.03] ${productImageClass(p.heroImage)}`}
                       loading="lazy"
                       decoding="async"
                     />

@@ -434,11 +434,10 @@ export const products: Product[] = [
     price2: 279,
     heroImage: "/images/raonaq-duo-woman.png",
     gallery: [
-      { src: "/images/raonaq-duo-closeup.png", label: "النتيجة على الشعر" },
+      { src: "/images/raonaq-duo-woman.png", label: "النتيجة على الشعر" },
       { src: "/images/raonaq-duo-tool.png", label: "الأداة عن قرب" },
-      { src: "/images/raonaq-duo-lifestyle.png", label: "Lisser & Boucler" },
       { src: "/images/raonaq-duo-unboxing.png", label: "فتح الباكة" },
-      { src: "/images/raonaq-duo-woman.png", label: "نتيجة صالون فدارك" },
+      { src: "/images/raonaq-duo-closeup.png", label: "التصفيف عن قرب" },
     ],
   },
 ];

@@ -3,7 +3,7 @@ import {
   fetchWithTimeout,
   getServerApiBases,
   shouldTryNextEndpoint,
-} from "../../../../lib/apiBase";
+} from "../../../../../lib/apiBase";
 
 export async function POST(
   request: Request,

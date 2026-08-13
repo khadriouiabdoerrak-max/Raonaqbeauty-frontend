@@ -10,7 +10,6 @@ import {
   products,
   productThumb,
   productCoverClass,
-  productBeforeAfter,
   PDP_PROOF,
   type Product,
 } from "../../../lib/products";
@@ -246,7 +245,6 @@ export default function ProductClient({ product }: { product: Product }) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [zoomOpen, setZoomOpen] = useState(false);
   const others = products.filter((p) => p.id !== product.id).slice(0, 4);
-  const beforeAfter = productBeforeAfter(product);
   const whatsapp = getWhatsAppLink(`Bonjour, j’aimerais des informations sur Raonaq ${product.name}`);
 
   useEffect(() => {
@@ -372,13 +370,12 @@ export default function ProductClient({ product }: { product: Product }) {
         </div>
       </section>
 
-      <section className="bg-white py-10 md:py-14">
-        <div className="container mx-auto max-w-3xl px-4">
-          <p className="text-[11px] font-medium tracking-[0.28em] text-[#C4A484]">AVANT / APRÈS</p>
-          <h2 className="font-display mt-2 text-3xl font-semibold text-[#1C1412] md:text-4xl">Glissez — la différence se voit</h2>
-          <p className="mt-2 text-sm text-[#1C1412]/50">Le trait bouge avec votre doigt.</p>
-          <div className="mt-6 overflow-hidden">
-            <BeforeAfterSlider src={beforeAfter.src} />
+      <section className="bg-[#F7F1EC] py-14 md:py-20">
+        <div className="container mx-auto max-w-lg px-4">
+          <p className="text-[11px] font-medium tracking-[0.32em] text-[#C4A484]">LE RÉSULTAT</p>
+          <h2 className="font-display mt-2 text-3xl font-semibold text-[#1C1412] md:text-[2.6rem]">Chez vous, ça se voit</h2>
+          <div className="mt-8 overflow-hidden border border-[#C4A484]/25">
+            <BeforeAfterSlider />
           </div>
         </div>
       </section>

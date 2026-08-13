@@ -96,12 +96,11 @@ export const COMMON_PDP_FAQS: ProductFaq[] = [
 
 export const productThumb = (p: Product): string => p.gallery[0]?.src ?? p.heroImage;
 
-export function productBeforeAfter(p: Product) {
-  return (
-    p.gallery.find(
-      (g) => g.src.includes("before-after") || /avant|before|après|after/i.test(g.label),
-    ) ?? { src: "/images/raonaq-before-after-woman.png", label: "Avant / après" }
-  );
+export function productBeforeAfter(_p?: Product) {
+  return {
+    after: "/images/raonaq-result-after.png",
+    before: "/images/raonaq-result-before.png",
+  };
 }
 
 export function productStoryCards(p: Product) {
@@ -195,7 +194,6 @@ export const products: Product[] = [
     ],
     gallery: [
       { src: "/images/raonaq-trio-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-trio-before-after.png", label: "Avant / après" },
       { src: "/images/raonaq-trio-pack.png", label: "L’écrin Raonaq" },
       { src: "/images/raonaq-trio-tools.png", label: "3 outils" },
       { src: "/images/raonaq-hair-straight.png", label: "Lisse" },
@@ -308,7 +306,6 @@ export const products: Product[] = [
     heroImage: "/images/raonaq-air-soft-woman.png",
     gallery: [
       { src: "/images/raonaq-air-soft-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-air-soft-before-after.png", label: "Avant / après · frisottis" },
       { src: "/images/raonaq-air-soft-pack.png", label: "L’écrin Raonaq" },
       { src: "/images/raonaq-air-soft-tool.png", label: "L’outil" },
       { src: "/images/raonaq-hair-curls.png", label: "Lisse sans frisottis" },
@@ -398,7 +395,6 @@ export const products: Product[] = [
     heroImage: "/images/raonaq-air-pink-woman.png",
     gallery: [
       { src: "/images/raonaq-air-pink-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-air-pink-before-after.png", label: "Avant / après" },
       { src: "/images/raonaq-air-pink-pack.png", label: "L’écrin Raonaq" },
       { src: "/images/raonaq-air-pink-tool.png", label: "L’outil" },
       { src: "/images/raonaq-hair-waves.png", label: "Look net, vite" },
@@ -492,7 +488,6 @@ export const products: Product[] = [
     heroImage: "/images/raonaq-volume-woman.png",
     gallery: [
       { src: "/images/raonaq-volume-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-volume-before-after.png", label: "Avant / après · volume" },
       { src: "/images/raonaq-volume-pack.png", label: "L’écrin Raonaq" },
       { src: "/images/raonaq-volume-tool.png", label: "L’outil" },
       { src: "/images/raonaq-hair-blowout.png", label: "Volume des racines" },

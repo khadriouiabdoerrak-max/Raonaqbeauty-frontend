@@ -33,13 +33,8 @@ function FadeIn({
 
 function BeforeAfterResultVisual() {
   return (
-    <div
-      className="relative mx-auto w-full max-w-xl overflow-hidden rounded-[36px] border border-white/70 bg-white p-3 shadow-[0_30px_80px_rgba(28,20,18,0.14)]"
-      aria-label="Avant et après Raonaq"
-    >
-      <div className="overflow-hidden rounded-[28px]">
-        <BeforeAfterSlider src="/images/raonaq-before-after-woman.png" />
-      </div>
+    <div className="relative mx-auto w-full max-w-md overflow-hidden border border-[#C4A484]/25">
+      <BeforeAfterSlider />
     </div>
   );
 }

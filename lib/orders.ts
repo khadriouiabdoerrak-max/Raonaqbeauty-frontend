@@ -1,4 +1,5 @@
 import type { CartItem } from "../context/CartContext";
+import { fetchWithTimeout } from "./apiBase";
 import type { LastPurchase, PixelContent } from "./pixels";
 
 export type OrderCustomer = {
@@ -29,7 +30,7 @@ export type PendingOrder = OrderCustomer & {
 };
 
 const PENDING_KEY = "raonaq_pending_order";
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://Api.raonaqbeauty.com";
+const API_HOST = "https://api.raonaqbeauty.com";
 
 function makeEventId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -81,7 +82,7 @@ export function toLastPurchase(data: {
   };
 }
 
-/** تسجيل الطلب فوراً بعد تأكيد الفورم */
+/** تسجيل الطلب مباشرة فالـ API (Postgres / pgweb) */
 export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder> {
   const eventId = makeEventId();
   const contents = contentsFromCart(input.cart);
@@ -101,18 +102,15 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
     })),
   };
 
-  const res = await fetch(`${API_URL}/api/v1/orders/webhook`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  const order = await postDirect<{ id: number }>(
+    `${API_HOST}/api/v1/orders/webhook`,
+    payload
+  );
 
-  if (!res.ok) {
-    const details = await res.text();
-    throw new Error(details || "فشل إرسال الطلب");
+  if (!order?.id) {
+    throw new Error("no_order_id");
   }
 
-  const order = (await res.json()) as { id: number };
   return {
     orderId: order.id,
     eventId,
@@ -121,25 +119,45 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
   };
 }
 
-/** إضافة العرض الإضافي لطلب موجود */
-export async function attachUpsell(orderId: number, upsell: {
-  id: string;
-  name: string;
-  price: number;
-}): Promise<void> {
-  const res = await fetch(`${API_URL}/api/v1/orders/${orderId}/upsell`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      product_name: upsell.name,
-      quantity: 1,
-      price: upsell.price,
-      product_id: upsell.id,
-    }),
-  });
-
-  if (!res.ok) {
-    const details = await res.text();
-    throw new Error(details || "فشل إضافة العرض");
+export async function attachUpsell(
+  orderId: number,
+  upsell: {
+    id: string;
+    name: string;
+    price: number;
   }
+): Promise<void> {
+  await postDirect(`${API_HOST}/api/v1/orders/${orderId}/upsell`, {
+    product_name: upsell.name,
+    quantity: 1,
+    price: upsell.price,
+  });
+}
+
+async function postDirect<T>(url: string, payload: unknown): Promise<T> {
+  let lastError: unknown = "request_failed";
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const res = await fetchWithTimeout(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload),
+        mode: "cors",
+      });
+      const text = await res.text();
+      if (!res.ok) {
+        lastError = text || res.status;
+        if (res.status >= 400 && res.status < 500 && res.status !== 429) {
+          break;
+        }
+        continue;
+      }
+      return JSON.parse(text) as T;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }

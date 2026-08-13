@@ -85,27 +85,29 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutMo
 
     setIsSubmitting(true);
 
-    try {
-      const customer = {
-        name: name.trim(),
-        phone: phone.replace(/\s/g, ""),
-        city,
-        address: address.trim(),
-      };
+    const customer = {
+      name: name.trim(),
+      phone: phone.replace(/\s/g, ""),
+      city,
+      address: address.trim(),
+    };
 
-      const order = await createOrder({
+    let order: CreatedOrder;
+    try {
+      order = await createOrder({
         ...customer,
         cart,
         total: cartTotal,
         acceptedUpsell: false,
       });
-
-      onSuccess(customer, order);
     } catch (err) {
       console.error(err);
-      setError("ما تسجلاتش الطلبية. عاودي المحاولة أو تواصلي معنا عبر واتساب.");
       setIsSubmitting(false);
+      return;
     }
+
+    setIsSubmitting(false);
+    onSuccess(customer, order);
   };
 
   const fieldClass =

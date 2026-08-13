@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
 import AnnouncementBar from "./AnnouncementBar";
+import BrandLogo from "./BrandLogo";
 
 const links = [
   { href: "/", label: "الرئيسية" },
@@ -66,33 +67,9 @@ export default function Header() {
             : "bg-pearl-blush/95 backdrop-blur-xl border-b border-champagne/25 shadow-[0_1px_0_rgba(28,20,18,0.04)]"
         }`}
       >
-        <div className="container mx-auto px-4 h-[68px] md:h-[72px] flex items-center justify-between gap-4" dir="rtl">
-          <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-lg transition-colors ${
-                overHero
-                  ? "bg-rosewood text-white"
-                  : "bg-rosewood text-white group-hover:bg-rosewood-deep"
-              }`}
-            >
-              ر
-            </div>
-            <div className="leading-tight text-right">
-              <p
-                className={`font-black text-xl tracking-tight ${
-                  overHero ? "text-white" : "text-warm-black"
-                }`}
-              >
-                رونق
-              </p>
-              <p
-                className={`text-[10px] font-bold -mt-0.5 tracking-[0.2em] uppercase ${
-                  overHero ? "text-[#C4A484]" : "text-champagne"
-                }`}
-              >
-                Raonaq
-              </p>
-            </div>
+        <div className="container mx-auto px-4 h-[72px] md:h-[80px] flex items-center justify-between gap-4" dir="rtl">
+          <Link href="/" className="flex h-12 md:h-[58px] items-center flex-shrink-0" aria-label="رونق — الصفحة الرئيسية">
+            <BrandLogo variant={overHero ? "white" : "color"} />
           </Link>
 
           <nav className="hidden md:flex items-center gap-8" aria-label="القائمة الرئيسية">

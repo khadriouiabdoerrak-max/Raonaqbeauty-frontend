@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useCart } from "../context/CartContext";
-import { MOROCCO_CITIES } from "../lib/contact";
 import { trackInitiateCheckout } from "../lib/pixels";
 import { createOrder, type CreatedOrder } from "../lib/orders";
 
@@ -68,8 +67,8 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutMo
       return;
     }
 
-    if (!city) {
-      setError("الرجاء اختيار المدينة");
+    if (city.trim().length < 2) {
+      setError("الرجاء كتابة مدينتك");
       return;
     }
 
@@ -88,7 +87,7 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutMo
     const customer = {
       name: name.trim(),
       phone: phone.replace(/\s/g, ""),
-      city,
+      city: city.trim(),
       address: address.trim(),
     };
 
@@ -187,14 +186,14 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutMo
 
             <div>
               <label className="mb-1 block text-sm font-bold text-warm-black">المدينة</label>
-              <select value={city} onChange={(e) => setCity(e.target.value)} className={fieldClass}>
-                <option value="">اختاري مدينتك</option>
-                {MOROCCO_CITIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+              <input
+                type="text"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="مثلاً: الدار البيضاء"
+                autoComplete="address-level2"
+                className={fieldClass}
+              />
             </div>
 
             <div>

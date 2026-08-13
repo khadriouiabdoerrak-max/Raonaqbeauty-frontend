@@ -1,4 +1,5 @@
 import Link from "next/link";
+import BrandLogo from "./BrandLogo";
 import { getWhatsAppDisplay, getWhatsAppLink } from "../lib/contact";
 import { getSocialLinks, SITE } from "../lib/site";
 
@@ -20,15 +21,9 @@ export default function Footer() {
       <div className="container mx-auto px-4">
         <div className="relative grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 mb-12">
           <div className="col-span-2 md:col-span-2">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-11 h-11 rounded-full bg-rosewood text-white flex items-center justify-center font-black text-lg">
-                ر
-              </div>
-              <div>
-                <p className="text-2xl font-black leading-none">رونق</p>
-                <p className="text-xs text-champagne tracking-widest mt-1">RAONAQ BEAUTY</p>
-              </div>
-            </div>
+            <Link href="/" className="mb-5 inline-flex h-16 items-center" aria-label="رونق — الصفحة الرئيسية">
+              <BrandLogo variant="white" />
+            </Link>
             <p className="text-gray-400 leading-relaxed max-w-xs">
               {SITE.description}
             </p>

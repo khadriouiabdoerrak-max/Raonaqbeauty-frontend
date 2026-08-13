@@ -29,6 +29,11 @@ export const metadata: Metadata = {
     siteName: SITE.fullName,
     locale: "ar_MA",
     type: "website",
+    images: [{ url: "/images/raonaq-logo.png", alt: "رونق — Raonaq Beauty" }],
+  },
+  icons: {
+    icon: "/images/raonaq-logo.png",
+    apple: "/images/raonaq-logo.png",
   },
 };
 

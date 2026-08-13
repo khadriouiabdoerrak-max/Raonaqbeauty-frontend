@@ -5,7 +5,6 @@ import { useState } from "react";
 import CheckoutModal from "./CheckoutModal";
 import { useRouter } from "next/navigation";
 import {
-  savePendingOrder,
   toLastPurchase,
   type CreatedOrder,
 } from "../lib/orders";
@@ -35,33 +34,29 @@ export default function CartDrawer() {
   if (!isCartOpen) return null;
 
   const handleCheckoutSuccess = (
-    customerData: CheckoutCustomerData,
+    _customerData: CheckoutCustomerData,
     order: CreatedOrder
   ) => {
-    savePendingOrder({
-      ...customerData,
-      cart,
-      total: cartTotal,
-      orderId: order.orderId,
-      eventId: order.eventId,
-    });
-
-    sessionStorage.setItem(
-      "last_purchase",
-      JSON.stringify(
-        toLastPurchase({
-          orderId: order.orderId,
-          eventId: order.eventId,
-          total: order.total,
-          contents: order.contents,
-        })
-      )
-    );
+    try {
+      sessionStorage.setItem(
+        "last_purchase",
+        JSON.stringify(
+          toLastPurchase({
+            orderId: order.orderId,
+            eventId: order.eventId,
+            total: order.total,
+            contents: order.contents,
+          })
+        )
+      );
+    } catch (err) {
+      console.error("Failed to save last purchase locally:", err);
+    }
 
     setIsCheckoutOpen(false);
     setIsCartOpen(false);
     clearCart();
-    router.push("/upsell");
+    router.push("/thank-you");
   };
 
   const suggestTwoPack = () => {

@@ -15,50 +15,89 @@ export default function BeforeAfterSlider({
 }: Props) {
   const [pos, setPos] = useState(84);
   const box = useRef<HTMLDivElement>(null);
+  const posRef = useRef(84);
   const dragging = useRef(false);
-  const paused = useRef(false);
+  const userHold = useRef(false);
+  const dirRef = useRef(-1);
   const resumeTimer = useRef(0);
 
-  const setFromX = useCallback((clientX: number) => {
-    const el = box.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    setPos(Math.min(88, Math.max(12, ((clientX - r.left) / r.width) * 100)));
+  const applyPos = useCallback((next: number) => {
+    const clamped = Math.min(88, Math.max(12, next));
+    posRef.current = clamped;
+    setPos(clamped);
   }, []);
 
-  const pauseAt = useCallback(
+  const setFromX = useCallback(
     (clientX: number) => {
-      paused.current = true;
+      const el = box.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      applyPos(((clientX - r.left) / r.width) * 100);
+    },
+    [applyPos],
+  );
+
+  const startDrag = useCallback(
+    (clientX: number) => {
+      dragging.current = true;
+      userHold.current = true;
       window.clearTimeout(resumeTimer.current);
       setFromX(clientX);
     },
     [setFromX],
   );
 
-  const release = useCallback(() => {
+  const endDrag = useCallback(() => {
+    if (!dragging.current) return;
     dragging.current = false;
     window.clearTimeout(resumeTimer.current);
     resumeTimer.current = window.setTimeout(() => {
-      paused.current = false;
-    }, 1200);
+      userHold.current = false;
+    }, 2800);
   }, []);
 
   useEffect(() => {
-    let dir = -1;
-    const timer = window.setInterval(() => {
-      if (paused.current || dragging.current) return;
-      setPos((current) => {
-        const next = current + dir * 0.38;
-        if (next <= 16) dir = 1;
-        if (next >= 84) dir = -1;
-        return next;
-      });
-    }, 28);
+    const onMove = (e: PointerEvent) => {
+      if (!dragging.current) return;
+      e.preventDefault();
+      setFromX(e.clientX);
+    };
+    const onUp = () => endDrag();
+    window.addEventListener("pointermove", onMove, { passive: false });
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
     return () => {
-      window.clearInterval(timer);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+    };
+  }, [endDrag, setFromX]);
+
+  useEffect(() => {
+    let frame = 0;
+    let last = performance.now();
+    const tick = (now: number) => {
+      const dt = Math.min(32, now - last);
+      last = now;
+      if (!dragging.current && !userHold.current) {
+        let next = posRef.current + dirRef.current * dt * 0.028;
+        if (next <= 16) {
+          next = 16;
+          dirRef.current = 1;
+        } else if (next >= 84) {
+          next = 84;
+          dirRef.current = -1;
+        }
+        applyPos(next);
+      }
+      frame = window.requestAnimationFrame(tick);
+    };
+    frame = window.requestAnimationFrame(tick);
+    return () => {
+      window.cancelAnimationFrame(frame);
       window.clearTimeout(resumeTimer.current);
     };
-  }, []);
+  }, [applyPos]);
 
   return (
     <div
@@ -71,21 +110,18 @@ export default function BeforeAfterSlider({
       aria-valuenow={Math.round(pos)}
       className={`relative aspect-[4/5] cursor-ew-resize touch-none select-none overflow-hidden bg-[#F7F1EC] outline-none ${className}`}
       onPointerDown={(e) => {
-        dragging.current = true;
+        e.preventDefault();
         e.currentTarget.setPointerCapture(e.pointerId);
-        pauseAt(e.clientX);
+        startDrag(e.clientX);
       }}
-      onPointerMove={(e) => {
-        if (!dragging.current) return;
-        pauseAt(e.clientX);
-      }}
-      onPointerUp={release}
-      onPointerCancel={release}
       onKeyDown={(e) => {
         if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-        paused.current = true;
-        setPos((current) => Math.min(88, Math.max(12, current + (e.key === "ArrowRight" ? 5 : -5))));
-        release();
+        userHold.current = true;
+        window.clearTimeout(resumeTimer.current);
+        applyPos(posRef.current + (e.key === "ArrowRight" ? 5 : -5));
+        resumeTimer.current = window.setTimeout(() => {
+          userHold.current = false;
+        }, 2800);
       }}
     >
       <img src={beforeSrc} alt="" draggable={false} className="pointer-events-none absolute inset-0 h-full w-full object-cover" />

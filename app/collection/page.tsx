@@ -111,7 +111,7 @@ export default function CollectionPage() {
                     <button
                       type="button"
                       onClick={() => addProductToCart(product, 1, addToCart)}
-                      className="btn btn-primary btn-block"
+                      className="btn btn-primary btn-block min-h-14 px-5 py-4 text-base font-semibold md:min-h-16 md:text-lg"
                     >
                       Ajouter — {product.price1} Dhs
                     </button>

@@ -201,6 +201,12 @@ body {
   background: var(--color-rosewood);
 }
 
+.product-carousel {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  scrollbar-width: none;
+}
+
 .product-carousel::-webkit-scrollbar {
   display: none;
 }

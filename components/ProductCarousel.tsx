@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import Link from "next/link";
 import { products, type Product } from "../lib/products";
 
@@ -10,66 +10,27 @@ type ProductCarouselProps = {
 
 export default function ProductCarousel({ onAdd }: ProductCarouselProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(0);
-  const [canPrev, setCanPrev] = useState(false);
-  const [canNext, setCanNext] = useState(true);
 
-  const cards = () =>
-    Array.from(
-      scrollerRef.current?.querySelectorAll<HTMLElement>("[data-product-card]") ?? []
-    );
-
-  const sync = useCallback(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const list = cards();
-    if (list.length === 0) return;
-
-    const parent = el.getBoundingClientRect();
-    let best = 0;
-    let bestDist = Infinity;
-    list.forEach((card, i) => {
-      const dist = Math.abs(card.getBoundingClientRect().right - parent.right);
-      if (dist < bestDist) {
-        bestDist = dist;
-        best = i;
-      }
-    });
-    setActive(best);
-    setCanPrev(best > 0);
-    setCanNext(best < list.length - 1);
-  }, []);
-
-  useEffect(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    sync();
-    el.addEventListener("scroll", sync, { passive: true });
-    window.addEventListener("resize", sync);
-    return () => {
-      el.removeEventListener("scroll", sync);
-      window.removeEventListener("resize", sync);
-    };
-  }, [sync]);
-
-  const goTo = (index: number) => {
-    const list = cards();
-    const card = list[Math.max(0, Math.min(index, list.length - 1))];
-    card?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
+  const scrollByCard = (step: number) => {
+    const root = scrollerRef.current;
+    if (!root) return;
+    const card = root.querySelector<HTMLElement>("[data-product-card]");
+    if (!card) return;
+    const amount = card.getBoundingClientRect().width + 16;
+    root.scrollBy({ left: -step * amount, behavior: "smooth" });
   };
 
   return (
-    <div className="relative" dir="rtl">
+    <div className="relative z-[1]" dir="rtl">
       <div className="mb-4 flex items-center justify-between gap-3 px-1">
         <p className="text-[12px] font-bold text-[#1C1412]/50 md:text-sm">
-          مرّري من اليمين لليسار — تشوفي كل الأدوات
+          مرّري من اليمين لليسار
         </p>
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => goTo(active + 1)}
-            disabled={!canNext}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-[#1C1412]/12 bg-white text-[#1C1412] transition-colors hover:border-rosewood hover:text-rosewood disabled:cursor-not-allowed disabled:opacity-35"
+            onClick={() => scrollByCard(1)}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-[#1C1412]/12 bg-white text-[#1C1412]"
             aria-label="المنتج التالي"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="h-5 w-5">
@@ -78,9 +39,8 @@ export default function ProductCarousel({ onAdd }: ProductCarouselProps) {
           </button>
           <button
             type="button"
-            onClick={() => goTo(active - 1)}
-            disabled={!canPrev}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-[#1C1412]/12 bg-white text-[#1C1412] transition-colors hover:border-rosewood hover:text-rosewood disabled:cursor-not-allowed disabled:opacity-35"
+            onClick={() => scrollByCard(-1)}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-[#1C1412]/12 bg-white text-[#1C1412]"
             aria-label="المنتج السابق"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="h-5 w-5">
@@ -92,14 +52,13 @@ export default function ProductCarousel({ onAdd }: ProductCarouselProps) {
 
       <div
         ref={scrollerRef}
-        className="product-carousel -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-3 md:-mx-0 md:gap-4 md:px-0"
-        style={{ scrollbarWidth: "none", touchAction: "pan-x" }}
+        className="product-carousel -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-4 pb-3 md:mx-0 md:gap-4 md:px-0"
       >
         {products.map((product) => (
           <article
             key={product.id}
             data-product-card
-            className="group flex w-[min(78vw,320px)] shrink-0 snap-start flex-col overflow-hidden border border-[#C4A484]/25 bg-white md:w-[300px] lg:w-[320px]"
+            className="relative z-[1] flex w-[min(82vw,300px)] shrink-0 snap-start flex-col overflow-hidden border border-[#C4A484]/25 bg-white md:w-[280px] lg:w-[300px]"
           >
             <Link href={`/products/${product.slug}`} className="block">
               <div className="relative aspect-[4/5] overflow-hidden bg-[#F7F1EC]">
@@ -112,7 +71,7 @@ export default function ProductCarousel({ onAdd }: ProductCarouselProps) {
                   src={product.heroImage}
                   alt={product.name}
                   draggable={false}
-                  className={`h-full w-full transition-transform duration-700 group-hover:scale-105 ${
+                  className={`pointer-events-none h-full w-full ${
                     product.heroImage.includes("-tool")
                       ? "object-contain p-8"
                       : "object-cover object-[center_18%]"
@@ -137,20 +96,6 @@ export default function ProductCarousel({ onAdd }: ProductCarouselProps) {
               </button>
             </div>
           </article>
-        ))}
-      </div>
-
-      <div className="mt-5 flex justify-center gap-1.5">
-        {products.map((product, i) => (
-          <button
-            key={product.id}
-            type="button"
-            onClick={() => goTo(i)}
-            className={`h-1.5 rounded-full transition-all ${
-              i === active ? "w-6 bg-rosewood" : "w-1.5 bg-[#1C1412]/18"
-            }`}
-            aria-label={product.name}
-          />
         ))}
       </div>
     </div>

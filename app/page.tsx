@@ -344,7 +344,7 @@ export default function Home() {
       </section>
 
       {/* ═══════════════ المجموعة ═══════════════ */}
-      <section id="shop" className="bg-[#F7F1EC] py-20 md:py-28">
+      <section id="shop" className="relative z-[1] bg-[#F7F1EC] py-20 md:py-28">
         <div className="container mx-auto px-4">
           <FadeIn>
             <div className="mb-8 text-center md:mb-10" dir="rtl">

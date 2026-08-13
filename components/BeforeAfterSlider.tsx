@@ -17,7 +17,7 @@ export default function BeforeAfterSlider({
   const [held, setHeld] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
-  const resumeTimer = useRef<ReturnType<typeof setTimeout> | 0>(0);
+  const resumeTimer = useRef<number | null>(null);
 
   const setFromX = useCallback((clientX: number) => {
     const el = box.current;
@@ -29,7 +29,7 @@ export default function BeforeAfterSlider({
   const endDrag = useCallback(() => {
     if (!dragging.current) return;
     dragging.current = false;
-    if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
+    if (resumeTimer.current != null) window.clearTimeout(resumeTimer.current);
     resumeTimer.current = window.setTimeout(() => setHeld(false), 2500);
   }, []);
 
@@ -62,14 +62,14 @@ export default function BeforeAfterSlider({
       className={`relative aspect-[4/5] cursor-ew-resize touch-none select-none overflow-hidden bg-[#F7F1EC] outline-none ${className}`}
       onPointerDown={(e) => {
         dragging.current = true;
-        if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
+        if (resumeTimer.current != null) window.clearTimeout(resumeTimer.current);
         setHeld(true);
         e.currentTarget.setPointerCapture(e.pointerId);
         setFromX(e.clientX);
       }}
       onKeyDown={(e) => {
         if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-        if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
+        if (resumeTimer.current != null) window.clearTimeout(resumeTimer.current);
         setHeld(true);
         setPos((current) => Math.min(88, Math.max(12, current + (e.key === "ArrowRight" ? 5 : -5))));
         resumeTimer.current = window.setTimeout(() => setHeld(false), 2500);

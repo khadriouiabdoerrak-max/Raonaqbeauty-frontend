@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "اتصل بنا",
+  title: "Contact",
   description:
-    "تواصلي مع رونق من الدار البيضاء: واتساب، البريد، أو رسالة. كنأكدو الطلب بالهاتف، والتوصيل مجاني لجميع مدن المغرب.",
+    "Écrivez à Raonaq depuis Casablanca : WhatsApp, e-mail, ou un message. Nous confirmons la commande par téléphone. Livraison gratuite dans tout le Maroc.",
 };
 
 export default function ContactLayout({ children }: { children: React.ReactNode }) {

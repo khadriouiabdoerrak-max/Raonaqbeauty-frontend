@@ -17,21 +17,19 @@ export default function ProductCarousel({ onAdd }: ProductCarouselProps) {
     const card = root.querySelector<HTMLElement>("[data-product-card]");
     if (!card) return;
     const amount = card.getBoundingClientRect().width + 16;
-    root.scrollBy({ left: -step * amount, behavior: "smooth" });
+    root.scrollBy({ left: step * amount, behavior: "smooth" });
   };
 
   return (
-    <div className="relative z-[1]" dir="rtl">
+    <div className="relative z-[1]">
       <div className="mb-4 flex items-center justify-between gap-3 px-1">
-        <p className="text-[12px] font-bold text-[#1C1412]/50 md:text-sm">
-          مرّري من اليمين لليسار
-        </p>
+        <p className="text-[12px] font-medium text-[#1C1412]/45 md:text-sm">Faites glisser</p>
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => scrollByCard(1)}
+            onClick={() => scrollByCard(-1)}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-[#1C1412]/12 bg-white text-[#1C1412]"
-            aria-label="المنتج التالي"
+            aria-label="Précédent"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="h-5 w-5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -39,9 +37,9 @@ export default function ProductCarousel({ onAdd }: ProductCarouselProps) {
           </button>
           <button
             type="button"
-            onClick={() => scrollByCard(-1)}
+            onClick={() => scrollByCard(1)}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-[#1C1412]/12 bg-white text-[#1C1412]"
-            aria-label="المنتج السابق"
+            aria-label="Suivant"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="h-5 w-5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -58,12 +56,12 @@ export default function ProductCarousel({ onAdd }: ProductCarouselProps) {
           <article
             key={product.id}
             data-product-card
-            className="relative z-[1] flex w-[min(82vw,300px)] shrink-0 snap-start flex-col overflow-hidden border border-[#C4A484]/25 bg-white md:w-[280px] lg:w-[300px]"
+            className="relative z-[1] flex w-[min(82vw,300px)] shrink-0 snap-start flex-col overflow-hidden bg-white md:w-[280px] lg:w-[300px]"
           >
             <Link href={`/products/${product.slug}`} className="block">
               <div className="relative aspect-[4/5] overflow-hidden bg-[#F7F1EC]">
                 {product.tag && (
-                  <span className="absolute right-3 top-3 z-10 bg-[#1C1412] px-3 py-1.5 text-[10px] font-black text-white">
+                  <span className="absolute left-3 top-3 z-10 bg-[#1C1412] px-3 py-1.5 text-[10px] font-medium tracking-wide text-white">
                     {product.tag}
                   </span>
                 )}
@@ -76,10 +74,11 @@ export default function ProductCarousel({ onAdd }: ProductCarouselProps) {
                   decoding="async"
                 />
               </div>
-              <div className="px-4 pb-1 text-right">
-                <h3 className="text-xl font-black text-[#1C1412]">{product.name}</h3>
-                <p className="mt-1 text-sm font-medium text-[#1C1412]/55">{product.tagline}</p>
-                <p className="mt-3 text-lg font-black text-[#C45B6A]">{product.price1} د.م</p>
+              <div className="px-4 pb-1 text-left">
+                <h3 className="font-display text-2xl font-semibold tracking-wide text-[#1C1412]">{product.name}</h3>
+                <p className="mt-0.5 text-[11px] font-medium tracking-wide text-[#C4A484]">{product.nameFr}</p>
+                <p className="mt-1 text-sm text-[#1C1412]/55">{product.tagline}</p>
+                <p className="mt-3 text-lg font-semibold text-[#C45B6A]">{product.price1} Dhs</p>
               </div>
             </Link>
             <div className="mt-auto px-4 pb-4">
@@ -88,7 +87,7 @@ export default function ProductCarousel({ onAdd }: ProductCarouselProps) {
                 onClick={() => onAdd(product)}
                 className="btn btn-primary btn-block h-12 whitespace-nowrap px-4 text-[13px] md:h-[52px] md:text-sm"
               >
-                اطلبي دابا · {product.price1} د.م
+                Ajouter — {product.price1} Dhs
               </button>
             </div>
           </article>

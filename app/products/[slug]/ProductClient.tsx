@@ -4,94 +4,205 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useCart } from "../../../context/CartContext";
 import { trackViewContent } from "../../../lib/pixels";
-import { products, productThumb, productCoverClass, type Product } from "../../../lib/products";
-import { useInView } from "../../../lib/useInView";
+import { getWhatsAppLink } from "../../../lib/contact";
+import {
+  products,
+  productThumb,
+  productCoverClass,
+  productBeforeAfter,
+  productStoryCards,
+  PDP_TRUST,
+  type Product,
+} from "../../../lib/products";
 
-function FadeIn({
+function imgClass(src?: string, slug?: string) {
+  return productCoverClass(src ?? "", slug);
+}
+
+function BuyFold({
+  title,
+  open,
+  onToggle,
   children,
-  delay = 0,
-  className = "",
 }: {
+  title: string;
+  open: boolean;
+  onToggle: () => void;
   children: React.ReactNode;
-  delay?: number;
-  className?: string;
 }) {
-  const { ref, inView } = useInView();
   return (
-    <div
-      ref={ref}
-      className={`transition-all duration-700 ease-out ${
-        inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-      } ${className}`}
-      style={{ transitionDelay: `${delay}ms` }}
-    >
-      {children}
+    <div className="border-b border-[#1C1412]/10">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-between gap-3 py-3.5 text-left"
+        aria-expanded={open}
+      >
+        <span className="text-[13px] font-semibold text-[#1C1412]">{title}</span>
+        <span className="text-sm font-semibold text-[#C4A484]">{open ? "−" : "+"}</span>
+      </button>
+      {open && <div className="pb-4 text-[13px] leading-7 text-[#1C1412]/65">{children}</div>}
     </div>
   );
 }
 
-function productImageClass(src?: string, slug?: string) {
-  return productCoverClass(src ?? "", slug);
+function VideoSlot({ product }: { product: Product }) {
+  if (product.video) {
+    return (
+      <video
+        className="h-full w-full object-cover"
+        poster={product.heroImage}
+        controls
+        playsInline
+        preload="metadata"
+      >
+        <source src={product.video} />
+      </video>
+    );
+  }
+
+  return (
+    <div className="relative flex h-full w-full items-center justify-center bg-[#1C1412]">
+      <img src={product.heroImage} alt="" className="absolute inset-0 h-full w-full object-cover opacity-40" />
+      <div className="relative z-10 px-6 text-center text-white">
+        <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/40">
+          <svg className="ml-1 h-7 w-7" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        </span>
+        <p className="mt-4 text-[11px] font-medium tracking-[0.28em] text-[#C4A484]">VIDÉO</p>
+        <p className="mt-2 text-sm font-medium text-white/70">La vidéo {product.name} sera ici.</p>
+      </div>
+    </div>
+  );
+}
+
+function ReviewsSlot({ product }: { product: Product }) {
+  const reviews = product.reviews ?? [];
+
+  return (
+    <section className="bg-[#F7F1EC] py-16 md:py-24">
+      <div className="container mx-auto px-4">
+        <p className="text-[11px] font-medium tracking-[0.32em] text-[#C4A484]">AVIS CLIENTES</p>
+        <h2 className="font-display mt-3 text-3xl font-semibold text-[#1C1412] md:text-5xl">La voix du Maroc</h2>
+
+        {reviews.length === 0 ? (
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="min-h-[180px] border border-dashed border-[#C4A484]/40 bg-white p-6">
+                <div className="h-3 w-24 bg-[#C4A484]/25" />
+                <div className="mt-6 h-3 w-full bg-[#1C1412]/6" />
+                <div className="mt-2 h-3 w-4/5 bg-[#1C1412]/6" />
+                <p className="mt-8 text-[12px] font-medium text-[#1C1412]/35">
+                  {i === 0 ? "Les avis réels s’afficheront ici." : ""}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            {reviews.map((r) => (
+              <blockquote key={`${r.name}-${r.city}`} className="bg-white p-6">
+                {r.photo && (
+                  <img src={r.photo} alt="" className="mb-4 aspect-[4/3] w-full object-cover" />
+                )}
+                <p className="text-[15px] leading-7 text-[#1C1412]/75">« {r.text} »</p>
+                <footer className="mt-6">
+                  <p className="font-semibold text-[#1C1412]">{r.name}</p>
+                  <p className="text-sm text-[#C45B6A]">{r.city}</p>
+                </footer>
+              </blockquote>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
 }
 
 function BuyPanel({
   product,
-  save2,
   onAdd,
   ctaRef,
 }: {
   product: Product;
-  save2: number;
   onAdd: (price: number, qty: number) => void;
   ctaRef?: React.RefObject<HTMLDivElement | null>;
 }) {
+  const [fold, setFold] = useState<string | null>(null);
+  const whatsapp = getWhatsAppLink(`Bonjour, j’aimerais des informations sur Raonaq ${product.name}`);
+  const toggle = (id: string) => setFold((cur) => (cur === id ? null : id));
+
   return (
-    <div dir="rtl">
-      {product.tag && (
-        <p className="text-[11px] font-black tracking-[0.18em] text-[#C45B6A]">{product.tag}</p>
-      )}
-      <p className="mt-2 text-sm font-black tracking-[0.2em] text-[#C4A484]">رونق · RAONAQ</p>
-      <h1 className="mt-2 text-3xl font-black leading-tight text-[#1C1412] md:text-4xl">
+    <div>
+      <p className="text-[11px] font-medium tracking-[0.32em] text-[#C4A484]">RAONAQ</p>
+      <h1 className="font-display mt-2 text-5xl font-semibold tracking-wide text-[#1C1412] md:text-6xl">
         {product.name}
       </h1>
-      <p className="mt-2 text-base font-bold text-[#1C1412]/65">{product.tagline}</p>
+      <p className="mt-2 text-sm text-[#1C1412]/50">{product.nameFr}</p>
+      <p className="mt-4 max-w-md text-[15px] leading-7 text-[#1C1412]/70">{product.tagline}</p>
 
-      <div className="mt-5 flex items-end gap-3">
-        <p className="text-4xl font-black leading-none text-[#C45B6A]">
+      <ul className="mt-6 flex flex-wrap gap-2">
+        {product.chips.map((chip) => (
+          <li key={chip} className="border border-[#1C1412]/10 px-3 py-1.5 text-[11px] font-medium tracking-wide text-[#1C1412]/70">
+            {chip}
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-7 flex items-end gap-3">
+        <p className="text-4xl font-semibold leading-none text-[#C45B6A]">
           {product.price1}
-          <span className="mr-1 text-base font-bold">د.م</span>
+          <span className="ml-1 text-base font-medium">Dhs</span>
         </p>
-        <p className="pb-1 text-xs font-bold text-[#1C1412]/45">خلاص عند الباب بعد التفقد</p>
+        <p className="pb-1 text-xs text-[#1C1412]/45">Paiement à la livraison</p>
       </div>
 
-      <p className="mt-4 text-sm font-medium leading-relaxed text-[#1C1412]/70">{product.promise}</p>
-
-      <div ref={ctaRef} className="mt-6 space-y-2.5">
-        <button
-          type="button"
-          onClick={() => onAdd(product.price1, 1)}
-          className="btn btn-primary btn-block btn-lg text-[15px]"
-        >
-          اطلبي الآن — {product.price1} د.م
+      <div ref={ctaRef} className="mt-6 space-y-2">
+        <button type="button" onClick={() => onAdd(product.price1, 1)} className="btn btn-primary btn-block btn-lg">
+          Ajouter au panier — {product.price1} Dhs
         </button>
-        <button
-          type="button"
-          onClick={() => onAdd(product.price2, 2)}
-          className="btn btn-secondary btn-block justify-between gap-3 px-5 py-3.5 text-right"
-        >
-          <span>
-            <span className="block text-sm font-black text-[#1C1412]">عرض قطعتين</span>
-            <span className="mt-0.5 block text-[11px] font-bold text-[#1C1412]/50">
-              وفّري {save2} درهم
-            </span>
-          </span>
-          <span className="shrink-0 text-lg font-black text-[#C45B6A]">{product.price2} د.م</span>
+        <button type="button" onClick={() => onAdd(product.price2, 2)} className="btn btn-secondary btn-block btn-md text-sm">
+          Deux pièces — {product.price2} Dhs
         </button>
       </div>
 
-      <p className="mt-4 text-center text-[11px] font-bold leading-relaxed text-[#1C1412]/50">
-        توصيل مجاني للمغرب · غالباً 24–48 ساعة · قلبي قبل ما تخلصي
-      </p>
+      <div className="mt-7">
+        <BuyFold title="Livraison" open={fold === "ship"} onToggle={() => toggle("ship")}>
+          Gratuite dans tout le Maroc, généralement 24 à 48 h. Nous confirmons la commande par téléphone avant l’expédition.
+        </BuyFold>
+        <BuyFold title="Ouvrez, inspectez, puis payez" open={fold === "door"} onToggle={() => toggle("door")}>
+          Le livreur attend. Si l’outil ne vous convient pas, vous ne payez pas. Un défaut de fabrication se règle sur WhatsApp : nous remplaçons.
+        </BuyFold>
+        <BuyFold title="Comment l’utiliser" open={fold === "how"} onToggle={() => toggle("how")}>
+          <ol className="space-y-1.5">
+            {product.howTo.map((step, i) => (
+              <li key={step}>
+                {i + 1}. {step}
+              </li>
+            ))}
+          </ol>
+          <p className="mt-2 text-[12px] text-[#1C1412]/45">{product.styleTime}</p>
+        </BuyFold>
+        <BuyFold title="Dans l’écrin" open={fold === "box"} onToggle={() => toggle("box")}>
+          <ul className="space-y-1">
+            {product.inBox.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </BuyFold>
+      </div>
+
+      {whatsapp && (
+        <a
+          href={whatsapp}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 inline-block text-[12px] font-medium text-[#1C1412]/40 underline-offset-4 hover:text-[#C45B6A] hover:underline"
+        >
+          Une question ? WhatsApp
+        </a>
+      )}
     </div>
   );
 }
@@ -99,302 +210,222 @@ function BuyPanel({
 export default function ProductClient({ product }: { product: Product }) {
   const { addToCart } = useCart();
   const [selectedImage, setSelectedImage] = useState(0);
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isSticky, setIsSticky] = useState(false);
+  const [zoomOpen, setZoomOpen] = useState(false);
   const ctaRef = useRef<HTMLDivElement>(null);
-  const suggestedOrder = ["p5", "p6", "p1", "p2", "p3", "p4"];
-  const others = suggestedOrder
-    .map((id) => products.find((p) => p.id === id))
-    .filter((p): p is Product => Boolean(p && p.id !== product.id))
-    .slice(0, 3);
-  const save2 = product.price1 * 2 - product.price2;
-  const shot = product.gallery[selectedImage] ?? product.gallery[0];
+  const others = products.filter((p) => p.id !== product.id).slice(0, 4);
+  const beforeAfter = productBeforeAfter(product);
+  const story = productStoryCards(product);
+  const howImgs = [0, 3, 4, 1].map((i) => product.gallery[i] ?? product.gallery[0]);
 
   useEffect(() => {
-    trackViewContent({
-      id: product.id,
-      name: product.name,
-      price: product.price1,
-    });
+    trackViewContent({ id: product.id, name: `Raonaq ${product.name}`, price: product.price1 });
   }, [product.id, product.name, product.price1]);
 
   useEffect(() => {
     setSelectedImage(0);
-    setOpenFaq(0);
+    setOpenFaq(null);
+    setZoomOpen(false);
   }, [product.id]);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsSticky(!entry.isIntersecting),
-      { threshold: 0 }
-    );
+    const observer = new IntersectionObserver(([entry]) => setIsSticky(!entry.isIntersecting), { threshold: 0 });
     if (ctaRef.current) observer.observe(ctaRef.current);
     return () => observer.disconnect();
   }, [product.id]);
 
+  useEffect(() => {
+    if (!zoomOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setZoomOpen(false);
+    };
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [zoomOpen]);
+
   const add = (price: number, qty: number) => {
     addToCart({
       id: product.id,
-      name: product.name,
-      // السعر للوحدة — عرض قطعتين كيدوز price2 كمجموع
+      name: `Raonaq ${product.name}`,
       price: qty > 1 ? price / qty : price,
       quantity: qty,
       image: productThumb(product),
     });
   };
 
-  return (
-    <div className="min-h-screen overflow-x-hidden bg-[#F7F1EC] pb-28 md:pb-0">
-      {/* موبايل: صور المنتج أولاً */}
-      <section className="bg-white lg:hidden" dir="rtl">
-        <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#F7F1EC]">
-          <img
-            src={shot?.src ?? product.heroImage}
-            alt={`${product.name} — ${shot?.label ?? "رونق"}`}
-            className={`h-full w-full ${productImageClass(shot?.src ?? product.heroImage, product.slug)}`}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412] via-[#1C1412]/40 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 p-5 pb-6 text-right text-white" dir="rtl">
-            <h1 className="text-[1.75rem] font-black leading-tight">{product.name}</h1>
-            <p className="mt-1.5 text-sm text-white/80">{shot?.label ?? product.tagline}</p>
-          </div>
-        </div>
+  const showVideo = selectedImage === 0;
+  const galleryIndex = showVideo ? 0 : selectedImage - 1;
+  const galleryShot = product.gallery[galleryIndex] ?? product.gallery[0];
 
-        <div className="border-b border-[#1C1412]/8 px-4 py-3">
-          <div className="flex gap-2 overflow-x-auto pb-1" dir="ltr">
-            {product.gallery.map((img, i) => (
+  return (
+    <div className="min-h-screen overflow-x-hidden bg-white pb-24 md:pb-0">
+      {zoomOpen && !showVideo && (
+        <button
+          type="button"
+          className="fixed inset-0 z-[80] flex cursor-zoom-out items-center justify-center bg-[#1C1412]/90 p-4"
+          onClick={() => setZoomOpen(false)}
+          aria-label="Fermer"
+        >
+          <img src={galleryShot?.src} alt="" className="max-h-[90vh] max-w-full object-contain" />
+        </button>
+      )}
+
+      <div className="container mx-auto px-4 pt-6 lg:px-8">
+        <nav className="text-[11px] font-medium text-[#1C1412]/40">
+          <Link href="/collection" className="hover:text-[#C45B6A]">
+            Collection
+          </Link>
+          <span className="mx-1.5">/</span>
+          <span>{product.name}</span>
+        </nav>
+      </div>
+
+      <section className="bg-white">
+        <div className="container mx-auto grid items-start gap-10 px-4 py-8 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16 lg:px-8 lg:py-12">
+          <div>
+            <div className="aspect-[4/5] overflow-hidden bg-[#F7F1EC]">
+              {showVideo ? (
+                <VideoSlot product={product} />
+              ) : (
+                <button type="button" onClick={() => setZoomOpen(true)} className="h-full w-full cursor-zoom-in" aria-label="Agrandir">
+                  <img
+                    src={galleryShot?.src}
+                    alt={`${product.name} — ${galleryShot?.label ?? ""}`}
+                    className={`h-full w-full ${imgClass(galleryShot?.src, product.slug)}`}
+                  />
+                </button>
+              )}
+            </div>
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
               <button
-                key={img.src}
                 type="button"
-                onClick={() => setSelectedImage(i)}
-                aria-label={img.label}
-                className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 bg-[#F7F1EC] transition-colors ${
-                  selectedImage === i ? "border-[#C45B6A]" : "border-[#1C1412]/10"
+                onClick={() => setSelectedImage(0)}
+                aria-label="Vidéo"
+                className={`relative h-16 w-16 shrink-0 overflow-hidden border lg:h-[72px] lg:w-[72px] ${
+                  showVideo ? "border-[#C45B6A]" : "border-transparent"
                 }`}
               >
-                <img src={img.src} alt="" className={`h-full w-full ${productImageClass(img.src, product.slug)}`} loading="lazy" decoding="async" />
+                <img src={product.heroImage} alt="" className="h-full w-full object-cover opacity-70" />
+                <span className="absolute inset-0 flex items-center justify-center text-white">
+                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </span>
               </button>
-            ))}
-          </div>
-          <p className="mt-2 text-center text-xs font-black text-[#1C1412]/60">
-            قلبي الصور وشوفي المنتج من كل جهة
-          </p>
-        </div>
-      </section>
-
-      {/* موبايل: شراء */}
-      <section className="border-b border-[#1C1412]/8 bg-white px-4 py-6 lg:hidden">
-        <BuyPanel product={product} save2={save2} onAdd={add} ctaRef={ctaRef} />
-      </section>
-
-      {/* ديسكتوب: معرض + شراء جنب جنب */}
-      <section className="hidden bg-white lg:block" dir="rtl">
-        <div className="container mx-auto grid gap-10 px-6 py-12 xl:grid-cols-[1.15fr_0.85fr] xl:gap-14 xl:px-8 xl:py-16">
-          <div>
-            <div className="overflow-hidden bg-[#F7F1EC]">
-              <div className="aspect-[4/5]">
-                <img
-                  src={shot?.src ?? product.heroImage}
-                  alt={`${product.name} — ${shot?.label ?? ""}`}
-                  className={`h-full w-full ${productImageClass(shot?.src ?? product.heroImage, product.slug)}`}
-                />
-              </div>
-            </div>
-            {shot && (
-              <p className="mt-3 text-center text-sm font-black text-[#1C1412]/55">{shot.label}</p>
-            )}
-            <div className="mt-4 flex gap-2 overflow-x-auto pb-1" dir="ltr">
               {product.gallery.map((img, i) => (
                 <button
                   key={img.src}
                   type="button"
-                  onClick={() => setSelectedImage(i)}
+                  onClick={() => setSelectedImage(i + 1)}
                   aria-label={img.label}
-                  className={`h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl border transition-colors ${
-                    selectedImage === i ? "border-[#C45B6A]" : "border-[#1C1412]/10"
+                  className={`h-16 w-16 shrink-0 overflow-hidden border lg:h-[72px] lg:w-[72px] ${
+                    selectedImage === i + 1 ? "border-[#C45B6A]" : "border-transparent"
                   }`}
                 >
-                <img src={img.src} alt="" className={`h-full w-full ${productImageClass(img.src, product.slug)}`} loading="lazy" decoding="async" />
-              </button>
-            ))}
-          </div>
-        </div>
-
-          <div className="xl:sticky xl:top-28 xl:self-start">
-            <BuyPanel product={product} save2={save2} onAdd={add} ctaRef={ctaRef} />
-          </div>
-        </div>
-      </section>
-
-      {/* قبل / بعد */}
-      <section className="px-4 py-10 md:py-14" dir="rtl">
-        <div className="container mx-auto">
-          <FadeIn>
-            <div className="grid gap-px overflow-hidden bg-[#C4A484]/25 md:grid-cols-2">
-              <div className="bg-[#1C1412] p-6 text-white md:p-8">
-                <p className="text-[11px] font-black tracking-[0.22em] text-[#C4A484]">قبل رونق</p>
-                <p className="mt-3 text-base font-bold leading-relaxed md:text-lg">{product.pain}</p>
-              </div>
-              <div className="bg-white p-6 md:p-8">
-                <p className="text-[11px] font-black tracking-[0.22em] text-[#C45B6A]">بعد رونق</p>
-                <p className="mt-3 text-base font-bold leading-relaxed text-[#1C1412] md:text-lg">
-                  {product.promise}
-                </p>
-              </div>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* لمن */}
-      <section className="bg-white py-10 md:py-14" dir="rtl">
-        <div className="container mx-auto px-4">
-          <FadeIn>
-            <p className="text-[11px] font-black tracking-[0.2em] text-[#C45B6A]">اختاري بثقة</p>
-            <h2 className="mt-2 text-3xl font-black text-[#1C1412]">لمن هاد الأداة؟</h2>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#1C1412]/60 md:text-base">
-              {product.cardCopy}
-            </p>
-          </FadeIn>
-
-          <ul className="mt-7 space-y-0 border-t border-[#1C1412]/10">
-            {product.forWho.map((item, i) => (
-              <FadeIn key={item} delay={i * 50}>
-                <li className="flex items-start gap-3 border-b border-[#1C1412]/10 py-4">
-                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C45B6A]" />
-                  <p className="text-sm font-bold text-[#1C1412] md:text-base">{item}</p>
-                </li>
-              </FadeIn>
-            ))}
-          </ul>
-
-          <div className="mt-8 grid gap-6 sm:grid-cols-2">
-            <div>
-              <p className="text-[11px] font-black tracking-[0.18em] text-[#C45B6A]">الأحسن لـ</p>
-              <p className="mt-2 text-base font-black text-[#1C1412]">{product.bestFor}</p>
-            </div>
-            <div>
-              <p className="text-[11px] font-black tracking-[0.18em] text-[#C45B6A]">النتيجة</p>
-              <p className="mt-2 text-base font-black text-[#1C1412]">{product.result}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* مزايا */}
-      <section className="border-y border-[#1C1412]/8 bg-[#F7F1EC] py-10 md:py-14" dir="rtl">
-        <div className="container mx-auto px-4">
-          <FadeIn>
-            <p className="text-[11px] font-black tracking-[0.2em] text-[#C45B6A]">علاش هادي؟</p>
-            <h2 className="mt-2 text-3xl font-black text-[#1C1412]">مزايا كتبان فالنتيجة</h2>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#1C1412]/60 md:text-base">
-              {product.description}
-            </p>
-          </FadeIn>
-
-          <ul className="mt-8 space-y-0">
-            {product.features.map((f, i) => (
-              <FadeIn key={f} delay={i * 40}>
-                <li className="flex items-start gap-3 border-b border-[#1C1412]/10 py-3.5">
-                  <span className="mt-0.5 text-sm font-black text-[#C45B6A]">✓</span>
-                  <span className="text-sm font-bold text-[#1C1412] md:text-base">{f}</span>
-                </li>
-              </FadeIn>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* استعمال + صندوق */}
-      <section className="bg-white py-10 md:py-14" dir="rtl">
-        <div className="container mx-auto grid gap-12 px-4 md:grid-cols-2 md:gap-16">
-          <FadeIn>
-            <h2 className="text-3xl font-black text-[#1C1412]">كيفاش تستعمليها؟</h2>
-            <ol className="mt-6 space-y-5">
-              {product.howTo.map((step, i) => (
-                <li key={step} className="flex gap-4">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-[#1C1412] text-sm font-black text-white">
-                    {i + 1}
-                  </span>
-                  <p className="pt-1 text-sm font-medium leading-relaxed text-[#1C1412]/75 md:text-base">
-                    {step}
-                  </p>
-                </li>
+                  <img src={img.src} alt="" className={`h-full w-full ${imgClass(img.src, product.slug)}`} loading="lazy" />
+                </button>
               ))}
-            </ol>
-          </FadeIn>
+            </div>
+          </div>
 
-          <FadeIn delay={80}>
-            <h2 className="text-3xl font-black text-[#1C1412]">شنو فالصندوق؟</h2>
-            <ul className="mt-6 space-y-0 border-t border-[#1C1412]/10">
-              {product.inBox.map((item) => (
-                <li
-                  key={item}
-                  className="flex items-center gap-3 border-b border-[#1C1412]/10 py-3.5"
-                >
-                  <span className="text-[#C45B6A]">·</span>
-                  <span className="text-sm font-bold text-[#1C1412]">{item}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-4 text-xs font-bold text-[#1C1412]/40">{product.modelNote}</p>
-          </FadeIn>
+          <div className="lg:sticky lg:top-28 lg:self-start">
+            <BuyPanel product={product} onAdd={add} ctaRef={ctaRef} />
+          </div>
         </div>
       </section>
 
-      {/* شهادة */}
-      <section className="bg-[#F7F1EC] py-10 md:py-14" dir="rtl">
+      <section className="border-y border-[#1C1412]/8 bg-[#F7F1EC]">
+        <div className="container mx-auto grid grid-cols-2 gap-px md:grid-cols-4">
+          {PDP_TRUST.map((item) => (
+            <div key={item.t} className="bg-[#F7F1EC] px-4 py-5 text-center">
+              <p className="text-[12px] font-semibold text-[#1C1412]">{item.t}</p>
+              <p className="mt-1 text-[11px] text-[#1C1412]/45">{item.d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="bg-white py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <p className="text-[11px] font-medium tracking-[0.32em] text-[#C4A484]">RAONAQ {product.name}</p>
+          <h2 className="font-display mt-3 max-w-xl text-3xl font-semibold text-[#1C1412] md:text-5xl">{product.tagline}</h2>
+          <div className="mt-10 grid gap-3 md:grid-cols-3">
+            {story.map((card) => (
+              <article key={card.title} className="overflow-hidden bg-[#F7F1EC]">
+                <div className="aspect-[4/5] overflow-hidden">
+                  <img src={card.src} alt="" className={`h-full w-full ${imgClass(card.src, product.slug)}`} loading="lazy" />
+                </div>
+                <div className="p-5">
+                  <h3 className="text-lg font-semibold text-[#1C1412]">{card.title}</h3>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {beforeAfter && (
+        <section className="bg-[#F7F1EC] py-16 md:py-24">
+          <div className="container mx-auto max-w-3xl px-4">
+            <p className="text-[11px] font-medium tracking-[0.32em] text-[#C4A484]">AVANT / APRÈS</p>
+            <h2 className="font-display mt-3 text-3xl font-semibold text-[#1C1412] md:text-5xl">La différence se voit</h2>
+            <div className="mt-8 overflow-hidden bg-white">
+              <img src={beforeAfter.src} alt={beforeAfter.label} className="w-full object-cover" loading="lazy" />
+            </div>
+          </div>
+        </section>
+      )}
+
+      <section className="bg-white py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <p className="text-[11px] font-medium tracking-[0.32em] text-[#C4A484]">VOTRE CHEVEU</p>
+          <h2 className="font-display mt-3 text-3xl font-semibold text-[#1C1412] md:text-5xl">La chaleur juste</h2>
+          <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {product.hairGuide.map((item) => (
+              <article key={item.label} className="border border-[#1C1412]/8 p-5">
+                <h3 className="text-base font-semibold text-[#1C1412]">{item.label}</h3>
+                <p className="mt-2 text-sm font-medium text-[#C45B6A]">{item.setting}</p>
+                <p className="mt-2 text-[13px] leading-6 text-[#1C1412]/55">{item.note}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[#F7F1EC] py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <p className="text-[11px] font-medium tracking-[0.32em] text-[#C4A484]">LE GESTE</p>
+          <h2 className="font-display mt-3 text-3xl font-semibold text-[#1C1412] md:text-5xl">En quatre étapes</h2>
+          <p className="mt-2 text-sm text-[#1C1412]/45">{product.styleTime}</p>
+          <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {product.howTo.slice(0, 4).map((step, i) => (
+              <article key={step} className="overflow-hidden bg-white">
+                <div className="aspect-[4/5] overflow-hidden bg-[#F7F1EC]">
+                  <img src={howImgs[i]?.src} alt="" className={`h-full w-full ${imgClass(howImgs[i]?.src, product.slug)}`} loading="lazy" />
+                </div>
+                <div className="p-4">
+                  <p className="text-[11px] font-medium tracking-[0.2em] text-[#C4A484]">{String(i + 1).padStart(2, "0")}</p>
+                  <p className="mt-2 text-sm font-medium leading-6 text-[#1C1412]">{step}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <ReviewsSlot product={product} />
+
+      <section className="bg-white py-16 md:py-24">
         <div className="container mx-auto max-w-3xl px-4">
-          <FadeIn>
-            <p className="text-[11px] font-black tracking-[0.2em] text-[#C45B6A]">تجربة حقيقية</p>
-            <p className="mt-5 text-xl font-bold leading-relaxed text-[#1C1412] md:text-2xl">
-              «{product.voice.text}»
-            </p>
-            <p className="mt-5 text-sm font-black text-[#1C1412]">
-              {product.voice.name}
-              <span className="mx-2 text-[#1C1412]/30">·</span>
-              <span className="font-bold text-[#1C1412]/50">{product.voice.city}</span>
-            </p>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* عرض أخير */}
-      <section className="bg-[#1C1412] py-12 text-white md:py-16" dir="rtl">
-        <div className="container mx-auto max-w-xl px-4 text-center">
-          <FadeIn>
-            <p className="text-lg font-black tracking-[0.16em] text-[#C4A484]">رونق</p>
-            <h2 className="mt-2 text-3xl font-black md:text-4xl">{product.name}</h2>
-            <p className="mx-auto mt-3 max-w-sm text-sm text-white/60">
-              نتيجة صالون فدارك · خلصي غير ملي تقلبي السلعة
-            </p>
-            <button
-              type="button"
-              onClick={() => add(product.price1, 1)}
-              className="btn btn-primary btn-lg mt-7 w-full sm:w-auto"
-            >
-              اطلبي — {product.price1} د.م
-            </button>
-            <button
-              type="button"
-              onClick={() => add(product.price2, 2)}
-              className="mt-3 block w-full text-sm font-bold text-white/70 underline-offset-4 transition-colors hover:text-white hover:underline sm:inline-block sm:w-auto sm:px-4"
-            >
-              أو قطعتين بـ {product.price2} د.م (وفّري {save2})
-            </button>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="bg-white py-10 md:py-14" dir="rtl">
-        <div className="container mx-auto max-w-3xl px-4">
-          <FadeIn>
-            <p className="text-[11px] font-black tracking-[0.2em] text-[#C45B6A]">قبل ما تطلبي</p>
-            <h2 className="mt-2 text-3xl font-black text-[#1C1412]">أسئلة كتتردد</h2>
-          </FadeIn>
-
-          <div className="mt-7 space-y-0 border-t border-[#1C1412]/10">
+          <p className="text-[11px] font-medium tracking-[0.32em] text-[#C4A484]">AVANT DE COMMANDER</p>
+          <h2 className="font-display mt-3 text-3xl font-semibold text-[#1C1412]">Questions</h2>
+          <div className="mt-8 border-t border-[#1C1412]/10">
             {product.faqs.map((faq, i) => {
               const open = openFaq === i;
               return (
@@ -402,15 +433,13 @@ export default function ProductClient({ product }: { product: Product }) {
                   <button
                     type="button"
                     onClick={() => setOpenFaq(open ? null : i)}
-                    className="flex w-full items-center justify-between gap-4 py-4 text-right"
+                    className="flex w-full items-center justify-between gap-4 py-4 text-left"
                     aria-expanded={open}
                   >
-                    <span className="text-sm font-black text-[#1C1412] md:text-base">{faq.q}</span>
-                    <span className="shrink-0 text-lg font-black text-[#C45B6A]">{open ? "−" : "+"}</span>
+                    <span className="text-sm font-semibold text-[#1C1412]">{faq.q}</span>
+                    <span className="text-[#C4A484]">{open ? "−" : "+"}</span>
                   </button>
-                  {open && (
-                    <p className="pb-4 text-sm leading-relaxed text-[#1C1412]/65">{faq.a}</p>
-                  )}
+                  {open && <p className="pb-4 text-sm leading-7 text-[#1C1412]/65">{faq.a}</p>}
                 </div>
               );
             })}
@@ -418,32 +447,19 @@ export default function ProductClient({ product }: { product: Product }) {
         </div>
       </section>
 
-      {/* منتجات أخرى */}
       {others.length > 0 && (
-        <section className="border-t border-[#1C1412]/8 bg-[#F7F1EC] py-10 md:py-14" dir="rtl">
+        <section className="border-t border-[#1C1412]/8 bg-[#F7F1EC] py-16 md:py-24">
           <div className="container mx-auto px-4">
-            <h2 className="text-2xl font-black text-[#1C1412] md:text-3xl">أدوات أخرى من رونق</h2>
-            <div className="mt-5 grid grid-cols-1 gap-3 sm:mt-7 sm:grid-cols-3 sm:gap-4">
+            <h2 className="font-display text-2xl font-semibold text-[#1C1412]">Compléter le rituel</h2>
+            <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
               {others.map((p) => (
-                <Link
-                  key={p.id}
-                  href={`/products/${p.slug}`}
-                  className="group flex overflow-hidden rounded-2xl bg-white transition-opacity hover:opacity-90 sm:block sm:rounded-none"
-                >
-                  <div className="aspect-square w-28 shrink-0 overflow-hidden bg-[#F7F1EC] sm:w-auto sm:aspect-[4/5]">
-                    <img
-                      src={p.heroImage}
-                      alt={p.name}
-                      className={`h-full w-full transition-transform duration-700 group-hover:scale-[1.03] ${productImageClass(p.heroImage, p.slug)}`}
-                      loading="lazy"
-                      decoding="async"
-                    />
+                <Link key={p.id} href={`/products/${p.slug}`} className="group block">
+                  <div className="aspect-[4/5] overflow-hidden bg-white">
+                    <img src={p.heroImage} alt={p.name} className={`h-full w-full ${imgClass(p.heroImage, p.slug)}`} loading="lazy" />
                   </div>
-                  <div className="flex min-w-0 flex-1 flex-col justify-center p-3 text-right sm:block sm:p-4">
-                    <p className="text-sm font-black leading-tight text-[#1C1412] sm:text-base">{p.name}</p>
-                    <p className="mt-1 hidden text-xs font-bold text-[#1C1412]/45 sm:block">{p.tagline}</p>
-                    <p className="mt-2 text-sm font-black text-[#C45B6A] sm:text-base">{p.price1} د.م</p>
-                  </div>
+                  <p className="mt-2 text-[11px] tracking-[0.18em] text-[#C4A484]">{p.nameFr}</p>
+                  <p className="font-display text-lg font-semibold text-[#1C1412]">{p.name}</p>
+                  <p className="text-xs font-medium text-[#C45B6A]">{p.price1} Dhs</p>
                 </Link>
               ))}
             </div>
@@ -451,23 +467,15 @@ export default function ProductClient({ product }: { product: Product }) {
         </section>
       )}
 
-      {/* Sticky CTA موبايل */}
       {isSticky && (
-        <div
-          className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#1C1412]/10 bg-white/95 px-3 pt-3 backdrop-blur md:hidden pb-[max(0.75rem,env(safe-area-inset-bottom))]"
-          dir="rtl"
-        >
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#1C1412]/10 bg-white px-3 pt-3 md:hidden pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-black text-[#1C1412]">{product.name}</p>
-              <p className="text-[11px] font-bold text-[#1C1412]/45">قلبي قبل الدفع · توصيل مجاني</p>
+              <p className="truncate font-display text-lg font-semibold text-[#1C1412]">{product.name}</p>
+              <p className="text-[11px] text-[#1C1412]/45">Inspectez avant de payer</p>
             </div>
-            <button
-              type="button"
-              onClick={() => add(product.price1, 1)}
-              className="btn btn-primary btn-md shrink-0"
-            >
-              {product.price1} د.م
+            <button type="button" onClick={() => add(product.price1, 1)} className="btn btn-primary btn-md shrink-0">
+              {product.price1} Dhs
             </button>
           </div>
         </div>

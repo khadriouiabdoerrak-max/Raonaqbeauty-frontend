@@ -9,7 +9,7 @@ export default function BrandLogo({ variant = "color", className = "" }: BrandLo
   return (
     <img
       src={src}
-      alt="رونق — Raonaq Beauty"
+      alt="Raonaq Beauty"
       className={`h-full w-auto object-contain ${className}`}
     />
   );

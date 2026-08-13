@@ -34,33 +34,28 @@ function BeforeAfterResultVisual() {
   return (
     <div
       className="relative mx-auto w-full max-w-xl overflow-hidden rounded-[36px] border border-white/70 bg-white p-3 shadow-[0_30px_80px_rgba(28,20,18,0.14)]"
-      dir="rtl"
-      aria-label="قبل وبعد استعمال رونق"
+      aria-label="Avant et après Raonaq"
     >
       <div className="relative aspect-[4/3] overflow-hidden rounded-[28px] bg-[#F7F1EC]">
         <img
           src="/raonaq-before-after-woman.png"
-          alt="قبل وبعد استعمال رونق على الشعر"
+          alt="Avant et après Raonaq"
           className="h-full w-full object-cover"
           loading="lazy"
           decoding="async"
         />
 
         <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412]/28 via-transparent to-transparent" />
-        <span className="absolute right-4 top-4 rounded-full bg-[#1C1412]/70 px-4 py-2 text-xs font-black text-white backdrop-blur">
-          قبل
+        <span className="absolute left-4 top-4 rounded-full bg-[#1C1412]/70 px-4 py-2 text-xs font-semibold tracking-wide text-white backdrop-blur">
+          Avant
         </span>
-        <span className="absolute left-4 top-4 rounded-full bg-white px-4 py-2 text-xs font-black text-[#C45B6A] shadow-lg">
-          بعد رونق
+        <span className="absolute right-4 top-4 rounded-full bg-white px-4 py-2 text-xs font-semibold tracking-wide text-[#C45B6A] shadow-lg">
+          Après
         </span>
 
         <div className="before-after-sweep absolute bottom-0 top-0 z-10 w-[3px] bg-white shadow-[0_0_22px_rgba(255,255,255,0.9)]" />
-        <div className="before-after-sweep absolute top-1/2 z-20 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/80 bg-white text-lg font-black text-[#C45B6A] shadow-2xl">
-          ←
-        </div>
-
-        <div className="absolute bottom-4 left-1/2 z-30 -translate-x-1/2 rounded-full bg-[#1C1412]/55 px-4 py-2 text-[11px] font-black text-white backdrop-blur">
-          نتيجة صالون فدارك قبل/بعد
+        <div className="before-after-sweep absolute top-1/2 z-20 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/80 bg-white text-lg font-semibold text-[#C45B6A] shadow-2xl">
+          →
         </div>
       </div>
     </div>
@@ -72,77 +67,59 @@ const heroMobileImage = "/images/raonaq-hero-mobile.png";
 const lifestyleImage = "/images/raonaq-lifestyle-home.png";
 const toolsImage = "/images/raonaq-tools-editorial.png";
 
-const featured = products[0]; // تريو — البطلة
+const featured = products[0];
 
 const looks = [
   {
-    title: "حجم",
+    title: "Volume",
     en: "VOLUME",
     image: "/images/raonaq-hair-blowout.png",
     href: "/products/raonaq-volume",
-    product: "رونق فوليوم",
-    line: "رفع من الجذور · حضور قوي",
+    product: "VOLUME",
+    line: "Du lift dès les racines",
   },
   {
-    title: "نعومة",
+    title: "Lisse",
     en: "SMOOTH",
     image: "/images/raonaq-hair-straight.png",
     href: "/products/raonaq-trio",
-    product: "رونق تريو",
-    line: "انسيابية ولمعان فدارك",
+    product: "TRIO",
+    line: "Fluide et brillant, chez vous",
   },
   {
-    title: "كثافة",
+    title: "Épais",
     en: "SOFT",
     image: "/images/raonaq-hair-curls.png",
     href: "/products/raonaq-air-soft",
-    product: "رونق إير سوفت",
-    line: "للشعر الكثيف والمجعد",
+    product: "SOFT",
+    line: "Pour cheveux denses et bouclés",
   },
   {
-    title: "يومي",
-    en: "DAILY",
+    title: "Quotidien",
+    en: "JOUR",
     image: "/images/raonaq-hair-waves.png",
     href: "/products/raonaq-air-pink",
-    product: "رونق إير بينك",
-    line: "ترتيب خفيف قبل الخروج",
+    product: "JOUR",
+    line: "Un look net avant de sortir",
   },
 ];
 
 const faqs = [
   {
-    q: "واش نقدر نقلب السلعة قبل ما نخلص؟",
-    a: "أكيد. الليفور كيوصل للباب، تفتحي وتتأكدي قدامو، عاد تخلصي. ما كاين حتى دفع مسبق.",
+    q: "Puis-je inspecter avant de payer ?",
+    a: "Oui. Le livreur attend à la porte. Vous ouvrez, vous vérifiez, puis vous payez. Aucun paiement d’avance.",
   },
   {
-    q: "شحال كياخد التوصيل؟ واش مجاني؟",
-    a: "مجاني لجميع مدن المغرب. غالباً بين 24 و 48 ساعة حسب المدينة.",
+    q: "La livraison est-elle gratuite ? Combien de temps ?",
+    a: "Gratuite dans tout le Maroc. Généralement 24 à 48 h selon la ville.",
   },
   {
-    q: "كيفاش نختار الأداة المناسبة؟",
-    a: "فوليوم للحجم، إير سوفت للكثيف والنعومة، إير بينك لليومي، وتريو إلا بغيتي طقم كامل فباكة وحدة.",
+    q: "Comment choisir l’outil ?",
+    a: "VOLUME pour le volume, SOFT pour les cheveux épais, JOUR pour le quotidien, TRIO pour le coffret complet.",
   },
   {
-    q: "علاش نطلب من رونق؟",
-    a: "براند مغربي لنتيجة احترافية مع حماية الشعر — مجموعة مختارة، مش كتالوج عشوائي، ووعد واضح: تقلبي قبل ما تخلصي.",
-  },
-];
-
-const voices = [
-  {
-    city: "الدار البيضاء",
-    name: "سارة",
-    text: "عطاتني حجم ولمعان بلا صالون، والشعر ما حسّيتوش تقيل. الطلب وصل فنهارو.",
-  },
-  {
-    city: "طنجة",
-    name: "مريم",
-    text: "خلصت غير ملي شفت السلعة بيدي. هاد الثقة هي اللي خلّاتني نطلب براحتي.",
-  },
-  {
-    city: "الرباط",
-    name: "نادية",
-    text: "نعومة ولمعان من بعد الدوش بسرعة. كنستعملها تقريبا كل صباح بلا ما نفكّر فالصالون.",
+    q: "Pourquoi Raonaq ?",
+    a: "Une maison marocaine, une collection courte, une protection du cheveu — et la confiance à la porte.",
   },
 ];
 
@@ -168,7 +145,7 @@ export default function Home() {
           <source srcSet={heroMobileImage} media="(max-width: 767px)" />
           <img
             src={heroImage}
-            alt="أدوات رونق — نتيجة صالون في المنزل"
+            alt="Raonaq — le salon, chez vous"
             className="hero-media absolute inset-0 h-full w-full object-cover object-[center_top] md:object-[center_18%]"
             loading="eager"
             decoding="async"
@@ -181,21 +158,21 @@ export default function Home() {
 
         <div className="relative z-10 flex min-h-[calc(100svh-112px)] w-full items-end md:min-h-[100svh]">
           <div className="container mx-auto px-4 pb-10 pt-24 md:pb-28 md:pt-40">
-            <div className="hero-copy me-auto max-w-lg text-right text-white" dir="rtl">
-              <h1 className="text-[2rem] font-black leading-[1.15] text-white md:text-5xl">
-                نتيجة صالون
-                <span className="text-[#C4A484]"> فدارك</span>
+            <div className="hero-copy me-auto max-w-lg text-left text-white">
+              <h1 className="font-display text-4xl font-semibold leading-[1.12] text-white md:text-6xl">
+                Le salon,
+                <span className="text-[#C4A484]"> chez vous</span>
               </h1>
               <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/75 md:text-base">
-                حجم · نعومة · لمعان — مع حماية للشعر، بلا موعد.
+                Volume · lisse · brillance — avec protection, sans rendez-vous.
               </p>
 
               <div className="mt-8 flex w-full max-w-md flex-col gap-4">
                 <Link
                   href="/collection"
-                  className="btn btn-primary btn-lg w-full shadow-[0_12px_40px_rgba(196,91,106,0.35)] py-4 text-center text-lg font-bold flex items-center justify-center"
+                  className="btn btn-primary btn-lg flex w-full items-center justify-center py-4 text-center text-lg font-semibold shadow-[0_12px_40px_rgba(196,91,106,0.35)]"
                 >
-                  اطلبي دابا · التوصيل مجاني
+                  Commander · livraison gratuite
                 </Link>
               </div>
 
@@ -206,7 +183,7 @@ export default function Home() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </span>
-                  الدفع عند الاستلام — قلبي السلعة عاد خلصي
+                  Paiement à la livraison — ouvrez, inspectez, puis payez
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#C4A484]/20 text-[#C4A484]">
@@ -214,7 +191,7 @@ export default function Home() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </span>
-                  توصيل سريع لجميع مدن المغرب (24-48 ساعة)
+                  Livraison 24–48 h dans tout le Maroc
                 </div>
               </div>
             </div>
@@ -223,14 +200,14 @@ export default function Home() {
       </section>
 
       {/* وعد أنيق — ماشي بانر صاخب */}
-      <section className="border-b border-[#C4A484]/20 bg-[#1C1412]" dir="rtl">
+      <section className="border-b border-[#C4A484]/20 bg-[#1C1412]">
         <div className="container mx-auto px-4 py-10 text-center md:py-12">
-          <p className="text-[11px] font-bold tracking-[0.35em] text-[#C4A484]">الوعد ديالنا</p>
-          <p className="mx-auto mt-3 max-w-xl text-2xl font-black leading-snug text-white md:text-3xl">
-            تفتحي · تقلبي · عاد تخلصي
+          <p className="text-[11px] font-medium tracking-[0.35em] text-[#C4A484]">LA PROMESSE</p>
+          <p className="font-display mx-auto mt-3 max-w-xl text-3xl font-semibold leading-snug text-white md:text-4xl">
+            Ouvrez · inspectez · puis payez
           </p>
           <p className="mx-auto mt-3 max-w-md text-sm font-medium text-white/55">
-            ما كاين حتى دفع مسبق — الليفور كيستنى حتى تتأكدي.
+            Aucun paiement d’avance — le livreur attend votre accord.
           </p>
         </div>
       </section>
@@ -243,14 +220,14 @@ export default function Home() {
               <BeforeAfterResultVisual />
             </FadeIn>
 
-            <FadeIn delay={120} className="order-1 space-y-6 text-right lg:order-2">
-              <div dir="rtl">
-                <p className="text-[11px] font-bold tracking-[0.3em] text-[#C45B6A]">البطلة</p>
-                <h2 className="mt-2 text-4xl font-black leading-tight text-[#1C1412] md:text-5xl">
+            <FadeIn delay={120} className="order-1 space-y-6 text-left lg:order-2">
+              <div>
+                <p className="text-[11px] font-medium tracking-[0.3em] text-[#C45B6A]">LE COFFRET</p>
+                <h2 className="font-display mt-2 text-4xl font-semibold leading-tight text-[#1C1412] md:text-5xl">
                   {featured.name}
                 </h2>
                 <p className="mt-4 max-w-md text-base leading-relaxed text-[#1C1412]/65 md:text-lg">
-                  طقم واحد: فرد، ويفي، وحجم فباكة مرتبة — نتيجة صالون فدارك، ليك أو كهدية.
+                  {featured.tagline}
                 </p>
 
                 <ul className="mt-6 space-y-2.5 text-[#1C1412]/75">
@@ -271,24 +248,24 @@ export default function Home() {
       <section className="relative min-h-[70vh] overflow-hidden bg-[#1C1412]" id="looks">
         <img
           src={lifestyleImage}
-          alt="تصفيف فدارك مع رونق"
+          alt="Coiffer chez soi avec Raonaq"
           className="absolute inset-0 h-full w-full object-cover object-[center_25%] opacity-50"
           loading="lazy"
           decoding="async"
         />
         <div className="absolute inset-0 bg-[#1C1412]/55" />
         <div className="relative z-10 flex min-h-[70vh] items-center">
-          <div className="container mx-auto px-4 py-20" dir="rtl">
+          <div className="container mx-auto px-4 py-20">
             <FadeIn>
-              <div className="max-w-lg text-right text-white">
-                <p className="text-sm font-black tracking-[0.25em] text-[#C4A484]">أدوات رونق</p>
-                <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">
-                  نتيجة صالون
+              <div className="max-w-lg text-left text-white">
+                <p className="text-sm font-medium tracking-[0.25em] text-[#C4A484]">RAONAQ</p>
+                <h2 className="font-display mt-4 text-4xl font-semibold leading-tight md:text-6xl">
+                  Le salon
                   <br />
-                  في المنزل
+                  à la maison
                 </h2>
                 <p className="mt-5 text-lg text-white/75">
-                  حجم، نعومة، ولمعان — نتيجة احترافية مع حماية الشعر، بلا موعد وبلا صالون.
+                  Volume, lisse et brillance — un résultat professionnel, sans rendez-vous.
                 </p>
               </div>
             </FadeIn>
@@ -300,13 +277,13 @@ export default function Home() {
       <section className="bg-white py-20 md:py-28">
         <div className="container mx-auto px-4">
           <FadeIn>
-            <div className="mb-12 max-w-xl text-right md:mb-16" dir="rtl">
-              <p className="text-sm font-black tracking-[0.25em] text-[#C45B6A]">اختاري</p>
-              <h2 className="mt-3 text-4xl font-black text-[#1C1412] md:text-5xl">
-                شنو بغيتي يبان؟
+            <div className="mb-12 max-w-xl text-left md:mb-16">
+              <p className="text-sm font-medium tracking-[0.25em] text-[#C45B6A]">CHOISIR</p>
+              <h2 className="font-display mt-3 text-4xl font-semibold text-[#1C1412] md:text-5xl">
+                Quel résultat voulez-vous ?
               </h2>
               <p className="mt-4 text-lg text-[#1C1412]/60">
-                كل نتيجة عندها أداتها — اختاري الحجم، النعومة، أو اللمعان اللي كيشبهك.
+                Chaque outil a un rôle — volume, lisse ou quotidien.
               </p>
             </div>
           </FadeIn>
@@ -329,7 +306,7 @@ export default function Home() {
                   >
                     {look.en}
                   </span>
-                  <div className="absolute inset-x-3 bottom-4 text-right md:inset-x-4 md:bottom-5" dir="rtl">
+                  <div className="absolute inset-x-3 bottom-4 text-left md:inset-x-4 md:bottom-5">
                     <p className="text-lg font-black text-white md:text-xl">{look.title}</p>
                     <p className="mt-1 text-[11px] font-medium text-white/80 md:text-sm">{look.line}</p>
                     <p className="mt-2 text-[10px] font-black tracking-wide text-[#C4A484] md:text-xs">
@@ -347,26 +324,26 @@ export default function Home() {
       <section id="shop" className="relative z-[1] bg-[#F7F1EC] py-20 md:py-28">
         <div className="container mx-auto px-4">
           <FadeIn>
-            <div className="mb-8 text-center md:mb-10" dir="rtl">
-              <p className="text-sm font-black tracking-[0.25em] text-[#C45B6A]">المجموعة</p>
-              <h2 className="mt-3 text-4xl font-black text-[#1C1412] md:text-5xl">
-                الأداة المناسبة ليك
+            <div className="mb-8 text-center md:mb-10">
+              <p className="text-sm font-medium tracking-[0.25em] text-[#C45B6A]">COLLECTION</p>
+              <h2 className="font-display mt-3 text-4xl font-semibold text-[#1C1412] md:text-5xl">
+                L’outil qui vous ressemble
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-[#1C1412]/60">
-                مجموعة قصيرة وواضحة — مرّري تشوفي كل أداة.
+                Une collection courte. Faites glisser pour tout voir.
               </p>
             </div>
           </FadeIn>
 
           <ProductCarousel
             onAdd={(product) =>
-              addOne(product.id, product.name, product.price1, productThumb(product), 1)
+              addOne(product.id, `Raonaq ${product.name}`, product.price1, productThumb(product), 1)
             }
           />
 
           <div className="mt-8 text-center">
             <Link href="/collection" className="btn btn-secondary btn-lg">
-              شوفي المجموعة كاملة
+              Voir toute la collection
             </Link>
           </div>
         </div>
@@ -378,41 +355,38 @@ export default function Home() {
           <div className="relative min-h-[260px] md:min-h-[420px] overflow-hidden bg-[#1C1412]">
             <img
               src={toolsImage}
-              alt="أدوات رونق — نتيجة صالون في المنزل"
+              alt="Outils Raonaq — résultat salon à la maison"
               className="absolute inset-0 h-full w-full object-cover object-center"
               loading="lazy"
               decoding="async"
             />
           </div>
-          <div className="flex items-center bg-[#F7F1EC] px-6 py-16 md:px-14 md:py-24" dir="rtl">
+          <div className="flex items-center bg-[#F7F1EC] px-6 py-16 md:px-14 md:py-24">
             <FadeIn>
-              <div className="max-w-md space-y-6 text-right">
-                <p className="text-sm font-black tracking-[0.25em] text-[#C45B6A]">الثقة</p>
-                <h2 className="text-4xl font-black leading-tight text-[#1C1412] md:text-5xl">
-                  ما تخلصي حتى
+              <div className="max-w-md space-y-6 text-left">
+                <p className="text-sm font-medium tracking-[0.25em] text-[#C45B6A]">CONFIANCE</p>
+                <h2 className="font-display text-4xl font-semibold leading-tight text-[#1C1412] md:text-5xl">
+                  Vous ne payez
                   <br />
-                  تشوفي بديك
+                  qu’après avoir vu
                 </h2>
                 <p className="text-lg leading-relaxed text-[#1C1412]/65">
-                  رونق كيبني الثقة من أول طلب: نتيجة احترافية، حماية للشعر، والطلب كيوصل للدار — تقلبيه، وعاد تخلصي.
+                  La commande arrive chez vous. Vous ouvrez. Vous inspectez. Puis vous payez — seulement si tout vous convient.
                 </p>
                 <div className="space-y-3 pt-2 text-[#1C1412]/80">
                   {[
-                    "توصيل مجاني حتى لباب الدار",
-                    "تفتحي وتتأكدي قدام الليفور",
-                    "خلصي غير إلا عجبك",
+                    "Livraison gratuite jusqu’à la porte",
+                    "Inspection devant le livreur",
+                    "Paiement uniquement si vous gardez",
                   ].map((line) => (
-                    <p key={line} className="flex items-center gap-3 font-bold">
+                    <p key={line} className="flex items-center gap-3 font-medium">
                       <span className="h-1.5 w-1.5 rounded-full bg-[#C45B6A]" />
                       {line}
                     </p>
                   ))}
                 </div>
-                <Link
-                  href="#shop"
-                  className="btn btn-dark btn-lg mt-4"
-                >
-                  ابدئي الطلب
+                <Link href="#shop" className="btn btn-dark btn-lg mt-4">
+                  Commencer
                 </Link>
               </div>
             </FadeIn>
@@ -424,23 +398,24 @@ export default function Home() {
       <section className="bg-[#F7F1EC] py-20 md:py-28">
         <div className="container mx-auto px-4">
           <FadeIn>
-            <div className="mb-12 text-center" dir="rtl">
-              <p className="text-sm font-black tracking-[0.25em] text-[#C45B6A]">من المغرب</p>
-              <h2 className="mt-3 text-4xl font-black text-[#1C1412] md:text-5xl">كلمات البنات</h2>
+            <div className="mb-12 text-center">
+              <p className="text-sm font-medium tracking-[0.25em] text-[#C45B6A]">AVIS</p>
+              <h2 className="font-display mt-3 text-4xl font-semibold text-[#1C1412] md:text-5xl">Les voix du Maroc</h2>
             </div>
           </FadeIn>
 
-          <div className="grid gap-6 md:grid-cols-3" dir="rtl">
-            {voices.map((v, i) => (
-              <FadeIn key={v.name} delay={i * 100}>
-                <blockquote className="flex h-full flex-col border border-[#C4A484]/30 bg-white p-7">
-                  <p className="flex-1 text-base leading-relaxed text-[#1C1412]/75">«{v.text}»</p>
-                  <footer className="mt-8">
-                    <p className="font-black text-[#1C1412]">{v.name}</p>
-                    <p className="text-sm text-[#C45B6A]">{v.city}</p>
-                  </footer>
-                </blockquote>
-              </FadeIn>
+          <div className="grid gap-4 md:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="min-h-[200px] border border-dashed border-[#C4A484]/40 bg-white p-7">
+                <div className="h-3 w-20 bg-[#C4A484]/20" />
+                <div className="mt-6 h-3 w-full bg-[#1C1412]/6" />
+                <div className="mt-2 h-3 w-4/5 bg-[#1C1412]/6" />
+                {i === 0 && (
+                  <p className="mt-8 text-sm font-medium text-[#1C1412]/40">
+                    Les avis réels de nos clientes s’afficheront ici.
+                  </p>
+                )}
+              </div>
             ))}
           </div>
         </div>
@@ -450,13 +425,13 @@ export default function Home() {
       <section className="bg-white py-20 md:py-28">
         <div className="container mx-auto max-w-3xl px-4">
           <FadeIn>
-            <div className="mb-12 text-center" dir="rtl">
-              <p className="text-sm font-black tracking-[0.25em] text-[#C45B6A]">أسئلة</p>
-              <h2 className="mt-3 text-4xl font-black text-[#1C1412] md:text-5xl">قبل ما تطلبي</h2>
+            <div className="mb-12 text-center">
+              <p className="text-sm font-medium tracking-[0.25em] text-[#C45B6A]">QUESTIONS</p>
+              <h2 className="font-display mt-3 text-4xl font-semibold text-[#1C1412] md:text-5xl">Avant de commander</h2>
             </div>
           </FadeIn>
 
-          <div className="space-y-2" dir="rtl">
+          <div className="space-y-2">
             {faqs.map((faq, i) => {
               const open = openFaq === i;
               return (
@@ -464,7 +439,7 @@ export default function Home() {
                   <div className={`border transition-colors ${open ? "border-[#C45B6A] bg-[#F7F1EC]/60" : "border-[#1C1412]/10"}`}>
                     <button
                       type="button"
-                      className="flex w-full items-center justify-between gap-4 p-5 text-right text-lg font-black text-[#1C1412]"
+                      className="flex w-full items-center justify-between gap-4 p-5 text-left text-lg font-semibold text-[#1C1412]"
                       onClick={() => setOpenFaq(open ? null : i)}
                       aria-expanded={open}
                     >
@@ -496,17 +471,14 @@ export default function Home() {
           decoding="async"
         />
         <div className="absolute inset-0 bg-[#1C1412]/70" />
-        <div className="relative z-10 container mx-auto max-w-xl px-4" dir="rtl">
-          <p className="text-4xl font-black tracking-wide text-[#C4A484]">رونق</p>
-          <h2 className="mt-5 text-4xl font-black md:text-5xl">نتيجة صالون فدارك</h2>
+        <div className="relative z-10 container mx-auto max-w-xl px-4">
+          <p className="font-display text-4xl font-semibold tracking-wide text-[#C4A484]">Raonaq</p>
+          <h2 className="font-display mt-5 text-4xl font-semibold md:text-5xl">Le salon, chez vous</h2>
           <p className="mt-4 text-lg text-white/70">
-            أدوات رونق — حجم · نعومة · لمعان مع حماية الشعر
+            Volume · lisse · brillance, avec protection du cheveu
           </p>
-          <Link
-            href="/collection"
-            className="btn btn-primary btn-lg mt-10"
-          >
-            شوفي المجموعة
+          <Link href="/collection" className="btn btn-primary btn-lg mt-10">
+            Voir la collection
           </Link>
         </div>
       </section>

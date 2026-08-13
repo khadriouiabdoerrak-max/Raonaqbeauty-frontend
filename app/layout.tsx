@@ -1,5 +1,5 @@
 ﻿import type { Metadata } from "next";
-import { Noto_Kufi_Arabic } from "next/font/google";
+import { Cormorant_Garamond, Outfit } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "../context/CartContext";
 import Header from "../components/Header";
@@ -10,27 +10,35 @@ import Pixels from "../components/Pixels";
 import WhatsAppButton from "../components/WhatsAppButton";
 import { SITE } from "../lib/site";
 
-const notoKufi = Noto_Kufi_Arabic({
-  subsets: ["arabic"],
-  weight: ["400", "500", "700", "900"],
+const outfit = Outfit({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
+  variable: "--font-sans",
+});
+
+const display = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  display: "swap",
+  variable: "--font-display",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://raonaqbeauty.com"),
   title: {
-    default: "رونق | Raonaq — نتيجة صالون فدارك · المغرب",
-    template: "%s | رونق",
+    default: "Raonaq Beauty — Le salon, chez vous · Maroc",
+    template: "%s | Raonaq",
   },
   description: SITE.description,
   openGraph: {
-    title: "رونق | Raonaq Beauty",
+    title: "Raonaq Beauty",
     description: SITE.tagline,
     url: "https://raonaqbeauty.com",
     siteName: SITE.fullName,
-    locale: "ar_MA",
+    locale: "fr_MA",
     type: "website",
-    images: [{ url: "/images/raonaq-logo.png", alt: "رونق — Raonaq Beauty" }],
+    images: [{ url: "/images/raonaq-logo.png", alt: "Raonaq Beauty" }],
   },
   icons: {
     icon: "/images/raonaq-logo.png",
@@ -42,8 +50,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ar" dir="rtl">
-      <body className={`${notoKufi.className} bg-pearl-blush text-warm-black min-h-screen flex flex-col`}>
+    <html lang="fr" dir="ltr">
+      <body
+        className={`${outfit.className} ${outfit.variable} ${display.variable} bg-pearl-blush text-warm-black min-h-screen flex flex-col`}
+      >
         <CartProvider>
           <Header />
           <main className="flex-1">{children}</main>
@@ -52,7 +62,6 @@ export default function RootLayout({
           <CheckoutModal />
           <WhatsAppButton />
         </CartProvider>
-        {/* Pixels loaded after page interaction for maximum performance */}
         <Pixels />
       </body>
     </html>

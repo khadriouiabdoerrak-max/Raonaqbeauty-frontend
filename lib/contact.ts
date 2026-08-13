@@ -1,4 +1,4 @@
-/** رقم واتساب من env — مثال: 2126XXXXXXXX بدون + أو مسافات */
+/** WhatsApp depuis l’env — ex. 2126XXXXXXXX sans + ni espaces */
 export function getWhatsAppNumber(): string {
   const raw = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "";
   return raw.replace(/\D/g, "");
@@ -16,37 +16,37 @@ export function getWhatsAppDisplay(): string {
 export function getWhatsAppLink(message?: string): string | null {
   const phone = getWhatsAppNumber();
   if (!phone) return null;
-  const text = message || "مرحباً، بغيت نسول على منتجات رونق بيوتي";
+  const text = message || "Bonjour, j’aimerais des informations sur Raonaq Beauty";
   return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
 }
 
-/** مدن مغربية شائعة للتوصيل COD */
+/** Villes marocaines fréquentes pour le COD */
 export const MOROCCO_CITIES = [
-  "الدار البيضاء",
-  "الرباط",
-  "سلا",
-  "تمارة",
-  "مراكش",
-  "فاس",
-  "طنجة",
-  "أكادير",
-  "مكناس",
-  "وجدة",
-  "القنيطرة",
-  "تطوان",
-  "الناظور",
-  "آسفي",
-  "المحمدية",
-  "الجديدة",
-  "خريبكة",
-  "بني ملال",
-  "تازة",
-  "العرائش",
-  "العيون",
-  "الداخلة",
-  "ورزازات",
-  "إنزكان",
-  "سطات",
-  "برشيد",
-  "مدينة أخرى",
+  "Casablanca",
+  "Rabat",
+  "Salé",
+  "Témara",
+  "Marrakech",
+  "Fès",
+  "Tanger",
+  "Agadir",
+  "Meknès",
+  "Oujda",
+  "Kénitra",
+  "Tétouan",
+  "Nador",
+  "Safi",
+  "Mohammedia",
+  "El Jadida",
+  "Khouribga",
+  "Béni Mellal",
+  "Taza",
+  "Larache",
+  "Laâyoune",
+  "Dakhla",
+  "Ouarzazate",
+  "Inzegane",
+  "Settat",
+  "Berrechid",
+  "Autre ville",
 ] as const;

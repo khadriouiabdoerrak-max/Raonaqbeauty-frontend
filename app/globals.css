@@ -74,6 +74,10 @@
   animation: before-after-sweep 4s ease-in-out infinite;
 }
 
+.font-display {
+  font-family: var(--font-display), ui-serif, Georgia, serif;
+}
+
 body {
   background-color: var(--color-pearl-blush);
   color: var(--color-warm-black);

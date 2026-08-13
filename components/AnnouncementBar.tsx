@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 
 const messages = [
-  "أدوات رونق — نتيجة صالون في المنزل",
-  "نتيجة احترافية مع حماية الشعر — حجم، نعومة، ولمعان",
-  "قلبي السلعة قبل ما تخلصي — توصيل مجاني لكل المغرب",
+  "Raonaq — le salon, chez vous",
+  "Volume · lisse · brillance, avec protection",
+  "Ouvrez, inspectez, puis payez — livraison gratuite au Maroc",
 ];
 
 export default function AnnouncementBar() {
@@ -19,8 +19,8 @@ export default function AnnouncementBar() {
   }, []);
 
   return (
-    <div className="bg-warm-black text-white text-sm py-2.5 text-center font-medium tracking-wide overflow-hidden">
-      <div className="container mx-auto px-4 flex items-center justify-center gap-3">
+    <div className="overflow-hidden bg-warm-black py-2.5 text-center text-sm font-medium tracking-wide text-white">
+      <div className="container mx-auto flex items-center justify-center gap-3 px-4">
         <span className="text-champagne">◆</span>
         <span>{messages[idx]}</span>
       </div>

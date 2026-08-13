@@ -1,5 +1,3 @@
-/** روابط الموقع والسوشيال — من env إلا كانت معيّنة */
-
 export function getSocialLinks() {
   const instagram = process.env.NEXT_PUBLIC_INSTAGRAM_URL?.trim() || "";
   const facebook = process.env.NEXT_PUBLIC_FACEBOOK_URL?.trim() || "";
@@ -12,24 +10,20 @@ export function getSocialLinks() {
 }
 
 export const SITE = {
-  name: "رونق",
+  name: "Raonaq",
   nameEn: "Raonaq",
-  fullName: "رونق — Raonaq Beauty",
+  fullName: "Raonaq Beauty",
   domain: "raonaqbeauty.com",
   email: "contact@raonaqbeauty.com",
-  city: "الدار البيضاء، المغرب",
-  hours: "الإثنين – السبت · 9 صباحاً – 7 مساءً",
-  /** وعد العلامة المختصر */
-  tagline: "نتيجة صالون فدارك — حجم، نعومة، ولمعان بلا موعد",
-  /** وصف الفوتر والميتا */
+  city: "Casablanca, Maroc",
+  hours: "Lundi – samedi · 9h – 19h",
+  tagline: "Le salon, chez vous — volume, lisse, brillance.",
   description:
-    "أدوات رونق كتعطي نتيجة احترافية مع حماية الشعر — حجم، نعومة، ولمعان بلا موعد وبلا صالون. توصيل مجاني وخلصي غير ملي تقلبي السلعة.",
-  /** التموضع الاستراتيجي */
+    "Raonaq crée des outils de coiffage pour un résultat salon à la maison, avec protection du cheveu. Livraison gratuite au Maroc. Ouvrez, inspectez, puis payez.",
   positioning:
-    "أدوات رونق — نتيجة صالون في المنزل. للمرأة المغربية اللي باغية حضور احترافي بلا صالون: مجموعة مختارة، حماية للشعر، وثقة من الباب.",
+    "Maison marocaine de coiffage. Une collection courte. Confiance à la porte : vous inspectez avant de payer.",
 } as const;
 
-/** لوحة الألوان الرسمية — Pearl Blush · Rosewood · Champagne · Warm Black */
 export const BRAND_COLORS = {
   pearlBlush: "#F7F1EC",
   rosewood: "#C45B6A",

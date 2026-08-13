@@ -11,8 +11,8 @@ type Props = {
 
 export default function BeforeAfterSlider({
   src,
-  beforeLabel = "قبل",
-  afterLabel = "بعد",
+  beforeLabel = "Avant",
+  afterLabel = "Après",
   beforeFilter = "grayscale(80%) brightness(0.85) contrast(0.9) blur(1.2px)",
 }: Props) {
   const [pos, setPos] = useState(45); // تبدأ من اليمين (قبل) أكبر
@@ -82,18 +82,18 @@ export default function BeforeAfterSlider({
       </div>
 
       {/* Labels */}
-      <div className="absolute top-5 right-5 flex items-center gap-2 bg-black/50 backdrop-blur-sm text-white text-sm font-bold px-4 py-2 rounded-full pointer-events-none">
+      <div className="absolute top-5 left-5 flex items-center gap-2 bg-black/50 backdrop-blur-sm text-white text-sm font-medium px-4 py-2 rounded-full pointer-events-none">
         <span className="w-2 h-2 rounded-full bg-gray-400 inline-block" />
         {beforeLabel}
       </div>
-      <div className="absolute top-5 left-5 flex items-center gap-2 bg-rosewood/90 backdrop-blur-sm text-white text-sm font-bold px-4 py-2 rounded-full pointer-events-none">
+      <div className="absolute top-5 right-5 flex items-center gap-2 bg-rosewood/90 backdrop-blur-sm text-white text-sm font-medium px-4 py-2 rounded-full pointer-events-none">
         <span className="w-2 h-2 rounded-full bg-white inline-block animate-pulse" />
         {afterLabel}
       </div>
 
       {/* Instruction hint (fades after use) */}
       <div className="absolute bottom-5 left-1/2 -translate-x-1/2 text-white/80 text-xs font-medium bg-black/30 backdrop-blur-sm px-4 py-1.5 rounded-full pointer-events-none">
-        ← زلقي بصباعك لتشوفي الفرق →
+        ← Glissez pour voir la différence →
       </div>
     </div>
   );

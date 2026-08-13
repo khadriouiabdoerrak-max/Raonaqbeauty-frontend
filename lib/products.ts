@@ -1,19 +1,41 @@
-// كتالوج رونق — براند أولاً، الموديل التقني ثانوي
-// ترتيب صور PDP محسّن للمغرب: رغبة → إثبات → براند/COD → وضوح → نتيجة → الاستلام
 export type ProductFaq = { q: string; a: string };
 
-/** صورة غاليري مع ليبل يبيع (موبايل + COD) */
 export type ProductShot = {
   src: string;
-  /** ليبل قصير بالدارجة تحت الصورة */
   label: string;
 };
+
+export type ProductReview = {
+  name: string;
+  city: string;
+  text: string;
+  rating?: number;
+  photo?: string;
+};
+
+export type HairFit = "yes" | "ok" | "no";
+export type HairTypeId = "thick" | "fine" | "curly" | "daily" | "short" | "long";
+
+export const HAIR_TYPES: { id: HairTypeId; label: string }[] = [
+  { id: "thick", label: "Épais" },
+  { id: "fine", label: "Fin" },
+  { id: "curly", label: "Bouclé" },
+  { id: "daily", label: "Quotidien" },
+  { id: "short", label: "Court" },
+  { id: "long", label: "Mi-long / long" },
+];
+
+export type ProductSpec = { k: string; v: string };
 
 export type Product = {
   id: string;
   slug: string;
+  /** Nom d’outil style maison : TRIO / VOLUME — le logo reste Raonaq */
   name: string;
+  /** Ligne de métier sous le nom */
   nameFr: string;
+  chips: string[];
+  hairGuide: { label: string; setting: string; note: string }[];
   modelNote: string;
   tag?: string;
   tagline: string;
@@ -21,12 +43,14 @@ export type Product = {
   bestFor: string;
   result: string;
   cardCopy: string;
-  /** ألم الزبونة قبل الشراء */
   pain: string;
-  /** وعد النتيجة */
   promise: string;
-  /** لمن مناسب؟ */
   forWho: string[];
+  hair: Record<HairTypeId, HairFit>;
+  specs: ProductSpec[];
+  protectHow: string;
+  styleTime: string;
+  compareLine: string;
   features: string[];
   inBox: string[];
   howTo: string[];
@@ -34,19 +58,63 @@ export type Product = {
   voice: { name: string; city: string; text: string };
   price1: number;
   price2: number;
-  /** هيرو الصفحة — رغبة + هوية رونق */
   heroImage: string;
-  /**
-   * غاليري البيع (6 صور) — ترتيب التحويل فالمغرب:
-   * 1 نتيجة مرأة · 2 قبل/بعد · 3 باكة براند · 4 الأداة · 5 شعر النتيجة · 6 شنو كيوصل
-   */
   gallery: ProductShot[];
+  /** Déposez le fichier dans /public/videos puis renseignez le chemin, ex. /videos/raonaq-trio.mp4 */
+  video?: string;
+  /** Avis réels uniquement — laissez vide jusqu’aux premiers retours */
+  reviews: ProductReview[];
 };
 
-/** صورة مصغّرة للسلة / الكروت */
+export const PDP_TRUST = [
+  { t: "Inspectez avant de payer", d: "Vous pouvez refuser à la porte" },
+  { t: "Livraison gratuite", d: "Tout le Maroc" },
+  { t: "Confirmation par téléphone", d: "Avant expédition" },
+  { t: "220–240 V", d: "Prises marocaines" },
+] as const;
+
+export const COMMON_PDP_FAQS: ProductFaq[] = [
+  {
+    q: "Puis-je refuser à la livraison ?",
+    a: "Oui. Le livreur attend que vous ouvriez et vérifiiez. Si l’outil ne vous convient pas, vous ne payez pas. Aucun paiement d’avance.",
+  },
+  {
+    q: "L’appareil fonctionne-t-il au Maroc (220 V) ?",
+    a: "Oui. Les outils Raonaq sont prévus pour 220–240 V — les prises de la maison, sans adaptateur.",
+  },
+  {
+    q: "Que se passe-t-il en cas de défaut ?",
+    a: "Envoyez-nous une photo sur WhatsApp. Nous remplaçons l’appareil. L’inspection à la porte vous protège aussi avant le paiement.",
+  },
+  {
+    q: "Est-ce bien une pièce Raonaq ?",
+    a: "Oui. Elle arrive en écrin Raonaq, d’une collection courte. Nous confirmons chaque commande par téléphone avant l’expédition.",
+  },
+];
+
 export const productThumb = (p: Product): string => p.gallery[0]?.src ?? p.heroImage;
 
-/** قص الكارت: يعمّر الطول بحال باقي الصور، وDUO كيبان فيها الأداة على اليمين */
+export function productBeforeAfter(p: Product) {
+  return p.gallery.find(
+    (g) => g.src.includes("before-after") || /avant|before|après|after/i.test(g.label),
+  );
+}
+
+export function productStoryCards(p: Product) {
+  const woman = p.gallery[0];
+  const tool =
+    p.gallery.find((g) => g.src.includes("-tool") || g.src.includes("-tools") || g.src.includes("-closeup")) ??
+    p.gallery[3] ??
+    p.gallery[1];
+  const hair =
+    p.gallery.find((g) => g.src.includes("-hair-")) ?? p.gallery[4] ?? p.gallery.at(-1);
+  return [
+    { src: woman?.src ?? p.heroImage, title: p.chips[0] ?? p.compareLine, line: p.promise },
+    { src: tool?.src ?? p.heroImage, title: p.chips[1] ?? "L’outil", line: p.protectHow },
+    { src: hair?.src ?? p.heroImage, title: p.chips[2] ?? p.result, line: p.bestFor },
+  ];
+}
+
 export function productCoverClass(src: string, slug?: string) {
   const isDuoPhoto =
     slug === "raonaq-duo" ||
@@ -61,394 +129,482 @@ export const products: Product[] = [
   {
     id: "p1",
     slug: "raonaq-trio",
-    name: "رونق تريو",
-    nameFr: "Raonaq TRIO",
-    modelNote: "طقم Supercare PRO · EN-3311",
-    tag: "الأكثر قيمة",
-    tagline: "فرد، ويفي، وحجم فباكة وحدة",
+    name: "TRIO",
+    nameFr: "Coffret 3-en-1",
+    chips: ["3-en-1", "Lisse · ondule · volume", "Coffret cadeau", "220 V"],
+    hairGuide: [
+      { label: "Épais / bouclé", setting: "Température moyenne", note: "Mèche par mèche, sans précipitation" },
+      { label: "Fin", setting: "Température basse", note: "Ne repassez pas la même mèche" },
+      { label: "Mi-long / long", setting: "Moyenne à haute", note: "Terminez à l’air froid" },
+      { label: "Quotidien", setting: "Choisissez l’outil du coffret", note: "Brosse, lisseur ou boucleur" },
+    ],
+    modelNote: "Coffret Raonaq TRIO · 3 outils",
+    tag: "Le coffret",
+    tagline: "Lisser, onduler et volumiser — un seul écrin.",
     description:
-      "رونق تريو هو الطقم اللي كيعطيك الحرية تبدلي اللوك وقت ما بغيتي: فرد ناعم، ويفي مرتب، أو حجم خفيف. باكة أنيقة لنتيجة صالون فدارك مع حماية من الحرارة — اختيار قوي ليك أو كهدية.",
-    bestFor: "اللي باغين كل الستايلات فاختيار واحد",
-    result: "فرد · ويفي · حجم — بلا ما تشري أدوات متفرقة",
+      "TRIO réunit lissage, ondulation et volume dans un écrin unique — résultat salon chez vous, avec protection de la fibre.",
+    bestFor: "Pour changer de look sans multiplier les outils",
+    result: "Lisse · ondulé · volume — un coffret, trois gestes",
     cardCopy:
-      "إلا بغيتي اختيار واحد يخدم لك أكثر من لوك، تريو هو البداية الصحيحة: فرد ناعم، ويفي مرتب، وحجم خفيف فباكة وحدة.",
-    pain: "كتشري أداة وحدة… وعاد كتلقاي راسك محتاجة أداة أخرى لكل لوك.",
-    promise: "طقم واحد كيجمع الفرد، الويفي، والحجم — نتيجة صالون فدارك مع حماية للشعر.",
-    forWho: [
-      "للي باغين تبديل اللوك بلا أدوات كثيرة",
-      "للي باغين هدية مرتبة وواضحة القيمة",
-      "للي كيبغيو يبدأو مجموعة رونق كاملة",
-    ],
+      "Un écrin, trois looks : lisse, ondulé, volume. Le bon premier choix si vous voulez tout, sans collectionner les outils.",
+    pain: "Un seul outil, puis un autre, puis un troisième — pour chaque look.",
+    promise: "Un coffret : lissage, ondulation et volume — résultat salon, chez vous.",
+    protectHow:
+      "Pas une seule chaleur pour toutes. Choisissez une température moyenne, travaillez mèche par mèche, terminez à l’air froid.",
+    styleTime: "Environ 15–25 min sur cheveux épais",
+    compareLine: "3 looks dans un coffret",
     features: [
-      "3 أدوات تصفيف فباكة واحدة: فرد، ويفي، وفرشاة هواء",
-      "توزيع حرارة متوازن مع حماية للشعر",
-      "درجات متعددة تناسب أغلب أنواع الشعر المغربي",
-      "تغليف مرتب كهدية جاهزة",
-      "استعمال ساهل فدارك بلا موعد صالون",
+      "Trois looks : lisse, ondulé, volume",
+      "Plusieurs températures + air froid",
+      "Pensé pour les cheveux marocains",
+      "Écrin cadeau Raonaq",
+      "220–240 V · Maroc",
     ],
-    inBox: ["فرشاة هواء ساخن", "مكواة فرد", "مكواة ويفي", "باكة هدية", "دليل استعمال سريع"],
+    inBox: ["Brosse air chaud", "Lisseur", "Boucleur", "Coffret", "Guide rapide"],
     howTo: [
-      "غسّلي وجفّفي الشعر شوية قبل التصفيف",
-      "اختاري الأداة والدرجة المناسبة لنوع شعرك",
-      "صفّفي خصلة بخصلة بضغط خفيف",
-      "كمّلي بهواء بارد باش تثبّتي النتيجة",
+      "Lavez et séchez légèrement les cheveux",
+      "Choisissez l’outil et la température",
+      "Travaillez mèche par mèche, sans forcer",
+      "Fixez à l’air froid",
     ],
     faqs: [
       {
-        q: "واش تريو كتخدم على الشعر الكثيف؟",
-        a: "إييه. كتقدري تبدلي الدرجة حسب نوع شعرك. للشعر الكثيف غالباً كتبدئي بدرجة متوسطة وكتزيدي غير إلا احتجتي.",
+        q: "TRIO convient-il aux cheveux épais ?",
+        a: "Oui. Commencez à température moyenne et montez seulement si besoin.",
       },
       {
-        q: "علاش نختار تريو بدل أداة وحدة؟",
-        a: "حيت كتعطيك 3 لوكات فباكة وحدة: فرد، ويفي، وحجم. كتوفري فلوس الأدوات المتفرقة وكتحصلي على هدية مرتبة.",
+        q: "Pourquoi TRIO plutôt qu’un seul outil ?",
+        a: "Trois looks dans un coffret : lisse, ondulé, volume — et un écrin déjà prêt à offrir.",
       },
-      {
-        q: "واش نقدر نقلب السلعة قبل ما نخلص؟",
-        a: "أكيد. الليفور كيوصل للباب، تفتحي وتتأكدي قدامو، عاد تخلصي. ما كاين حتى دفع مسبق.",
-      },
+      ...COMMON_PDP_FAQS,
     ],
-    voice: {
-      name: "إيمان",
-      city: "مراكش",
-      text: "شريت تريو باش نبدّل بين الفرد والويفي. الباكة مرتبة والنتيجة واضحة من أول استعمال.",
-    },
+    gallery: [
+      { src: "/images/raonaq-trio-woman.png", label: "Le résultat" },
+      { src: "/images/raonaq-trio-before-after.png", label: "Avant / après" },
+      { src: "/images/raonaq-trio-pack.png", label: "L’écrin Raonaq" },
+      { src: "/images/raonaq-trio-tools.png", label: "3 outils" },
+      { src: "/images/raonaq-hair-straight.png", label: "Lisse" },
+      { src: "/images/raonaq-trio-box.png", label: "Ce que vous recevez" },
+    ],
+    forWho: [
+      "Pour changer de look sans multiplier les outils",
+      "Pour un cadeau déjà mis en écrin",
+      "Pour commencer la collection Raonaq",
+    ],
+    hair: { thick: "yes", fine: "yes", curly: "yes", daily: "ok", short: "yes", long: "yes" },
+    specs: [
+      { k: "Tension", v: "220–240 V · Maroc" },
+      { k: "Temps", v: "15–25 min selon l’épaisseur" },
+      { k: "Finition", v: "Air froid" },
+      { k: "Coffret", v: "3 outils" },
+    ],
+    voice: { name: "", city: "", text: "" },
+    reviews: [],
     price1: 199,
     price2: 279,
     heroImage: "/images/raonaq-trio-woman.png",
-    gallery: [
-      { src: "/images/raonaq-trio-woman.png", label: "النتيجة على الشعر" },
-      { src: "/images/raonaq-trio-before-after.png", label: "قبل ← بعد" },
-      { src: "/images/raonaq-trio-pack.png", label: "باكة رونق" },
-      { src: "/images/raonaq-trio-tools.png", label: "3 أدوات فباكة" },
-      { src: "/images/raonaq-hair-straight.png", label: "فرد ناعم" },
-      { src: "/images/raonaq-trio-box.png", label: "شنو كيوصل ليك" },
-    ],
   },
   {
     id: "p2",
     slug: "raonaq-air-soft",
-    name: "رونق إير سوفت",
-    nameFr: "Raonaq AIR Soft",
-    modelNote: "فرشاة هواء ساخن بالكيراتين",
-    tag: "للشعر الكثيف",
-    tagline: "نعومة بلا نفشة فخطوة وحدة",
+    name: "SOFT",
+    nameFr: "Brosse air — sans frisottis",
+    chips: ["Sèche + coiffe", "Sans frisottis", "Cheveux épais", "220 V"],
+    hairGuide: [
+      { label: "Épais", setting: "Température moyenne", note: "Cheveux encore un peu humides" },
+      { label: "Bouclé", setting: "Moyenne, mèche par mèche", note: "Des racines aux pointes" },
+      { label: "Fin", setting: "Température basse", note: "Sans insister" },
+      { label: "Quotidien", setting: "Moyenne légère", note: "Si le frisottis est le sujet, SOFT plutôt que JOUR" },
+    ],
+    modelNote: "Brosse air Raonaq SOFT",
+    tag: "Cheveux épais",
+    tagline: "Lisse sans frisottis, en un seul geste.",
     description:
-      "رونق إير سوفت كتخدم على الشعر الكثيف والمجعد بلا تعب: كتعاون على التجفيف والتصفيف فخطوة وحدة، وكتخلي الشعر أهدأ، لامع، وساهل يتحكم فيه.",
-    bestFor: "الشعر الكثيف اللي كينفش بسرعة",
-    result: "تنقص النفشة · لمعة ناعمة · تحكم أسهل",
+      "SOFT sèche et coiffe le cheveu épais ou bouclé en un seul passage. Moins de frisottis, plus de brillance, plus de contrôle.",
+    bestFor: "Cheveux épais qui gonflent vite",
+    result: "Moins de frisottis · brillance douce · plus de tenue",
     cardCopy:
-      "مناسب للشعر اللي كينفش بسرعة أو كيحتاج وقت فالتصفيف. كيساعدك ترتبي الخصلات وتخرجي بنعومة ولمعة بلا ما تبقاي تعاودي.",
-    pain: "الشعر كيخرج من الدوش كثيف ومنفوش… والتصفيف كيطول ويعاود ينفش فنفس النهار.",
-    promise: "تجفيف + تصفيف فنفس الوقت — نعومة ولمعان بلا نفشة مزعجة.",
+      "Pour le cheveu qui gonfle après la douche. SOFT sèche et lisse en même temps — un look calme, sans recommencer.",
+    pain: "Le cheveu sort de la douche dense et gonflé. Le coiffage dure, et le volume revient dans la journée.",
+    promise: "Séchage et coiffage ensemble — douceur et brillance, sans frisottis.",
     forWho: [
-      "للي عندهم شعر كثيف أو مجعد",
-      "للي كيعانيو من النفشة بعد الدوش",
-      "للي باغين نتيجة ناعمة بلا ساعات فالتصفيف",
+      "Cheveux épais ou bouclés",
+      "Frisottis après la douche",
+      "Un lisse sans des heures de coiffage",
     ],
+    hair: { thick: "yes", fine: "ok", curly: "yes", daily: "ok", short: "ok", long: "yes" },
+    specs: [
+      { k: "Tension", v: "220–240 V · Maroc" },
+      { k: "Temps", v: "12–20 min sur cheveux épais" },
+      { k: "Finition", v: "Air froid" },
+      { k: "Idéal pour", v: "Densité · frisottis · boucles" },
+    ],
+    protectHow:
+      "Séchage et coiffage en un geste : moins de temps sous la chaleur. Commencez légèrement humide, température moyenne, terminez à l’air froid. N’attendez pas que le cheveu soit complètement sec.",
+    styleTime: "Environ 12–20 min sur cheveux épais",
+    compareLine: "Lisse sans frisottis, cheveux épais",
     features: [
-      "تجفيف وتصفيف فنفس الوقت",
-      "كيساعد على تنقيص النفشة وتحسين اللمعان",
-      "فرشاة مستديرة كتعطي حجم خفيف مع النعومة",
-      "خفيف وسهل التحكم فاليوم الطويل",
-      "مناسب للاستعمال اليومي مع حماية أفضل من المجفف العادي",
+      "Sèche et coiffe en même temps",
+      "Calme le frisottis, ajoute de la brillance",
+      "Brosse ronde : un peu de volume avec le lisse",
+      "Pensé pour les cheveux marocains denses",
+      "220–240 V · prises de la maison",
     ],
-    inBox: ["فرشاة الهواء الساخن", "دليل استعمال"],
+    inBox: ["Brosse air chaud", "Guide d’utilisation"],
     howTo: [
-      "بدئي على شعر منديل شوية الرطوبة",
-      "قسّمي الشعر خصلات ومرّري من الجذور للأطراف",
-      "دوّري شوية على الأطراف باش الحجم",
-      "ثبّتي بالهواء البارد فآخر خطوة",
+      "Commencez sur cheveux encore un peu humides",
+      "Travaillez mèche par mèche, des racines aux pointes",
+      "Tournez légèrement aux pointes pour le mouvement",
+      "Fixez à l’air froid",
     ],
     faqs: [
       {
-        q: "واش كتخدم على الشعر المجعد؟",
-        a: "إييه، خاصة إلا كان الشعر شوية رطب. كتعاون على التنعيم والتنظيم، والنتيجة كتبان أحسن مع الصبر على الخصلات.",
+        q: "Convient-il aux cheveux bouclés ?",
+        a: "Oui, surtout encore un peu humides. Travaillez mèche par mèche : le lisse se voit avec de la patience.",
       },
       {
-        q: "واش غادي تحرق الشعر؟",
-        a: "الهدف هو تصفيف بحماية أحسن من المجفف العادي. اختاري الدرجة المناسبة وكمّلي بهواء بارد.",
+        q: "Va-t-il abîmer les cheveux ?",
+        a: "Le geste vise moins de chaleur perdue qu’un sèche-cheveux + brosse. Choisissez la température juste, terminez à l’air froid.",
       },
       {
-        q: "شحال كياخد التصفيف؟",
-        a: "غالباً أقل بزاف من مجفف + فرشاة عاديين، حيت كتجفّفي وكتصفّفي فخطوة وحدة.",
+        q: "Combien de temps pour coiffer ?",
+        a: "Souvent moins qu’un sèche-cheveux et une brosse séparés. Comptez 12–20 min sur cheveux épais.",
       },
+      ...COMMON_PDP_FAQS,
     ],
-    voice: {
-      name: "سارة",
-      city: "الدار البيضاء",
-      text: "شعري كثيف وكينفش بسرعة. إير سوفت خلّاتو مرتب ولامع بلا ما نبقا نعاود كل ساعة.",
-    },
+    voice: { name: "", city: "", text: "" },
+    reviews: [],
     price1: 199,
     price2: 279,
     heroImage: "/images/raonaq-air-soft-woman.png",
     gallery: [
-      { src: "/images/raonaq-air-soft-woman.png", label: "النتيجة على الشعر" },
-      { src: "/images/raonaq-air-soft-before-after.png", label: "قبل ← بعد · نفشة" },
-      { src: "/images/raonaq-air-soft-pack.png", label: "باكة رونق" },
-      { src: "/images/raonaq-air-soft-tool.png", label: "الأداة عن قرب" },
-      { src: "/images/raonaq-hair-curls.png", label: "نعومة بلا نفشة" },
-      { src: "/images/raonaq-air-soft-box.png", label: "شنو كيوصل ليك" },
+      { src: "/images/raonaq-air-soft-woman.png", label: "Le résultat" },
+      { src: "/images/raonaq-air-soft-before-after.png", label: "Avant / après · frisottis" },
+      { src: "/images/raonaq-air-soft-pack.png", label: "L’écrin Raonaq" },
+      { src: "/images/raonaq-air-soft-tool.png", label: "L’outil" },
+      { src: "/images/raonaq-hair-curls.png", label: "Lisse sans frisottis" },
+      { src: "/images/raonaq-air-soft-box.png", label: "Ce que vous recevez" },
     ],
   },
   {
     id: "p3",
     slug: "raonaq-air-pink",
-    name: "رونق إير بينك",
-    nameFr: "Raonaq AIR Pink",
-    modelNote: "مجفف-فرشاة · EN-8220",
-    tag: "كل نهار",
-    tagline: "لوك مرتب قبل ما تخرجي",
+    name: "JOUR",
+    nameFr: "Brosse quotidienne",
+    chips: ["Rituel du matin", "Léger", "Air froid", "220 V"],
+    hairGuide: [
+      { label: "Fin", setting: "Température basse", note: "Ordre et brillance avant de sortir" },
+      { label: "Quotidien", setting: "Basse à moyenne", note: "8–15 min" },
+      { label: "Court", setting: "Basse", note: "Pour un look net" },
+      { label: "Épais / bouclé", setting: "Pas le premier choix", note: "Préférez SOFT ou VOLUME" },
+    ],
+    modelNote: "Brosse Raonaq JOUR",
+    tag: "Chaque jour",
+    tagline: "Un look net, avant de partir.",
     description:
-      "رونق إير بينك للنهارات اللي بغيتي فيها شعرك يبان نقي ومرتب بسرعة: تجفيف وتصفيف خفيف بلمعان، بلا ثقل وبلا موعد صالون.",
-    bestFor: "الروتين اليومي قبل الخدمة أو الخروج",
-    result: "ترتيب سريع · لمعة خفيفة · لوك نقي فدقائق",
+      "JOUR pour les matins où le cheveu doit être net, vite : séchage léger, ordre et brillance — sans rendez-vous.",
+    bestFor: "Le rituel du matin, avant le bureau",
+    result: "Ordre rapide · brillance légère · look net",
     cardCopy:
-      "للأيام اللي بغيتي شعرك يبان نقي بسرعة: تنشيف خفيف، ترتيب، ولمعة بسيطة قبل الخدمة أو الخروج.",
-    pain: "الصباح كيطيح بسرعة… وكتخرجي بشعر ما زال ما ترتّبش مزيان.",
-    promise: "ترتيب يومي ساهل: تجفيف خفيف + تصفيف + لمعة قبل ما تخرجي.",
+      "Pour les jours où vous voulez un cheveu net en quelques minutes : séchage léger, ordre, un peu de brillance.",
+    pain: "Le matin passe trop vite. Vous sortez avec un cheveu encore indécis.",
+    promise: "Un rituel simple : sécher, ordonner, briller — puis partir.",
     forWho: [
-      "للي كيحتاجو لوك مرتب بسرعة كل صباح",
-      "للمبتدئات اللي باغين أداة ساهلة",
-      "للي ما باغينش يثقّلو الشعر بأدوات كبيرة",
+      "Un look net chaque matin",
+      "Un premier outil, facile à prendre en main",
+      "Sans alourdir le cheveu",
     ],
+    hair: { thick: "no", fine: "yes", curly: "no", daily: "yes", short: "yes", long: "ok" },
+    specs: [
+      { k: "Tension", v: "220–240 V · Maroc" },
+      { k: "Temps", v: "8–15 min au quotidien" },
+      { k: "Finition", v: "Air froid" },
+      { k: "Idéal pour", v: "Matin · cheveu fin ou moyen" },
+    ],
+    protectHow:
+      "JOUR pour un ordre léger, pas pour lisser un cheveu très dense. Deux températures + air froid : commencez bas, ne repassez pas la même mèche. Cheveu très épais : SOFT ou VOLUME.",
+    styleTime: "Environ 8–15 min avant de sortir",
+    compareLine: "Rituel du matin, avant de partir",
     features: [
-      "يجفّف ويصفّف دفعة وحدة",
-      "خفيف وسهل على اليد",
-      "درجتين حرارة + هواء بارد للحماية",
-      "تصميم أنيق للاستخدام اليومي",
-      "مثالية للمبتدئات والروتين السريع",
+      "Sèche et coiffe en un geste, le matin",
+      "Léger en main — avant le bureau",
+      "Deux températures + air froid",
+      "Cheveu fin à moyen — pas pour une forte densité",
+      "220–240 V · prises de la maison",
     ],
-    inBox: ["مجفف-فرشاة", "دليل استعمال"],
+    inBox: ["Brosse séchoir", "Guide d’utilisation"],
     howTo: [
-      "شوية رطوبة كافية قبل ما تبدئي",
-      "مرّري ببطء من الجذور للأطراف",
-      "استعملي الهواء البارد للتثبيت",
-      "كمّلي بمشط واسع الأسنان إلا بغيتي انسيابية أكثر",
+      "Une légère humidité suffit",
+      "Glissez lentement des racines aux pointes",
+      "Fixez à l’air froid",
+      "Un peigne large en finition, si vous voulez plus de fluide",
     ],
     faqs: [
       {
-        q: "واش مناسبة للشعر القصير؟",
-        a: "إييه، خاصة للترتيب اليومي واللمعان الخفيف. للشعر الطويل بزاف قد تحتاجي وقت أكثر أو أداة أقوى بحال فوليوم.",
+        q: "Convient-il aux cheveux courts ?",
+        a: "Oui, surtout pour l’ordre du quotidien. Cheveu très long : un peu plus de temps, ou VOLUME.",
       },
       {
-        q: "واش كتبدّل إير سوفت؟",
-        a: "لا. إير بينك للروتين اليومي السريع. إير سوفت أقوى على الكثافة والنفشة.",
+        q: "Remplace-t-il SOFT ?",
+        a: "Non. JOUR est le rituel rapide. SOFT est plus fort sur la densité et le frisottis.",
       },
       {
-        q: "كيفاش نوصل الطلب؟",
-        a: "توصيل مجاني لجميع مدن المغرب، غالباً بين 24 و 48 ساعة. خلصي عند الباب بعد ما تقلبي.",
+        q: "Comment arrive la commande ?",
+        a: "Livraison gratuite dans tout le Maroc, généralement 24 à 48 h. Nous confirmons par téléphone. Vous payez à la porte, après inspection.",
       },
+      ...COMMON_PDP_FAQS,
     ],
-    voice: {
-      name: "نادية",
-      city: "الرباط",
-      text: "كنستعملها تقريبا كل صباح قبل الخدمة. خفيفة وكتعطيني ترتيب ولمعة بسرعة.",
-    },
+    voice: { name: "", city: "", text: "" },
+    reviews: [],
     price1: 199,
     price2: 279,
     heroImage: "/images/raonaq-air-pink-woman.png",
     gallery: [
-      { src: "/images/raonaq-air-pink-woman.png", label: "النتيجة على الشعر" },
-      { src: "/images/raonaq-air-pink-before-after.png", label: "قبل ← بعد" },
-      { src: "/images/raonaq-air-pink-pack.png", label: "باكة رونق" },
-      { src: "/images/raonaq-air-pink-tool.png", label: "الأداة عن قرب" },
-      { src: "/images/raonaq-hair-waves.png", label: "لوك مرتب بسرعة" },
-      { src: "/images/raonaq-air-pink-box.png", label: "شنو كيوصل ليك" },
+      { src: "/images/raonaq-air-pink-woman.png", label: "Le résultat" },
+      { src: "/images/raonaq-air-pink-before-after.png", label: "Avant / après" },
+      { src: "/images/raonaq-air-pink-pack.png", label: "L’écrin Raonaq" },
+      { src: "/images/raonaq-air-pink-tool.png", label: "L’outil" },
+      { src: "/images/raonaq-hair-waves.png", label: "Look net, vite" },
+      { src: "/images/raonaq-air-pink-box.png", label: "Ce que vous recevez" },
     ],
   },
   {
     id: "p4",
     slug: "raonaq-volume",
-    name: "رونق فوليوم",
-    nameFr: "Raonaq VOLUME",
-    modelNote: "فرشاة الحجم One-Step",
-    tag: "للحجم",
-    tagline: "براشينغ بحجم من الجذور",
+    name: "VOLUME",
+    nameFr: "Brosse volume",
+    chips: ["Volume des racines", "Brushing", "Mi-long / long", "220 V"],
+    hairGuide: [
+      { label: "Fin / plat", setting: "Température moyenne", note: "Soulevez la mèche deux secondes" },
+      { label: "Mi-long / long", setting: "Moyenne à haute", note: "Le lift se voit sur les couches" },
+      { label: "Épais", setting: "Haute, mèche par mèche", note: "Terminez à l’air froid" },
+      { label: "Très court", setting: "Moins adapté", note: "La forme ovale donne du volume sur la longueur" },
+    ],
+    modelNote: "Brosse volume Raonaq VOLUME",
+    tag: "Volume",
+    tagline: "Un brushing, du volume dès les racines.",
     description:
-      "رونق فوليوم للبنات اللي باغين حضور من أول تصفيفة. الفرشاة البيضاوية كترفع الشعر من الجذور وكتعطي لمعة على الطول — براشينغ فدارك بلا صالون.",
-    bestFor: "اللي باغين حجم واضح ولمعة على الطول",
-    result: "lift من الجذور · نعومة · حضور بحال الصالون",
+      "VOLUME pour un brushing qui se voit dès la première fois. La brosse ovale soulève les racines et pose de la brillance sur la longueur — chez vous.",
+    bestFor: "Du volume net et de la brillance sur la longueur",
+    result: "Lift des racines · douceur · présence salon",
     cardCopy:
-      "إلا كان شعرك كيهبط بسرعة أو بغيتي براشينغ بحضور، فوليوم كيرفع من الجذور وكيخلي الطول ناعم ولامع.",
-    pain: "الشعر كيبان مسطّح وكيطيح بسرعة… والبراشينغ فالصالون غالي وكياخد وقت.",
-    promise: "براشينغ فدارك: حجم من الجذور، نعومة على الطول، وحضور من أول تصفيفة.",
+      "Si le cheveu retombe, VOLUME soulève les racines et laisse la longueur lisse et brillante.",
+    pain: "Le cheveu paraît plat. Le brushing salon coûte cher, et prend un rendez-vous.",
+    promise: "Un brushing chez vous : volume des racines, douceur, présence.",
     forWho: [
-      "للي شعرهم كيهبط وكيحتاج lift",
-      "للي باغين براشينغ بلا موعد صالون",
-      "للشعر المتوسط والطويل",
+      "Cheveu plat qui a besoin de lift",
+      "Un brushing sans rendez-vous",
+      "Cheveu mi-long à long",
     ],
+    hair: { thick: "ok", fine: "yes", curly: "ok", daily: "ok", short: "no", long: "yes" },
+    specs: [
+      { k: "Tension", v: "220–240 V · Maroc" },
+      { k: "Temps", v: "15–25 min pour un brushing" },
+      { k: "Finition", v: "Air froid aux racines" },
+      { k: "Idéal pour", v: "Mi-long / long · volume" },
+    ],
+    protectHow:
+      "Le volume vient du geste, pas de la chaleur maximale : soulevez la mèche deux secondes, glissez lentement, ne repassez pas. Terminez à l’air froid pour fixer le lift.",
+    styleTime: "Environ 15–25 min pour un brushing complet",
+    compareLine: "Volume des racines, comme au salon",
     features: [
-      "حجم واضح من الجذور بفضل الشكل البيضاوي",
-      "تجفيف وتصفيف فخطوة وحدة",
-      "ملمس أملس ولامع على الطول",
-      "مثالية للشعر المتوسط والطويل",
-      "نتيجة صالون فدارك مع درجات متعددة",
+      "Lift des racines grâce à la forme ovale",
+      "Séchage et coiffage en un geste",
+      "Brillance sur la longueur, volume qui tient",
+      "Mi-long à long — trop court, moins de lift",
+      "220–240 V · prises de la maison",
     ],
-    inBox: ["فرشاة الحجم", "دليل استعمال"],
+    inBox: ["Brosse volume", "Guide d’utilisation"],
     howTo: [
-      "بدئي من الجذور ورفعي الخصلة لفوق ثانيتين",
-      "جرّي الفرشاة ببطء للأسفل",
-      "كرّري على الطبقات باش الحجم يبان",
-      "ثبّتي بالهواء البارد",
+      "Soulevez la mèche deux secondes aux racines",
+      "Glissez la brosse lentement vers le bas",
+      "Répétez sur les couches",
+      "Fixez à l’air froid",
     ],
     faqs: [
       {
-        q: "واش كتعطي حجم حقيقي؟",
-        a: "إييه إلا استعملتيها من الجذور ورفعتي الخصلة شوية قبل ما تجريها للأسفل. الفرق كيبان فالطبقات.",
+        q: "Le volume est-il réel ?",
+        a: "Oui, si vous commencez aux racines et soulevez la mèche avant de glisser. La différence se voit sur les couches.",
       },
       {
-        q: "واش مناسبة للشعر الرقيق؟",
-        a: "نعم. للشعر الرقيق استعملي درجة أقل وركّزي على الجذور باش ما يطيحش الحجم بسرعة.",
+        q: "Convient-il aux cheveux fins ?",
+        a: "Oui. Température plus basse, concentrez-vous sur les racines pour que le volume tienne.",
       },
       {
-        q: "علاش رونق فوليوم؟",
-        a: "حيت كتعطيك براشينغ بحضور بلا صالون، مع وعد واضح: تقلبي قبل ما تخلصي وتوصيل مجاني.",
+        q: "Pourquoi VOLUME ?",
+        a: "Un brushing de présence, sans salon. Sur mi-long et long, le lift se voit dès les racines. Et vous inspectez avant de payer.",
       },
+      ...COMMON_PDP_FAQS,
     ],
-    voice: {
-      name: "مريم",
-      city: "طنجة",
-      text: "عطاتني حجم من الجذور بحال الصالون. كنستعملها قبل الخروج وكتبان الفرق فالتصويرة.",
-    },
+    voice: { name: "", city: "", text: "" },
+    reviews: [],
     price1: 199,
     price2: 279,
     heroImage: "/images/raonaq-volume-woman.png",
     gallery: [
-      { src: "/images/raonaq-volume-woman.png", label: "النتيجة على الشعر" },
-      { src: "/images/raonaq-volume-before-after.png", label: "قبل ← بعد · حجم" },
-      { src: "/images/raonaq-volume-pack.png", label: "باكة رونق" },
-      { src: "/images/raonaq-volume-tool.png", label: "الأداة عن قرب" },
-      { src: "/images/raonaq-hair-blowout.png", label: "حجم من الجذور" },
-      { src: "/images/raonaq-volume-box.png", label: "شنو كيوصل ليك" },
+      { src: "/images/raonaq-volume-woman.png", label: "Le résultat" },
+      { src: "/images/raonaq-volume-before-after.png", label: "Avant / après · volume" },
+      { src: "/images/raonaq-volume-pack.png", label: "L’écrin Raonaq" },
+      { src: "/images/raonaq-volume-tool.png", label: "L’outil" },
+      { src: "/images/raonaq-hair-blowout.png", label: "Volume des racines" },
+      { src: "/images/raonaq-volume-box.png", label: "Ce que vous recevez" },
     ],
   },
   {
     id: "p5",
     slug: "raonaq-go",
-    name: "رونق GO",
-    nameFr: "Raonaq GO",
-    modelNote: "Wireless portable clamp",
-    tag: "Portable",
-    tagline: "Retouche partout — رتّبي شعرك فين ما كنتي",
+    name: "GO",
+    nameFr: "Retouche nomade",
+    chips: ["Nomade", "Sans fil", "Sac à main", "Retouche"],
+    hairGuide: [
+      { label: "Mèches du visage", setting: "Passage léger", note: "3–8 min" },
+      { label: "Pointes", setting: "Mèche fine", note: "Laissez refroidir quelques secondes" },
+      { label: "Hors de la maison", setting: "Après charge", note: "Bureau, voiture, soirée" },
+      { label: "Toute la tête", setting: "Ce n’est pas GO", note: "Choisissez VOLUME ou TRIO" },
+    ],
+    modelNote: "Raonaq GO · retouche",
+    tag: "Nomade",
+    tagline: "Une retouche, partout.",
     description:
-      "رونق GO هي الأداة الصغيرة اللي كتخليك تديري retouche سريع فالحقيبة، فالخدمة، فالسيارة، أو قبل مناسبة. مناسبة لترتيب الخصلات الأمامية والأطراف بلا ما تحتاجي صالون.",
-    bestFor: "اللي باغين retouche سريع خارج الدار",
-    result: "ترتيب سريع · أطراف ناعمة · لوك حاضر فدقائق",
+      "GO est l’outil compact pour une retouche dans le sac, au bureau, en voiture, avant une soirée. Mèches du visage et pointes — sans salon.",
+    bestFor: "Une retouche rapide, hors de la maison",
+    result: "Ordre rapide · pointes nettes · look présent",
     cardCopy:
-      "خفيفة ومحمولة، كتعاونك ترتبي الخصلات اللي كتتنفش أو كتطيح خلال النهار. اختيار مناسب للشنطة والروتين السريع.",
-    pain: "كتخرجي بشعر مرتب، ومن بعد شوية الخصلات الأمامية كتهبط أو كتنفش وما كايناش أداة صغيرة معاك.",
-    promise: "Retouche سريع فين ما كنتي — ترتيب خفيف ولوك نقي بلا ما ترجعي للدار.",
+      "Léger, portable. Pour les mèches qui gonflent ou retombent dans la journée. Le bon choix pour le sac.",
+    pain: "Vous partez coiffée. Puis les mèches du visage retombent — et rien dans le sac.",
+    promise: "Une retouche partout — sans rentrer à la maison.",
     forWho: [
-      "للي كيبغيو أداة صغيرة فالحقيبة",
-      "للي كيحتاجو retouche قبل الخدمة أو مناسبة",
-      "لترتيب الخصلات الأمامية والأطراف",
+      "Un outil compact dans le sac",
+      "Une retouche avant le bureau ou une soirée",
+      "Mèches du visage et pointes",
     ],
+    hair: { thick: "no", fine: "yes", curly: "no", daily: "yes", short: "yes", long: "ok" },
+    specs: [
+      { k: "Alimentation", v: "Charge · sans fil" },
+      { k: "Temps", v: "3–8 min pour une retouche" },
+      { k: "Usage", v: "Mèches du visage et pointes" },
+      { k: "Idéal pour", v: "Sac · voyage · avant une photo" },
+    ],
+    protectHow:
+      "GO pour de petites mèches, pas pour toute la tête. Mèche fine, passage léger, laissez refroidir quelques secondes. Ne repassez pas — la retouche reste légère.",
+    styleTime: "Environ 3–8 min pour les mèches du visage",
+    compareLine: "Retouche rapide, dans le sac",
     features: [
-      "حجم صغير ومناسب للحقيبة",
-      "مناسبة للـ retouche السريع",
-      "كتعاون على ترتيب الخصلات والأطراف",
-      "تصميم أنيق باللون الوردي",
-      "استعمال ساهل للمبتدئات",
+      "Format sac à main",
+      "Mèches du visage et pointes en quelques minutes",
+      "Sans fil après charge — bureau, voiture, soirée",
+      "Ne remplace pas VOLUME ou TRIO sur toute la tête",
+      "Écrin Raonaq et câble de charge",
     ],
-    inBox: ["رونق GO", "كابل الشحن", "علبة المنتج", "دليل استعمال سريع"],
+    inBox: ["Raonaq GO", "Câble de charge", "Écrin", "Guide rapide"],
     howTo: [
-      "شحني الأداة قبل الاستعمال",
-      "خدي خصلات صغيرة باش النتيجة تبان بسرعة",
-      "مرّري بلطف على الخصلات الأمامية أو الأطراف",
-      "خلي الشعر يبرد ثواني باش يثبت الشكل",
+      "Chargez l’outil avant usage",
+      "Prenez de petites mèches",
+      "Glissez sur les mèches du visage ou les pointes",
+      "Laissez refroidir quelques secondes",
     ],
     faqs: [
       {
-        q: "واش رونق GO كتصلح للاستعمال اليومي؟",
-        a: "إييه، مناسبة للترتيب الخفيف والـ retouche. للشعر كامل وبراشينغ قوي اختاري تريو أو فوليوم.",
+        q: "GO convient-il au quotidien ?",
+        a: "Oui, pour une retouche légère. Toute la tête et un brushing : TRIO ou VOLUME.",
       },
       {
-        q: "واش كتدخل فالحقيبة؟",
-        a: "نعم، حجمها صغير ومناسبة للشنطة أو السفر.",
+        q: "Entre-t-il dans un sac ?",
+        a: "Oui. Format compact, pensé pour le sac ou le voyage.",
       },
       {
-        q: "كيفاش كيوصل الطلب؟",
-        a: "كنأكدو الطلب بالهاتف، كيوصل حتى للدار، وكتفتحي وتشوفي عاد كتخلصي.",
+        q: "Comment arrive la commande ?",
+        a: "Nous confirmons par téléphone. L’outil arrive chez vous. Vous ouvrez, vous inspectez, puis vous payez. Vous pouvez refuser à la porte.",
       },
+      ...COMMON_PDP_FAQS,
     ],
-    voice: {
-      name: "سلمى",
-      city: "الدار البيضاء",
-      text: "كنحطها فالحقيبة وكتنفعني بزاف قبل التصاور أو الخروج من الخدمة.",
-    },
+    voice: { name: "", city: "", text: "" },
+    reviews: [],
     price1: 199,
     price2: 279,
     heroImage: "/images/raonaq-go-woman.png",
     gallery: [
-      { src: "/images/raonaq-go-woman.png", label: "النتيجة على الشعر" },
+      { src: "/images/raonaq-go-woman.png", label: "Le résultat" },
       { src: "/images/raonaq-go-lifestyle.png", label: "Retouche partout" },
-      { src: "/images/raonaq-go-closeup.png", label: "الأداة عن قرب" },
-      { src: "/images/raonaq-go-unboxing.png", label: "فتح الباكة" },
-      { src: "/images/raonaq-go-box.png", label: "باكة رونق GO" },
+      { src: "/images/raonaq-go-closeup.png", label: "L’outil" },
+      { src: "/images/raonaq-go-unboxing.png", label: "L’écrin" },
+      { src: "/images/raonaq-go-box.png", label: "Ce que vous recevez" },
     ],
   },
   {
     id: "p6",
     slug: "raonaq-duo",
-    name: "رونق DUO",
-    nameFr: "Raonaq DUO 2-in-1",
-    modelNote: "2-en-1 · Lisser & Boucler",
-    tag: "2 في 1",
-    tagline: "فردي أو ديري waves بأداة وحدة",
+    name: "DUO",
+    nameFr: "2-en-1 lisser & onduler",
+    chips: ["2-en-1", "Lisser", "Onduler", "220 V"],
+    hairGuide: [
+      { label: "Mi-long / long", setting: "Température moyenne", note: "Petites mèches" },
+      { label: "Fin", setting: "Basse à moyenne", note: "Pour lisser : glissez lentement" },
+      { label: "Épais", setting: "Moyenne", note: "Pour onduler : enroulez, puis laissez refroidir" },
+      { label: "Quotidien", setting: "Moyenne", note: "Deux looks, un seul outil" },
+    ],
+    modelNote: "Raonaq DUO · lisser & onduler",
+    tag: "2-en-1",
+    tagline: "Lisser ou onduler, un seul outil.",
     description:
-      "رونق DUO أداة 2 في 1 للّي باغين الفرد والويفي فاختيار واحد. كتجمع بين lissage وboucles خفاف باش تبدلي اللوك بلا ما تشري أدوات كثيرة.",
-    bestFor: "اللي باغين فرد وويفي بأداة وحدة",
-    result: "Lisser & Boucler · لوك ناعم أو مموّج",
+      "DUO réunit lissage et ondulations légères. Un look lisse un jour, des waves le lendemain — sans collectionner les outils.",
+    bestFor: "Lisser et onduler avec un seul outil",
+    result: "Lisser & onduler · look lisse ou ondulé",
     cardCopy:
-      "اختيار عملي للبنات اللي كيبغيو يبدلو اللوك: فرد ناعم فنهار، وwaves خفاف فنهار آخر، بنفس الأداة.",
-    pain: "بغيتي تبدلي بين الشعر ناعم والويفي، ولكن كثرة الأدوات كتضيع الوقت والبلاصة.",
-    promise: "أداة وحدة لجوج لوكات: فرد مرتب أو waves خفاف — نتيجة صالون فدارك.",
+      "Lisse un jour, waves le lendemain — le même outil. Pratique, sans occuper tout le tiroir.",
+    pain: "Vous voulez alterner lisse et ondulé, mais trop d’outils prennent place et temps.",
+    promise: "Un outil, deux looks : lisse net ou waves légères.",
     forWho: [
-      "للي كيبغيو lissage وboucles فاختيار واحد",
-      "للي شعرهم متوسط أو طويل",
-      "للي باغين أداة عملية وما تاخدش بلاصة",
+      "Lisse et ondulations, un seul choix",
+      "Cheveu mi-long à long",
+      "Un outil compact, deux gestes",
     ],
+    hair: { thick: "ok", fine: "yes", curly: "ok", daily: "ok", short: "ok", long: "yes" },
+    specs: [
+      { k: "Tension", v: "220–240 V · Maroc" },
+      { k: "Temps", v: "15–25 min selon le look" },
+      { k: "Looks", v: "Lisse ou waves légères" },
+      { k: "Idéal pour", v: "Mi-long / long" },
+    ],
+    protectHow:
+      "Température moyenne, petites mèches, glissez lentement. Lisse : des racines aux pointes, sans presser. Ondulé : enroulez, laissez refroidir avant de dénouer. Le froid fixe — pas la répétition de chaleur.",
+    styleTime: "Environ 15–25 min selon le look",
+    compareLine: "Lisser et onduler, un seul outil",
     features: [
-      "2 في 1: فرد وويفي",
-      "مناسبة لتبديل اللوك بسرعة",
-      "تصميم أنيق بالأسود والذهبي",
-      "ساهلة فالتحكم",
-      "اختيار مناسب للاستعمال الأسبوعي",
+      "2-en-1 : lisse ou waves légères",
+      "Deux looks, sans deux outils",
+      "Petites mèches, température moyenne",
+      "Cheveu mi-long à long",
+      "220–240 V · prises de la maison",
     ],
-    inBox: ["رونق DUO 2-in-1", "علبة المنتج", "دليل استعمال سريع"],
+    inBox: ["Raonaq DUO 2-en-1", "Écrin", "Guide rapide"],
     howTo: [
-      "اختاري درجة مناسبة لنوع شعرك",
-      "للفرد: مرّري الأداة ببطء من الجذور للأطراف",
-      "للويفي: لفي الخصلة شوية ومرّري بهدوء",
-      "خلي الخصلات تبرد باش الشكل يثبت",
+      "Choisissez la température selon votre cheveu",
+      "Lisse : glissez lentement des racines aux pointes",
+      "Ondulé : enroulez la mèche, passez sans précipiter",
+      "Laissez refroidir pour fixer la forme",
     ],
     faqs: [
       {
-        q: "واش كتدير الفرد والويفي بجوج؟",
-        a: "نعم، DUO معمولة باش تعطيك lissage وwaves خفاف بنفس الأداة.",
+        q: "Fait-il vraiment les deux ?",
+        a: "Oui. DUO est conçu pour le lissage et des waves légères, le même outil.",
       },
       {
-        q: "واش مناسبة للمبتدئات؟",
-        a: "إييه، غير بدئي بخصلات صغيرة ودرجة متوسطة حتى تولفي التحكم.",
+        q: "Convient-il aux débutantes ?",
+        a: "Oui. Commencez par de petites mèches et une température moyenne.",
       },
-      {
-        q: "واش نقدر نقلب السلعة قبل ما نخلص؟",
-        a: "أكيد. كتشوفي المنتج قدام الليفور، عاد كتخلصي عند الاستلام.",
-      },
+      ...COMMON_PDP_FAQS,
     ],
-    voice: {
-      name: "هند",
-      city: "مراكش",
-      text: "عجباتني حيت كتدير الفرد والويفي. ما بقيتش محتاجة جوج أدوات.",
-    },
+    voice: { name: "", city: "", text: "" },
+    reviews: [],
     price1: 199,
     price2: 279,
     heroImage: "/images/raonaq-duo-woman.png",
     gallery: [
-      { src: "/images/raonaq-duo-woman.png", label: "النتيجة على الشعر" },
-      { src: "/images/raonaq-duo-tool.png", label: "الأداة عن قرب" },
-      { src: "/images/raonaq-duo-unboxing.png", label: "فتح الباكة" },
-      { src: "/images/raonaq-duo-closeup.png", label: "التصفيف عن قرب" },
+      { src: "/images/raonaq-duo-woman.png", label: "Le résultat" },
+      { src: "/images/raonaq-duo-tool.png", label: "L’outil" },
+      { src: "/images/raonaq-duo-unboxing.png", label: "L’écrin" },
+      { src: "/images/raonaq-duo-closeup.png", label: "Le geste" },
     ],
   },
 ];
@@ -458,10 +614,10 @@ export const getProductBySlug = (slug: string): Product | undefined =>
 
 export const UPSELL = {
   id: "raonaq-luma-serum",
-  name: "رونق لمعان",
-  nameFr: "Raonaq LUMA Serum",
+  name: "LUMA",
+  nameFr: "Sérum Raonaq LUMA",
   description:
-    "سيروم خفيف كيثبّت التصفيف وكيزيد اللمعان بعد أداة رونق — حماية إضافية بلا ما يثقّل الشعر.",
+    "Un sérum léger pour fixer le coiffage et ajouter de la brillance — sans alourdir.",
   price: 99,
   compareAt: 149,
   image: "/images/raonaq-salon-results.png",

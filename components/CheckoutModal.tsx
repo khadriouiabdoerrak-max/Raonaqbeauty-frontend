@@ -22,11 +22,11 @@ function validatePhone(phoneNum: string) {
 
 function validateForm(form: typeof emptyForm, cartLength: number): FieldErrors {
   const errors: FieldErrors = {};
-  if (!form.name.trim()) errors.name = "كتبي الاسم الكامل";
-  if (!validatePhone(form.phone)) errors.phone = "رقم مغربي صحيح — مثال: 0612345678";
-  if (form.city.trim().length < 2) errors.city = "كتبي مدينتك";
-  if (form.address.trim().length < 5) errors.address = "كتبي العنوان الكامل للتوصيل";
-  if (cartLength === 0) errors.address = "السلة فارغة";
+  if (!form.name.trim()) errors.name = "Indiquez votre nom complet";
+  if (!validatePhone(form.phone)) errors.phone = "Numéro marocain — ex. 0612345678";
+  if (form.city.trim().length < 2) errors.city = "Indiquez votre ville";
+  if (form.address.trim().length < 5) errors.address = "Indiquez l’adresse de livraison";
+  if (cartLength === 0) errors.address = "Le panier est vide";
   return errors;
 }
 
@@ -150,12 +150,12 @@ export default function CheckoutModal() {
     } catch (err) {
       console.error(err);
       setIsSubmitting(false);
-      setFormError("ما قدرناش نسجّلو الطلب. جرّبي مرة أخرى.");
+      setFormError("Impossible d’enregistrer la commande. Réessayez.");
     }
   };
 
   const fieldClass = (key: FieldKey) =>
-    `w-full rounded-xl border bg-white px-4 py-3 text-right outline-none transition-all focus:ring-2 ${
+    `w-full rounded-xl border bg-white px-4 py-3 text-left outline-none transition-all focus:ring-2 ${
       errors[key]
         ? "border-rosewood focus:border-rosewood focus:ring-rosewood/25"
         : "border-[#1C1412]/12 focus:border-rosewood focus:ring-rosewood/25"
@@ -168,7 +168,7 @@ export default function CheckoutModal() {
     >
       <div
         className="relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl border border-champagne/25 bg-white shadow-2xl sm:max-h-[90vh] sm:max-w-md sm:rounded-2xl"
-        dir="rtl"
+        dir="ltr"
         role="dialog"
         aria-modal="true"
         aria-labelledby="checkout-title"
@@ -179,20 +179,20 @@ export default function CheckoutModal() {
         </div>
 
         <div className="flex items-start justify-between gap-3 px-5 pb-3 pt-2 sm:px-6 sm:pt-5">
-          <div className="min-w-0 flex-1 text-center sm:text-right">
-            <p className="text-sm font-black tracking-[0.2em] text-champagne">رونق</p>
-            <h2 id="checkout-title" className="mt-1 text-2xl font-black text-warm-black">
-              إتمام الطلب
+          <div className="min-w-0 flex-1 text-center sm:text-left">
+            <p className="text-sm font-medium tracking-[0.2em] text-champagne">RAONAQ</p>
+            <h2 id="checkout-title" className="mt-1 text-2xl font-semibold text-warm-black">
+              Finaliser
             </h2>
             <p className="mt-1 text-sm font-medium text-warm-black/55">
-              خلصي عند الباب بعد ما تقلبي · توصيل مجاني
+              Paiement à la livraison · livraison gratuite
             </p>
           </div>
           <button
             type="button"
             onClick={closeCheckout}
             className="shrink-0 rounded-xl bg-pearl-blush p-2 text-warm-black/50 transition-colors hover:text-warm-black"
-            aria-label="إغلاق"
+            aria-label="Fermer"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -217,7 +217,7 @@ export default function CheckoutModal() {
                     <p className="text-[11px] font-bold text-warm-black/45">× {item.quantity}</p>
                   </div>
                   <p className="shrink-0 text-sm font-black text-rosewood">
-                    {item.price * item.quantity} د.م
+                    {item.price * item.quantity} Dhs
                   </p>
                 </div>
               ))}
@@ -226,13 +226,13 @@ export default function CheckoutModal() {
                 onClick={backToCart}
                 className="w-full pt-1 text-center text-[12px] font-black text-rosewood"
               >
-                تعديلي السلة
+                Modifier le panier
               </button>
             </div>
 
             <div>
               <label className="mb-1 block text-sm font-bold text-warm-black" htmlFor="checkout-name">
-                الاسم الكامل
+                Nom complet
               </label>
               <input
                 id="checkout-name"
@@ -240,7 +240,7 @@ export default function CheckoutModal() {
                 type="text"
                 value={form.name}
                 onChange={(e) => setField("name", e.target.value)}
-                placeholder="الاسم والنسب"
+                placeholder="Prénom et nom"
                 autoComplete="name"
                 enterKeyHint="next"
                 className={fieldClass("name")}
@@ -252,7 +252,7 @@ export default function CheckoutModal() {
 
             <div>
               <label className="mb-1 block text-sm font-bold text-warm-black" htmlFor="checkout-phone">
-                رقم الهاتف
+                Téléphone
               </label>
               <input
                 id="checkout-phone"
@@ -261,7 +261,7 @@ export default function CheckoutModal() {
                 inputMode="tel"
                 value={form.phone}
                 onChange={(e) => setField("phone", e.target.value)}
-                placeholder="مثال: 0612345678"
+                placeholder="Ex. 0612345678"
                 autoComplete="tel"
                 enterKeyHint="next"
                 className={`${fieldClass("phone")} text-left`}
@@ -274,7 +274,7 @@ export default function CheckoutModal() {
 
             <div>
               <label className="mb-1 block text-sm font-bold text-warm-black" htmlFor="checkout-city">
-                المدينة
+                Ville
               </label>
               <input
                 id="checkout-city"
@@ -282,7 +282,7 @@ export default function CheckoutModal() {
                 type="text"
                 value={form.city}
                 onChange={(e) => setField("city", e.target.value)}
-                placeholder="مثلاً: الدار البيضاء"
+                placeholder="Ex. Casablanca"
                 autoComplete="address-level2"
                 enterKeyHint="next"
                 className={fieldClass("city")}
@@ -294,14 +294,14 @@ export default function CheckoutModal() {
 
             <div>
               <label className="mb-1 block text-sm font-bold text-warm-black" htmlFor="checkout-address">
-                العنوان الكامل
+                Adresse complète
               </label>
               <textarea
                 id="checkout-address"
                 ref={fieldRefs.address}
                 value={form.address}
                 onChange={(e) => setField("address", e.target.value)}
-                placeholder="الحي، الشارع، رقم المنزل أو أقرب معلم"
+                placeholder="Quartier, rue, n° ou point de repère"
                 rows={2}
                 enterKeyHint="done"
                 className={`${fieldClass("address")} resize-none`}
@@ -320,8 +320,8 @@ export default function CheckoutModal() {
 
           <div className="border-t border-[#1C1412]/08 bg-white px-5 py-4 sm:px-6">
             <div className="mb-3 flex items-center justify-between text-lg font-black">
-              <span className="text-warm-black">المجموع</span>
-              <span className="text-rosewood">{cartTotal} د.م</span>
+              <span className="text-warm-black">Total</span>
+              <span className="text-rosewood">{cartTotal} Dhs</span>
             </div>
             <button
               type="submit"
@@ -329,10 +329,10 @@ export default function CheckoutModal() {
               onMouseDown={(e) => e.preventDefault()}
               className="btn btn-primary btn-block btn-lg disabled:opacity-70"
             >
-              {isSubmitting ? "جاري تسجيل الطلب..." : "أكّدي الطلب — خلصي عند الباب"}
+              {isSubmitting ? "Enregistrement..." : "Confirmer — payer à la livraison"}
             </button>
             <p className="mt-3 text-center text-[11px] font-medium text-warm-black/45">
-              الطلب كيتسجّل دابا · الليفور كيستنى حتى تقلبي
+              La commande est enregistrée maintenant · inspection à la porte
             </p>
           </div>
         </form>

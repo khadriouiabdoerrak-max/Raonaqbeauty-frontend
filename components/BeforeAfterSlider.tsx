@@ -17,9 +17,9 @@ export default function BeforeAfterSlider({
   const box = useRef<HTMLDivElement>(null);
   const posRef = useRef(84);
   const dragging = useRef(false);
-  const userHold = useRef(false);
-  const dirRef = useRef(-1);
-  const resumeTimer = useRef(0);
+  const held = useRef(false);
+  const dir = useRef(-1);
+  const resumeTimer = useRef<ReturnType<typeof setTimeout> | 0>(0);
 
   const applyPos = useCallback((next: number) => {
     const clamped = Math.min(88, Math.max(12, next));
@@ -40,8 +40,8 @@ export default function BeforeAfterSlider({
   const startDrag = useCallback(
     (clientX: number) => {
       dragging.current = true;
-      userHold.current = true;
-      window.clearTimeout(resumeTimer.current);
+      held.current = true;
+      if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
       setFromX(clientX);
     },
     [setFromX],
@@ -50,20 +50,19 @@ export default function BeforeAfterSlider({
   const endDrag = useCallback(() => {
     if (!dragging.current) return;
     dragging.current = false;
-    window.clearTimeout(resumeTimer.current);
+    if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
     resumeTimer.current = window.setTimeout(() => {
-      userHold.current = false;
-    }, 2800);
+      held.current = false;
+    }, 2500);
   }, []);
 
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
       if (!dragging.current) return;
-      e.preventDefault();
       setFromX(e.clientX);
     };
     const onUp = () => endDrag();
-    window.addEventListener("pointermove", onMove, { passive: false });
+    window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
     window.addEventListener("pointercancel", onUp);
     return () => {
@@ -74,28 +73,21 @@ export default function BeforeAfterSlider({
   }, [endDrag, setFromX]);
 
   useEffect(() => {
-    let frame = 0;
-    let last = performance.now();
-    const tick = (now: number) => {
-      const dt = Math.min(32, now - last);
-      last = now;
-      if (!dragging.current && !userHold.current) {
-        let next = posRef.current + dirRef.current * dt * 0.028;
-        if (next <= 16) {
-          next = 16;
-          dirRef.current = 1;
-        } else if (next >= 84) {
-          next = 84;
-          dirRef.current = -1;
-        }
-        applyPos(next);
+    const timer = window.setInterval(() => {
+      if (dragging.current || held.current) return;
+      let next = posRef.current + dir.current * 0.4;
+      if (next <= 16) {
+        next = 16;
+        dir.current = 1;
+      } else if (next >= 84) {
+        next = 84;
+        dir.current = -1;
       }
-      frame = window.requestAnimationFrame(tick);
-    };
-    frame = window.requestAnimationFrame(tick);
+      applyPos(next);
+    }, 40);
     return () => {
-      window.cancelAnimationFrame(frame);
-      window.clearTimeout(resumeTimer.current);
+      window.clearInterval(timer);
+      if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
     };
   }, [applyPos]);
 
@@ -110,18 +102,17 @@ export default function BeforeAfterSlider({
       aria-valuenow={Math.round(pos)}
       className={`relative aspect-[4/5] cursor-ew-resize touch-none select-none overflow-hidden bg-[#F7F1EC] outline-none ${className}`}
       onPointerDown={(e) => {
-        e.preventDefault();
         e.currentTarget.setPointerCapture(e.pointerId);
         startDrag(e.clientX);
       }}
       onKeyDown={(e) => {
         if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-        userHold.current = true;
-        window.clearTimeout(resumeTimer.current);
+        held.current = true;
+        if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
         applyPos(posRef.current + (e.key === "ArrowRight" ? 5 : -5));
         resumeTimer.current = window.setTimeout(() => {
-          userHold.current = false;
-        }, 2800);
+          held.current = false;
+        }, 2500);
       }}
     >
       <img src={beforeSrc} alt="" draggable={false} className="pointer-events-none absolute inset-0 h-full w-full object-cover" />

@@ -79,42 +79,27 @@ function VideoSlot({ product }: { product: Product }) {
 
 function ReviewsSlot({ product }: { product: Product }) {
   const reviews = product.reviews ?? [];
+  if (reviews.length === 0) return null;
 
   return (
     <section className="bg-[#F7F1EC] py-16 md:py-24">
       <div className="container mx-auto px-4">
         <p className="text-[11px] font-medium tracking-[0.32em] text-[#C4A484]">AVIS CLIENTES</p>
         <h2 className="font-display mt-3 text-3xl font-semibold text-[#1C1412] md:text-5xl">La voix du Maroc</h2>
-
-        {reviews.length === 0 ? (
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="min-h-[180px] border border-dashed border-[#C4A484]/40 bg-white p-6">
-                <div className="h-3 w-24 bg-[#C4A484]/25" />
-                <div className="mt-6 h-3 w-full bg-[#1C1412]/6" />
-                <div className="mt-2 h-3 w-4/5 bg-[#1C1412]/6" />
-                <p className="mt-8 text-[12px] font-medium text-[#1C1412]/35">
-                  {i === 0 ? "Les avis réels s’afficheront ici." : ""}
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            {reviews.map((r) => (
-              <blockquote key={`${r.name}-${r.city}`} className="bg-white p-6">
-                {r.photo && (
-                  <img src={r.photo} alt="" className="mb-4 aspect-[4/3] w-full object-cover" />
-                )}
-                <p className="text-[15px] leading-7 text-[#1C1412]/75">« {r.text} »</p>
-                <footer className="mt-6">
-                  <p className="font-semibold text-[#1C1412]">{r.name}</p>
-                  <p className="text-sm text-[#C45B6A]">{r.city}</p>
-                </footer>
-              </blockquote>
-            ))}
-          </div>
-        )}
+        <div className="mt-10 grid gap-4 md:grid-cols-3">
+          {reviews.map((r) => (
+            <blockquote key={`${r.name}-${r.city}`} className="bg-white p-6">
+              {r.photo && (
+                <img src={r.photo} alt="" className="mb-4 aspect-[4/3] w-full object-cover" />
+              )}
+              <p className="text-[15px] leading-7 text-[#1C1412]/75">« {r.text} »</p>
+              <footer className="mt-6">
+                <p className="font-semibold text-[#1C1412]">{r.name}</p>
+                <p className="text-sm text-[#C45B6A]">{r.city}</p>
+              </footer>
+            </blockquote>
+          ))}
+        </div>
       </div>
     </section>
   );

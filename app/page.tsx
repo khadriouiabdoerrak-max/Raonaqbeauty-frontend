@@ -68,6 +68,7 @@ const lifestyleImage = "/images/raonaq-lifestyle-home.png";
 const toolsImage = "/images/raonaq-tools-editorial.png";
 
 const featured = products[0];
+const homeReviews = products.flatMap((p) => p.reviews ?? []).slice(0, 6);
 
 const looks = [
   {
@@ -394,32 +395,32 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════════ أصوات ═══════════════ */}
-      <section className="bg-[#F7F1EC] py-20 md:py-28">
-        <div className="container mx-auto px-4">
-          <FadeIn>
-            <div className="mb-12 text-center">
-              <p className="text-sm font-medium tracking-[0.25em] text-[#C45B6A]">AVIS</p>
-              <h2 className="font-display mt-3 text-4xl font-semibold text-[#1C1412] md:text-5xl">Les voix du Maroc</h2>
-            </div>
-          </FadeIn>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="min-h-[200px] border border-dashed border-[#C4A484]/40 bg-white p-7">
-                <div className="h-3 w-20 bg-[#C4A484]/20" />
-                <div className="mt-6 h-3 w-full bg-[#1C1412]/6" />
-                <div className="mt-2 h-3 w-4/5 bg-[#1C1412]/6" />
-                {i === 0 && (
-                  <p className="mt-8 text-sm font-medium text-[#1C1412]/40">
-                    Les avis réels de nos clientes s’afficheront ici.
-                  </p>
-                )}
+      {homeReviews.length > 0 && (
+        <section className="bg-[#F7F1EC] py-20 md:py-28">
+          <div className="container mx-auto px-4">
+            <FadeIn>
+              <div className="mb-12 text-center">
+                <p className="text-sm font-medium tracking-[0.25em] text-[#C45B6A]">AVIS</p>
+                <h2 className="font-display mt-3 text-4xl font-semibold text-[#1C1412] md:text-5xl">Les voix du Maroc</h2>
               </div>
-            ))}
+            </FadeIn>
+            <div className="grid gap-4 md:grid-cols-3">
+              {homeReviews.map((r) => (
+                <blockquote key={`${r.name}-${r.city}-${r.text.slice(0, 24)}`} className="bg-white p-7">
+                  {r.photo && (
+                    <img src={r.photo} alt="" className="mb-4 aspect-[4/3] w-full object-cover" />
+                  )}
+                  <p className="text-[15px] leading-7 text-[#1C1412]/75">« {r.text} »</p>
+                  <footer className="mt-6">
+                    <p className="font-semibold text-[#1C1412]">{r.name}</p>
+                    <p className="text-sm text-[#C45B6A]">{r.city}</p>
+                  </footer>
+                </blockquote>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ═══════════════ FAQ ═══════════════ */}
       <section className="bg-white py-20 md:py-28">

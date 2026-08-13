@@ -49,6 +49,24 @@
   50% { left: 32%; }
 }
 
+@keyframes raonaq-ba-reveal {
+  0%, 100% { clip-path: inset(0 16% 0 0); }
+  50% { clip-path: inset(0 84% 0 0); }
+}
+
+@keyframes raonaq-ba-line {
+  0%, 100% { left: 84%; }
+  50% { left: 16%; }
+}
+
+.raonaq-ba-reveal {
+  animation: raonaq-ba-reveal 5.5s ease-in-out infinite;
+}
+
+.raonaq-ba-line {
+  animation: raonaq-ba-line 5.5s ease-in-out infinite;
+}
+
 .salon-copy {
   animation: salon-rise 0.9s ease-out both;
 }

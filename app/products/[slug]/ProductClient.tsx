@@ -156,8 +156,7 @@ export default function ProductClient({ product }: { product: Product }) {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412] via-[#1C1412]/40 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-5 pb-6 text-right text-white" dir="rtl">
-            <p className="text-2xl font-black tracking-[0.16em] text-[#C4A484]">رونق</p>
-            <h1 className="mt-1 text-[1.75rem] font-black leading-tight">{product.name}</h1>
+            <h1 className="text-[1.75rem] font-black leading-tight">{product.name}</h1>
             <p className="mt-1.5 text-sm text-white/80">{shot?.label ?? product.tagline}</p>
           </div>
         </div>

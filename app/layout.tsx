@@ -4,6 +4,7 @@ import "./globals.css";
 import { CartProvider } from "../context/CartContext";
 import Header from "../components/Header";
 import CartDrawer from "../components/CartDrawer";
+import CheckoutModal from "../components/CheckoutModal";
 import Footer from "../components/Footer";
 import Pixels from "../components/Pixels";
 import WhatsAppButton from "../components/WhatsAppButton";
@@ -48,6 +49,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
           <CartDrawer />
+          <CheckoutModal />
           <WhatsAppButton />
         </CartProvider>
         {/* Pixels loaded after page interaction for maximum performance */}

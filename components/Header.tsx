@@ -67,8 +67,8 @@ export default function Header() {
             : "bg-pearl-blush/95 backdrop-blur-xl border-b border-champagne/25 shadow-[0_1px_0_rgba(28,20,18,0.04)]"
         }`}
       >
-        <div className="container mx-auto px-4 h-[72px] md:h-[80px] flex items-center justify-between gap-4" dir="rtl">
-          <Link href="/" className="flex h-12 md:h-[58px] items-center flex-shrink-0" aria-label="رونق — الصفحة الرئيسية">
+        <div className="container mx-auto px-4 h-[88px] md:h-[104px] flex items-center justify-between gap-4" dir="rtl">
+          <Link href="/" className="flex h-[72px] md:h-[88px] items-center flex-shrink-0" aria-label="رونق — الصفحة الرئيسية">
             <BrandLogo variant={overHero ? "white" : "color"} />
           </Link>
 

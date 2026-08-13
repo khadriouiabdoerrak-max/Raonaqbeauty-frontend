@@ -1,21 +1,7 @@
 ﻿"use client";
 
 import { useCart } from "../context/CartContext";
-import { useState } from "react";
-import CheckoutModal from "./CheckoutModal";
-import { useRouter } from "next/navigation";
-import {
-  toLastPurchase,
-  type CreatedOrder,
-} from "../lib/orders";
 import { products } from "../lib/products";
-
-type CheckoutCustomerData = {
-  name: string;
-  phone: string;
-  city: string;
-  address: string;
-};
 
 export default function CartDrawer() {
   const {
@@ -23,41 +9,13 @@ export default function CartDrawer() {
     removeFromCart,
     updateQuantity,
     isCartOpen,
-    setIsCartOpen,
+    closeCart,
+    openCheckout,
     cartTotal,
-    clearCart,
     replaceInCart,
   } = useCart();
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const router = useRouter();
 
   if (!isCartOpen) return null;
-
-  const handleCheckoutSuccess = (
-    _customerData: CheckoutCustomerData,
-    order: CreatedOrder
-  ) => {
-    try {
-      sessionStorage.setItem(
-        "last_purchase",
-        JSON.stringify(
-          toLastPurchase({
-            orderId: order.orderId,
-            eventId: order.eventId,
-            total: order.total,
-            contents: order.contents,
-          })
-        )
-      );
-    } catch (err) {
-      console.error("Failed to save last purchase locally:", err);
-    }
-
-    setIsCheckoutOpen(false);
-    setIsCartOpen(false);
-    clearCart();
-    router.push("/thank-you");
-  };
 
   const suggestTwoPack = () => {
     const single = cart.find((item) => item.quantity === 1);
@@ -73,22 +31,27 @@ export default function CartDrawer() {
   return (
     <>
       <div
-        className="fixed inset-0 z-40 bg-[#1C1412]/45 transition-opacity"
-        onClick={() => setIsCartOpen(false)}
+        className="fixed inset-0 z-[70] bg-[#1C1412]/45 transition-opacity"
+        onClick={closeCart}
       />
 
       <div
-        className="fixed top-0 right-0 z-50 flex h-full w-full flex-col bg-white shadow-2xl sm:w-[400px]"
+        className="fixed top-0 right-0 z-[80] flex h-full w-full flex-col bg-white shadow-2xl sm:w-[400px]"
         dir="rtl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cart-title"
       >
         <div className="flex items-center justify-between border-b border-champagne/25 px-4 py-4">
           <div>
             <p className="text-[11px] font-bold tracking-[0.2em] text-champagne">رونق</p>
-            <h2 className="text-lg font-black text-warm-black">سلتك</h2>
+            <h2 id="cart-title" className="text-lg font-black text-warm-black">
+              سلتك
+            </h2>
           </div>
           <button
             type="button"
-            onClick={() => setIsCartOpen(false)}
+            onClick={closeCart}
             className="rounded-xl bg-pearl-blush p-2 text-warm-black/50 transition-colors hover:text-warm-black"
             aria-label="إغلاق السلة"
           >
@@ -189,7 +152,7 @@ export default function CartDrawer() {
             </div>
             <button
               type="button"
-              onClick={() => setIsCheckoutOpen(true)}
+              onClick={openCheckout}
               className="btn btn-primary btn-block btn-lg"
             >
               أكّدي الطلب — خلصي عند الباب
@@ -197,12 +160,6 @@ export default function CartDrawer() {
           </div>
         )}
       </div>
-
-      <CheckoutModal
-        isOpen={isCheckoutOpen}
-        onClose={() => setIsCheckoutOpen(false)}
-        onSuccess={handleCheckoutSuccess}
-      />
     </>
   );
 }

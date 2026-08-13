@@ -200,3 +200,7 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-rosewood);
 }
+
+.product-carousel::-webkit-scrollbar {
+  display: none;
+}

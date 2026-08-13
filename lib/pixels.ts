@@ -166,10 +166,12 @@ export function trackPurchase(params: {
     })),
     content_type: "product",
     currency: "MAD",
+    event_id: eventId,
     value,
   });
 
   w?.snaptr?.("track", "PURCHASE", {
+    client_dedup_id: eventId,
     item_ids: contentIds(contents),
     currency: "MAD",
     price: value,

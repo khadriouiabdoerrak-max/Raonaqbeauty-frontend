@@ -1,6 +1,15 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import { usePathname } from "next/navigation";
 import { trackAddToCart } from "../lib/pixels";
 
 export type CartItem = {
@@ -19,17 +28,94 @@ type CartContextType = {
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
   isCartOpen: boolean;
+  isCheckoutOpen: boolean;
   setIsCartOpen: (isOpen: boolean) => void;
+  openCart: () => void;
+  closeCart: () => void;
+  openCheckout: () => void;
+  closeCheckout: () => void;
+  backToCart: () => void;
+  closeOverlays: () => void;
+  finishOrder: () => void;
   cartTotal: number;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export function CartProvider({ children }: { children: ReactNode }) {
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
+const POST_ORDER_ROUTES = new Set(["/thank-you", "/upsell"]);
 
-  const addToCart = (item: CartItem) => {
+export function CartProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [isCartOpen, setCartOpen] = useState(false);
+  const [isCheckoutOpen, setCheckoutOpen] = useState(false);
+
+  const closeOverlays = useCallback(() => {
+    setCartOpen(false);
+    setCheckoutOpen(false);
+  }, []);
+
+  const openCart = useCallback(() => {
+    if (POST_ORDER_ROUTES.has(pathname)) return;
+    setCheckoutOpen(false);
+    setCartOpen(true);
+  }, [pathname]);
+
+  const closeCart = useCallback(() => {
+    setCartOpen(false);
+  }, []);
+
+  const openCheckout = useCallback(() => {
+    setCartOpen(false);
+    setCheckoutOpen(true);
+  }, []);
+
+  const closeCheckout = useCallback(() => {
+    setCheckoutOpen(false);
+  }, []);
+
+  const backToCart = useCallback(() => {
+    setCheckoutOpen(false);
+    setCartOpen(true);
+  }, []);
+
+  const setIsCartOpen = useCallback(
+    (isOpen: boolean) => {
+      if (isOpen) {
+        if (POST_ORDER_ROUTES.has(pathname)) return;
+        setCheckoutOpen(false);
+        setCartOpen(true);
+        return;
+      }
+      setCartOpen(false);
+    },
+    [pathname]
+  );
+
+  const clearCart = useCallback(() => setCart([]), []);
+
+  const finishOrder = useCallback(() => {
+    setCartOpen(false);
+    setCheckoutOpen(false);
+    setCart([]);
+  }, []);
+
+  useEffect(() => {
+    if (!POST_ORDER_ROUTES.has(pathname)) return;
+    setCartOpen(false);
+    setCheckoutOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!isCartOpen && !isCheckoutOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isCartOpen, isCheckoutOpen]);
+
+  const addToCart = useCallback((item: CartItem) => {
     setCart((prev) => {
       const existing = prev.find((i) => i.id === item.id);
       if (existing) {
@@ -45,46 +131,74 @@ export function CartProvider({ children }: { children: ReactNode }) {
       price: item.price,
       quantity: item.quantity,
     });
-    setIsCartOpen(true);
-  };
+    setCheckoutOpen(false);
+    setCartOpen(true);
+  }, []);
 
-  const replaceInCart = (item: CartItem) => {
+  const replaceInCart = useCallback((item: CartItem) => {
     setCart((prev) => [...prev.filter((i) => i.id !== item.id), item]);
-    setIsCartOpen(true);
-  };
+    setCheckoutOpen(false);
+    setCartOpen(true);
+  }, []);
 
-  const removeFromCart = (id: string) => {
+  const removeFromCart = useCallback((id: string) => {
     setCart((prev) => prev.filter((i) => i.id !== id));
-  };
+  }, []);
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = useCallback((id: string, quantity: number) => {
     if (quantity < 1) return;
     setCart((prev) =>
       prev.map((i) => (i.id === id ? { ...i, quantity } : i))
     );
-  };
+  }, []);
 
-  const clearCart = () => setCart([]);
-
-  const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
-
-  return (
-    <CartContext.Provider
-      value={{
-        cart,
-        addToCart,
-        replaceInCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        isCartOpen,
-        setIsCartOpen,
-        cartTotal,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
+  const cartTotal = cart.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0
   );
+
+  const value = useMemo(
+    () => ({
+      cart,
+      addToCart,
+      replaceInCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
+      isCartOpen,
+      isCheckoutOpen,
+      setIsCartOpen,
+      openCart,
+      closeCart,
+      openCheckout,
+      closeCheckout,
+      backToCart,
+      closeOverlays,
+      finishOrder,
+      cartTotal,
+    }),
+    [
+      cart,
+      addToCart,
+      replaceInCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
+      isCartOpen,
+      isCheckoutOpen,
+      setIsCartOpen,
+      openCart,
+      closeCart,
+      openCheckout,
+      closeCheckout,
+      backToCart,
+      closeOverlays,
+      finishOrder,
+      cartTotal,
+    ]
+  );
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 export function useCart() {

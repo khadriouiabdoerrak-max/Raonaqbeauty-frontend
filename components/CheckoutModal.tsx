@@ -1,36 +1,67 @@
 ﻿"use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartContext";
 import { trackInitiateCheckout } from "../lib/pixels";
-import { createOrder, type CreatedOrder } from "../lib/orders";
+import { createOrder, toLastPurchase } from "../lib/orders";
 
-type CheckoutCustomerData = {
-  name: string;
-  phone: string;
-  city: string;
-  address: string;
+type FieldKey = "name" | "phone" | "city" | "address";
+type FieldErrors = Partial<Record<FieldKey, string>>;
+
+const emptyForm = {
+  name: "",
+  phone: "",
+  city: "",
+  address: "",
 };
 
-type CheckoutModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess: (customerData: CheckoutCustomerData, order: CreatedOrder) => void;
-};
+function validatePhone(phoneNum: string) {
+  return /^(?:(?:\+|00)212|0)[67]\d{8}$/.test(phoneNum.replace(/\s/g, ""));
+}
 
-export default function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps) {
-  const { cart, cartTotal } = useCart();
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [city, setCity] = useState("");
-  const [address, setAddress] = useState("");
-  const [error, setError] = useState("");
+function validateForm(form: typeof emptyForm, cartLength: number): FieldErrors {
+  const errors: FieldErrors = {};
+  if (!form.name.trim()) errors.name = "كتبي الاسم الكامل";
+  if (!validatePhone(form.phone)) errors.phone = "رقم مغربي صحيح — مثال: 0612345678";
+  if (form.city.trim().length < 2) errors.city = "كتبي مدينتك";
+  if (form.address.trim().length < 5) errors.address = "كتبي العنوان الكامل للتوصيل";
+  if (cartLength === 0) errors.address = "السلة فارغة";
+  return errors;
+}
+
+export default function CheckoutModal() {
+  const {
+    cart,
+    cartTotal,
+    isCheckoutOpen,
+    closeCheckout,
+    backToCart,
+    finishOrder,
+  } = useCart();
+  const router = useRouter();
+  const [form, setForm] = useState(emptyForm);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const checkoutTracked = useRef(false);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const cityRef = useRef<HTMLInputElement>(null);
+  const addressRef = useRef<HTMLTextAreaElement>(null);
+  const fieldRefs = {
+    name: nameRef,
+    phone: phoneRef,
+    city: cityRef,
+    address: addressRef,
+  };
 
   useEffect(() => {
-    if (!isOpen) {
+    if (!isCheckoutOpen) {
       checkoutTracked.current = false;
+      setErrors({});
+      setFormError("");
+      setIsSubmitting(false);
       return;
     }
     if (checkoutTracked.current || cart.length === 0) return;
@@ -44,193 +75,267 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutMo
       })),
       cartTotal
     );
-  }, [isOpen, cart, cartTotal]);
+  }, [isCheckoutOpen, cart, cartTotal]);
 
-  if (!isOpen) return null;
+  if (!isCheckoutOpen) return null;
 
-  const validatePhone = (phoneNum: string) => {
-    const regex = /^(?:(?:\+|00)212|0)[67]\d{8}$/;
-    return regex.test(phoneNum.replace(/\s/g, ""));
+  const setField = (key: FieldKey, value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (errors[key]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    }
+    if (formError) setFormError("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    if (isSubmitting) return;
 
-    if (!name.trim()) {
-      setError("الرجاء إدخال الاسم الكامل");
-      return;
-    }
+    const nextErrors = validateForm(form, cart.length);
+    setErrors(nextErrors);
+    setFormError("");
 
-    if (!validatePhone(phone)) {
-      setError("الرجاء إدخال رقم هاتف مغربي صحيح (مثال: 0612345678)");
-      return;
-    }
-
-    if (city.trim().length < 2) {
-      setError("الرجاء كتابة مدينتك");
-      return;
-    }
-
-    if (address.trim().length < 5) {
-      setError("الرجاء إدخال العنوان الكامل للتوصيل");
-      return;
-    }
-
-    if (cart.length === 0) {
-      setError("السلة فارغة");
+    const firstInvalid = (["name", "phone", "city", "address"] as FieldKey[]).find(
+      (key) => nextErrors[key]
+    );
+    if (firstInvalid) {
+      fieldRefs[firstInvalid].current?.focus();
+      fieldRefs[firstInvalid].current?.scrollIntoView({
+        block: "center",
+        behavior: "smooth",
+      });
       return;
     }
 
     setIsSubmitting(true);
 
     const customer = {
-      name: name.trim(),
-      phone: phone.replace(/\s/g, ""),
-      city: city.trim(),
-      address: address.trim(),
+      name: form.name.trim(),
+      phone: form.phone.replace(/\s/g, ""),
+      city: form.city.trim(),
+      address: form.address.trim(),
     };
 
-    let order: CreatedOrder;
     try {
-      order = await createOrder({
+      const order = await createOrder({
         ...customer,
         cart,
         total: cartTotal,
         acceptedUpsell: false,
       });
+
+      try {
+        sessionStorage.setItem(
+          "last_purchase",
+          JSON.stringify(
+            toLastPurchase({
+              orderId: order.orderId,
+              eventId: order.eventId,
+              total: order.total,
+              contents: order.contents,
+            })
+          )
+        );
+      } catch (err) {
+        console.error("Failed to save last purchase locally:", err);
+      }
+
+      setForm(emptyForm);
+      finishOrder();
+      router.push("/thank-you");
     } catch (err) {
       console.error(err);
       setIsSubmitting(false);
-      return;
+      setFormError("ما قدرناش نسجّلو الطلب. جرّبي مرة أخرى.");
     }
-
-    setIsSubmitting(false);
-    onSuccess(customer, order);
   };
 
-  const fieldClass =
-    "w-full rounded-xl border border-[#1C1412]/12 bg-white px-4 py-3 text-right outline-none transition-all focus:border-rosewood focus:ring-2 focus:ring-rosewood/25";
+  const fieldClass = (key: FieldKey) =>
+    `w-full rounded-xl border bg-white px-4 py-3 text-right outline-none transition-all focus:ring-2 ${
+      errors[key]
+        ? "border-rosewood focus:border-rosewood focus:ring-rosewood/25"
+        : "border-[#1C1412]/12 focus:border-rosewood focus:ring-rosewood/25"
+    }`;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-[#1C1412]/55 sm:p-4 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-[90] flex items-end justify-center bg-[#1C1412]/55 sm:items-center sm:p-4"
+      onClick={closeCheckout}
+    >
       <div
-        className="relative max-h-[92vh] sm:max-h-[90vh] w-full sm:max-w-md overflow-y-auto rounded-t-3xl sm:rounded-2xl border border-champagne/25 bg-white shadow-2xl"
+        className="relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl border border-champagne/25 bg-white shadow-2xl sm:max-h-[90vh] sm:max-w-md sm:rounded-2xl"
         dir="rtl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="checkout-title"
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* مقبض السحب — موبايل فقط */}
-        <div className="sm:hidden flex justify-center pt-3 pb-1">
+        <div className="flex justify-center pt-3 pb-1 sm:hidden">
           <div className="h-1 w-10 rounded-full bg-[#1C1412]/20" />
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute left-4 top-4 z-10 rounded-xl bg-pearl-blush p-2 text-warm-black/50 transition-colors hover:text-warm-black"
-          aria-label="إغلاق"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
 
-        <div className="p-6">
-          <p className="text-center text-sm font-black tracking-[0.2em] text-champagne">رونق</p>
-          <h2 className="mt-1 text-center text-2xl font-black text-warm-black">إتمام الطلب</h2>
-          <p className="mt-2 text-center text-sm font-medium text-warm-black/55">
-            خلصي عند الباب بعد ما تقلبي · توصيل مجاني
-          </p>
-
-          {/* ملخص السلة */}
-          <div className="mt-5 space-y-2 rounded-xl border border-champagne/25 bg-pearl-blush p-3">
-            {cart.map((item) => (
-              <div key={item.id} className="flex items-center gap-3">
-                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-white">
-                  <img src={item.image} alt="" className="h-full w-full object-cover" />
-                </div>
-                <div className="min-w-0 flex-1 text-right">
-                  <p className="truncate text-sm font-black text-warm-black">{item.name}</p>
-                  <p className="text-[11px] font-bold text-warm-black/45">× {item.quantity}</p>
-                </div>
-                <p className="shrink-0 text-sm font-black text-rosewood">
-                  {item.price * item.quantity} د.م
-                </p>
-              </div>
-            ))}
+        <div className="flex items-start justify-between gap-3 px-5 pb-3 pt-2 sm:px-6 sm:pt-5">
+          <div className="min-w-0 flex-1 text-center sm:text-right">
+            <p className="text-sm font-black tracking-[0.2em] text-champagne">رونق</p>
+            <h2 id="checkout-title" className="mt-1 text-2xl font-black text-warm-black">
+              إتمام الطلب
+            </h2>
+            <p className="mt-1 text-sm font-medium text-warm-black/55">
+              خلصي عند الباب بعد ما تقلبي · توصيل مجاني
+            </p>
           </div>
+          <button
+            type="button"
+            onClick={closeCheckout}
+            className="shrink-0 rounded-xl bg-pearl-blush p-2 text-warm-black/50 transition-colors hover:text-warm-black"
+            aria-label="إغلاق"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
-          <form onSubmit={handleSubmit} className="mt-5 space-y-3.5">
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="flex min-h-0 flex-1 flex-col"
+        >
+          <div className="min-h-0 flex-1 space-y-3.5 overflow-y-auto px-5 pb-4 sm:px-6">
+            <div className="space-y-2 rounded-xl border border-champagne/25 bg-pearl-blush p-3">
+              {cart.map((item) => (
+                <div key={item.id} className="flex items-center gap-3">
+                  <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-white">
+                    <img src={item.image} alt="" className="h-full w-full object-cover" />
+                  </div>
+                  <div className="min-w-0 flex-1 text-right">
+                    <p className="truncate text-sm font-black text-warm-black">{item.name}</p>
+                    <p className="text-[11px] font-bold text-warm-black/45">× {item.quantity}</p>
+                  </div>
+                  <p className="shrink-0 text-sm font-black text-rosewood">
+                    {item.price * item.quantity} د.م
+                  </p>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={backToCart}
+                className="w-full pt-1 text-center text-[12px] font-black text-rosewood"
+              >
+                تعديلي السلة
+              </button>
+            </div>
+
             <div>
-              <label className="mb-1 block text-sm font-bold text-warm-black">الاسم الكامل</label>
+              <label className="mb-1 block text-sm font-bold text-warm-black" htmlFor="checkout-name">
+                الاسم الكامل
+              </label>
               <input
+                id="checkout-name"
+                ref={nameRef}
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={form.name}
+                onChange={(e) => setField("name", e.target.value)}
                 placeholder="الاسم والنسب"
                 autoComplete="name"
-                className={fieldClass}
+                enterKeyHint="next"
+                className={fieldClass("name")}
               />
+              {errors.name && (
+                <p className="mt-1 text-xs font-bold text-rosewood">{errors.name}</p>
+              )}
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-bold text-warm-black">رقم الهاتف</label>
+              <label className="mb-1 block text-sm font-bold text-warm-black" htmlFor="checkout-phone">
+                رقم الهاتف
+              </label>
               <input
+                id="checkout-phone"
+                ref={fieldRefs.phone}
                 type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                inputMode="tel"
+                value={form.phone}
+                onChange={(e) => setField("phone", e.target.value)}
                 placeholder="مثال: 0612345678"
                 autoComplete="tel"
-                className={`${fieldClass} text-left`}
+                enterKeyHint="next"
+                className={`${fieldClass("phone")} text-left`}
                 dir="ltr"
               />
+              {errors.phone && (
+                <p className="mt-1 text-xs font-bold text-rosewood">{errors.phone}</p>
+              )}
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-bold text-warm-black">المدينة</label>
+              <label className="mb-1 block text-sm font-bold text-warm-black" htmlFor="checkout-city">
+                المدينة
+              </label>
               <input
+                id="checkout-city"
+                ref={fieldRefs.city}
                 type="text"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
+                value={form.city}
+                onChange={(e) => setField("city", e.target.value)}
                 placeholder="مثلاً: الدار البيضاء"
                 autoComplete="address-level2"
-                className={fieldClass}
+                enterKeyHint="next"
+                className={fieldClass("city")}
               />
+              {errors.city && (
+                <p className="mt-1 text-xs font-bold text-rosewood">{errors.city}</p>
+              )}
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-bold text-warm-black">العنوان الكامل</label>
+              <label className="mb-1 block text-sm font-bold text-warm-black" htmlFor="checkout-address">
+                العنوان الكامل
+              </label>
               <textarea
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
+                id="checkout-address"
+                ref={fieldRefs.address}
+                value={form.address}
+                onChange={(e) => setField("address", e.target.value)}
                 placeholder="الحي، الشارع، رقم المنزل أو أقرب معلم"
                 rows={2}
-                className={`${fieldClass} resize-none`}
+                enterKeyHint="done"
+                className={`${fieldClass("address")} resize-none`}
               />
+              {errors.address && (
+                <p className="mt-1 text-xs font-bold text-rosewood">{errors.address}</p>
+              )}
             </div>
 
-            {error && (
+            {formError && (
               <p className="rounded-xl border border-rosewood/30 bg-pearl-blush px-3 py-2 text-sm font-bold text-rosewood">
-                {error}
+                {formError}
               </p>
             )}
+          </div>
 
-            <div className="border-t border-[#1C1412]/08 pt-4">
-              <div className="mb-4 flex items-center justify-between text-lg font-black">
-                <span className="text-warm-black">المجموع</span>
-                <span className="text-rosewood">{cartTotal} د.م</span>
-              </div>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="btn btn-primary btn-block btn-lg disabled:opacity-70"
-              >
-                {isSubmitting ? "جاري تسجيل الطلب..." : "أكّدي الطلب — خلصي عند الباب"}
-              </button>
-              <p className="mt-3 text-center text-[11px] font-medium text-warm-black/45">
-                الطلب كيتسجّل دابا · الليفور كيستنى حتى تقلبي
-              </p>
+          <div className="border-t border-[#1C1412]/08 bg-white px-5 py-4 sm:px-6">
+            <div className="mb-3 flex items-center justify-between text-lg font-black">
+              <span className="text-warm-black">المجموع</span>
+              <span className="text-rosewood">{cartTotal} د.م</span>
             </div>
-          </form>
-        </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              onMouseDown={(e) => e.preventDefault()}
+              className="btn btn-primary btn-block btn-lg disabled:opacity-70"
+            >
+              {isSubmitting ? "جاري تسجيل الطلب..." : "أكّدي الطلب — خلصي عند الباب"}
+            </button>
+            <p className="mt-3 text-center text-[11px] font-medium text-warm-black/45">
+              الطلب كيتسجّل دابا · الليفور كيستنى حتى تقلبي
+            </p>
+          </div>
+        </form>
       </div>
     </div>
   );

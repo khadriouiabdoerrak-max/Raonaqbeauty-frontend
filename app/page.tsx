@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { products, productThumb } from "../lib/products";
 import { useInView } from "../lib/useInView";
+import ProductCarousel from "../components/ProductCarousel";
 
 function FadeIn({
   children,
@@ -181,14 +182,7 @@ export default function Home() {
         <div className="relative z-10 flex min-h-[calc(100svh-112px)] w-full items-end md:min-h-[100svh]">
           <div className="container mx-auto px-4 pb-10 pt-24 md:pb-28 md:pt-40">
             <div className="hero-copy me-auto max-w-lg text-right text-white" dir="rtl">
-              <p className="text-[11px] font-bold tracking-[0.42em] text-white/55">RAONAQ</p>
-              <p className="mt-2 text-5xl font-black leading-none tracking-[0.14em] text-[#C4A484] md:text-7xl">
-                رونق
-              </p>
-
-              <div className="mt-5 mr-auto h-px w-16 bg-[#C4A484]/70" />
-
-              <h1 className="mt-6 text-[2rem] font-black leading-[1.15] text-white md:text-5xl">
+              <h1 className="text-[2rem] font-black leading-[1.15] text-white md:text-5xl">
                 نتيجة صالون
                 <span className="text-[#C4A484]"> فدارك</span>
               </h1>
@@ -252,8 +246,7 @@ export default function Home() {
             <FadeIn delay={120} className="order-1 space-y-6 text-right lg:order-2">
               <div dir="rtl">
                 <p className="text-[11px] font-bold tracking-[0.3em] text-[#C45B6A]">البطلة</p>
-                <p className="mt-2 text-2xl font-black tracking-[0.12em] text-[#C4A484]">رونق</p>
-                <h2 className="mt-1 text-4xl font-black leading-tight text-[#1C1412] md:text-5xl">
+                <h2 className="mt-2 text-4xl font-black leading-tight text-[#1C1412] md:text-5xl">
                   {featured.name}
                 </h2>
                 <p className="mt-4 max-w-md text-base leading-relaxed text-[#1C1412]/65 md:text-lg">
@@ -268,24 +261,6 @@ export default function Home() {
                     </li>
                   ))}
                 </ul>
-
-                <div className="mt-8 flex max-w-md flex-col gap-3 sm:flex-row">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      addOne(featured.id, featured.name, featured.price1, productThumb(featured))
-                    }
-                    className="btn btn-primary btn-lg flex-1"
-                  >
-                    اطلبي — {featured.price1} د.م
-                  </button>
-                  <Link
-                    href={`/products/${featured.slug}`}
-                    className="btn btn-secondary btn-lg flex-1"
-                  >
-                    شوفي التفاصيل
-                  </Link>
-                </div>
               </div>
             </FadeIn>
           </div>
@@ -372,117 +347,27 @@ export default function Home() {
       <section id="shop" className="bg-[#F7F1EC] py-20 md:py-28">
         <div className="container mx-auto px-4">
           <FadeIn>
-            <div className="mb-10 text-center" dir="rtl">
+            <div className="mb-8 text-center md:mb-10" dir="rtl">
               <p className="text-sm font-black tracking-[0.25em] text-[#C45B6A]">المجموعة</p>
               <h2 className="mt-3 text-4xl font-black text-[#1C1412] md:text-5xl">
-                اختاري الأداة المناسبة ليك
+                الأداة المناسبة ليك
               </h2>
-              <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-[#1C1412]/62">
-                كل منتج واضح: شنو كيعطيك، شحال الثمن، وكيفاش كيوصلك حتى للدار. كتوصلك الطلبية، كتشوفيها، وعاد كتخلصي.
+              <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-[#1C1412]/60">
+                مجموعة قصيرة وواضحة — مرّري تشوفي كل أداة.
               </p>
-              <div className="mx-auto mt-6 grid max-w-3xl gap-2 text-right sm:grid-cols-3">
-                {["الدفع عند الاستلام", "تأكيد الطلب بالهاتف", "توصيل مجاني للمغرب"].map((line) => (
-                  <div key={line} className="rounded-full border border-[#C4A484]/35 bg-white px-4 py-3 text-center text-sm font-black text-[#1C1412] shadow-[0_12px_35px_rgba(28,20,18,0.06)]">
-                    {line}
-                  </div>
-                ))}
-              </div>
             </div>
           </FadeIn>
 
-          <div
-            className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-5 [-ms-overflow-style:none] [scrollbar-width:none] lg:gap-6 [&::-webkit-scrollbar]:hidden"
-            aria-label="منتجات رونق"
-          >
-            {products.map((product, i) => (
-              <FadeIn
-                key={product.id}
-                delay={i * 90}
-                className="w-[82vw] max-w-[330px] shrink-0 snap-start sm:w-[44vw] lg:w-[320px]"
-              >
-                <article className="group flex h-full flex-col overflow-hidden rounded-[28px] border border-[#C4A484]/25 bg-white shadow-[0_18px_55px_rgba(28,20,18,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(28,20,18,0.12)]">
-                  <Link
-                    href={`/products/${product.slug}`}
-                    className="block flex-1"
-                  >
-                    <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-b from-[#F7F1EC] to-white">
-                      {product.tag && (
-                        <span className="absolute right-3 top-3 z-10 bg-[#1C1412] px-3 py-1.5 text-[10px] font-black text-white shadow-lg">
-                          {product.tag}
-                        </span>
-                      )}
-                      <span className="absolute bottom-3 left-3 z-10 rounded-full bg-white/95 px-4 py-2 text-sm font-black text-[#C45B6A] shadow-lg backdrop-blur">
-                        {product.price1} د.م
-                      </span>
-                      <span className="absolute bottom-3 right-3 z-10 rounded-full bg-[#1C1412]/85 px-3 py-2 text-[10px] font-black text-white backdrop-blur">
-                        توصيل مجاني
-                      </span>
-                      <img
-                        src={product.heroImage}
-                        alt={product.name}
-                        className={`h-full w-full transition-transform duration-700 group-hover:scale-105 ${
-                          product.slug === "raonaq-duo"
-                            ? "object-cover object-[72%_center]"
-                            : product.heroImage.includes("-tool")
-                              ? "object-contain p-6"
-                              : "object-cover"
-                        }`}
-                        loading="lazy"
-                        decoding="async"
-                        onError={(e) => { e.currentTarget.style.display = "none"; }}
-                      />
-                    </div>
+          <ProductCarousel
+            onAdd={(product) =>
+              addOne(product.id, product.name, product.price1, productThumb(product), 1)
+            }
+          />
 
-                    <div className="p-5 text-right" dir="rtl">
-                      <p className="text-[11px] font-black tracking-wide text-[#C45B6A]">
-                        {product.bestFor}
-                      </p>
-                      <h3 className="mt-1 text-2xl font-black leading-tight text-[#1C1412]">
-                        {product.name}
-                      </h3>
-                      <p className="mt-2 text-sm font-black text-[#1C1412]/80">
-                        {product.tagline}
-                      </p>
-                      <p className="mt-3 hidden sm:block min-h-[72px] text-sm leading-relaxed text-[#1C1412]/58">
-                        {product.cardCopy}
-                      </p>
-                      <div className="mt-4 hidden sm:grid gap-2 rounded-2xl bg-[#F7F1EC] p-3 text-xs font-bold text-[#1C1412]/72">
-                        <p>✓ كنعايطو نأكدو الطلب قبل الإرسال</p>
-                        <p>✓ كتفتحي وتشوفي المنتج عاد كتخلصي</p>
-                        <p>✓ التوصيل حتى لباب الدار</p>
-                      </div>
-                    </div>
-                  </Link>
-
-                  <div className="space-y-2 px-5 pb-5 pt-1" dir="rtl">
-                    <button
-                      onClick={() =>
-                        addOne(product.id, product.name, product.price1, productThumb(product), 1)
-                      }
-                      className="btn btn-secondary btn-block justify-between px-5 py-3 text-right"
-                    >
-                      <span>
-                        <span className="block text-sm font-black text-[#1C1412]">اطلبي قطعة دابا</span>
-                        <span className="block text-[10px] font-bold text-[#1C1412]/55">الدفع عند الاستلام</span>
-                      </span>
-                      <span className="text-lg font-black text-[#C45B6A]">{product.price1} د.م</span>
-                    </button>
-                    <button
-                      onClick={() =>
-                        addOne(product.id, product.name, product.price2, productThumb(product), 2)
-                      }
-                      className="btn btn-dark btn-block justify-between px-5 py-3 text-right"
-                    >
-                      <span>
-                        <span className="block text-sm font-black">خدي جوج ووفري</span>
-                        <span className="block text-[10px] font-bold text-white/65">عرض العائلة أو الهدية</span>
-                      </span>
-                      <span className="text-lg font-black">{product.price2} د.م</span>
-                    </button>
-                  </div>
-                </article>
-              </FadeIn>
-            ))}
+          <div className="mt-8 text-center">
+            <Link href="/collection" className="btn btn-secondary btn-lg">
+              شوفي المجموعة كاملة
+            </Link>
           </div>
         </div>
       </section>

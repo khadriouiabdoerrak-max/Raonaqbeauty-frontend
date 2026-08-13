@@ -30,8 +30,7 @@ export default function CollectionPage() {
         <div className="container mx-auto px-4 py-8 text-right md:py-20">
           <div className="grid items-center gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12">
             <div>
-              <p className="text-xs font-black tracking-[0.24em] text-[#C4A484] md:text-sm">RAONAQ BEAUTY</p>
-              <h1 className="mt-3 max-w-3xl text-[1.85rem] font-black leading-tight md:text-6xl">
+              <h1 className="max-w-3xl text-[1.85rem] font-black leading-tight md:text-6xl">
                 نتيجة صالون فدارك، ببراند مغربي واضح
               </h1>
               <p className="mt-4 max-w-2xl text-[13px] leading-relaxed text-white/72 md:text-lg">
@@ -47,13 +46,7 @@ export default function CollectionPage() {
             </div>
 
             <div className="relative">
-              <div className="relative aspect-square overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-[#F7F1EC] via-white to-[#E8D8CE] shadow-[0_30px_90px_rgba(0,0,0,0.32)] sm:aspect-[16/10] md:rounded-[34px] lg:aspect-[4/5]">
-                <div className="absolute inset-0 flex items-center justify-center p-8 text-center">
-                  <div>
-                    <p className="text-5xl font-black tracking-[0.12em] text-[#C4A484]/50 md:text-6xl">رونق</p>
-                    <p className="mt-3 text-sm font-black text-[#1C1412]/50">حجم · نعومة · لمعان</p>
-                  </div>
-                </div>
+              <div className="relative aspect-square overflow-hidden rounded-[28px] border border-white/10 bg-[#F7F1EC] shadow-[0_30px_90px_rgba(0,0,0,0.32)] sm:aspect-[16/10] md:rounded-[34px] lg:aspect-[4/5]">
                 <img
                   src="/images/raonaq-lifestyle-home.png"
                   alt="رونق — نتيجة صالون فدارك"
@@ -92,7 +85,7 @@ export default function CollectionPage() {
             </p>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
             {list.map((product) => (
               <article
                 key={product.id}
@@ -108,12 +101,6 @@ export default function CollectionPage() {
                     <span className="absolute bottom-3 left-3 z-10 rounded-full bg-white/95 px-4 py-2 text-sm font-black text-[#C45B6A] shadow-lg backdrop-blur">
                       {product.price1} د.م
                     </span>
-                    <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
-                      <div>
-                        <p className="text-4xl font-black tracking-[0.12em] text-[#C4A484]/60">رونق</p>
-                        <p className="mt-2 text-sm font-black text-[#1C1412]/55">{product.name}</p>
-                      </div>
-                    </div>
                     <img
                     src={product.heroImage}
                     alt={product.name}

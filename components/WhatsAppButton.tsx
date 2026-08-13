@@ -1,11 +1,17 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { getWhatsAppDisplay, getWhatsAppLink } from "../lib/contact";
+import { useCart } from "../context/CartContext";
 
 export default function WhatsAppButton() {
+  const pathname = usePathname();
+  const { isCartOpen, isCheckoutOpen } = useCart();
   const [showTooltip, setShowTooltip] = useState(false);
   const href = getWhatsAppLink();
+  const hideForFlow =
+    isCartOpen || isCheckoutOpen || pathname === "/thank-you" || pathname === "/upsell";
 
   useEffect(() => {
     if (!href) return;
@@ -13,7 +19,7 @@ export default function WhatsAppButton() {
     return () => clearTimeout(timer);
   }, [href]);
 
-  if (!href) return null;
+  if (!href || hideForFlow) return null;
 
   return (
     <div className="fixed bottom-20 md:bottom-6 left-6 z-50 flex items-center gap-4 flex-row-reverse" dir="ltr">

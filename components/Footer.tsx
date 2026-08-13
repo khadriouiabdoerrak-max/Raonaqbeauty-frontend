@@ -21,7 +21,7 @@ export default function Footer() {
       <div className="container mx-auto px-4">
         <div className="relative grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 mb-12">
           <div className="col-span-2 md:col-span-2">
-            <Link href="/" className="mb-5 inline-flex h-16 items-center" aria-label="رونق — الصفحة الرئيسية">
+            <Link href="/" className="mb-6 inline-flex h-24 md:h-28 items-center" aria-label="رونق — الصفحة الرئيسية">
               <BrandLogo variant="white" />
             </Link>
             <p className="text-gray-400 leading-relaxed max-w-xs">

@@ -52,6 +52,8 @@ export type Product = {
   styleTime: string;
   compareLine: string;
   features: string[];
+  techTitle: string;
+  techPoints: string[];
   inBox: string[];
   howTo: string[];
   faqs: ProductFaq[];
@@ -66,11 +68,11 @@ export type Product = {
   reviews: ProductReview[];
 };
 
-export const PDP_TRUST = [
-  { t: "Inspectez avant de payer", d: "Vous pouvez refuser à la porte" },
-  { t: "Livraison gratuite", d: "Tout le Maroc" },
-  { t: "Confirmation par téléphone", d: "Avant expédition" },
-  { t: "220–240 V", d: "Prises marocaines" },
+export const PDP_PROOF = [
+  { t: "Livraison gratuite", d: "Partout au Maroc, généralement 24–48 h." },
+  { t: "Paiement à la livraison", d: "Vous inspectez, puis vous payez." },
+  { t: "Pièce Raonaq", d: "Écrin maison. Confirmation par téléphone." },
+  { t: "WhatsApp", d: "Avant et après la commande." },
 ] as const;
 
 export const COMMON_PDP_FAQS: ProductFaq[] = [
@@ -159,6 +161,13 @@ export const products: Product[] = [
       "Pensé pour les cheveux marocains",
       "Écrin cadeau Raonaq",
       "220–240 V · Maroc",
+    ],
+    techTitle: "Trois gestes, un écrin",
+    techPoints: [
+      "Lisse, ondule et volume — sans trois outils dans le tiroir",
+      "Plusieurs températures + air froid pour fixer le geste",
+      "Coffret déjà mis en écrin, prêt à offrir",
+      "220–240 V · prises marocaines",
     ],
     inBox: ["Brosse air chaud", "Lisseur", "Boucleur", "Coffret", "Guide rapide"],
     howTo: [
@@ -250,6 +259,13 @@ export const products: Product[] = [
       "Pensé pour les cheveux marocains denses",
       "220–240 V · prises de la maison",
     ],
+    techTitle: "Un brushing calme, sans frisottis",
+    techPoints: [
+      "Séchage et coiffage en un seul passage — moins de temps sous la chaleur",
+      "Aide à réduire les frisottis et pose de la brillance",
+      "Température moyenne, mèche par mèche, air froid en finition",
+      "220–240 V · prises marocaines",
+    ],
     inBox: ["Brosse air chaud", "Guide d’utilisation"],
     howTo: [
       "Commencez sur cheveux encore un peu humides",
@@ -331,6 +347,13 @@ export const products: Product[] = [
       "Deux températures + air froid",
       "Cheveu fin à moyen — pas pour une forte densité",
       "220–240 V · prises de la maison",
+    ],
+    techTitle: "Le rituel du matin, sans rendez-vous",
+    techPoints: [
+      "Sèche et ordonne en quelques minutes, avant de partir",
+      "Léger en main — un look net, sans alourdir",
+      "Deux températures + air froid. Commencez toujours plus bas",
+      "220–240 V · prises marocaines",
     ],
     inBox: ["Brosse séchoir", "Guide d’utilisation"],
     howTo: [
@@ -414,6 +437,13 @@ export const products: Product[] = [
       "Mi-long à long — trop court, moins de lift",
       "220–240 V · prises de la maison",
     ],
+    techTitle: "Du volume dès les racines",
+    techPoints: [
+      "La forme ovale soulève — ce n’est pas un simple séchage",
+      "Séchage et brushing en un geste, brillance sur la longueur",
+      "Le lift vient du geste : soulevez, glissez, air froid",
+      "220–240 V · prises marocaines",
+    ],
     inBox: ["Brosse volume", "Guide d’utilisation"],
     howTo: [
       "Soulevez la mèche deux secondes aux racines",
@@ -496,6 +526,13 @@ export const products: Product[] = [
       "Ne remplace pas VOLUME ou TRIO sur toute la tête",
       "Écrin Raonaq et câble de charge",
     ],
+    techTitle: "Une retouche, partout",
+    techPoints: [
+      "Sans fil après charge — sac, bureau, voiture, soirée",
+      "Mèches du visage et pointes en quelques minutes",
+      "Passage léger : laissez refroidir, ne repassez pas",
+      "Ce n’est pas un brushing de toute la tête — VOLUME ou TRIO le font",
+    ],
     inBox: ["Raonaq GO", "Câble de charge", "Écrin", "Guide rapide"],
     howTo: [
       "Chargez l’outil avant usage",
@@ -576,6 +613,13 @@ export const products: Product[] = [
       "Petites mèches, température moyenne",
       "Cheveu mi-long à long",
       "220–240 V · prises de la maison",
+    ],
+    techTitle: "Lisser ou onduler, le même outil",
+    techPoints: [
+      "Deux looks : lisse un jour, waves le lendemain",
+      "Petites mèches, température moyenne, sans presser",
+      "Le froid fixe la forme — pas la répétition de chaleur",
+      "220–240 V · prises marocaines",
     ],
     inBox: ["Raonaq DUO 2-en-1", "Écrin", "Guide rapide"],
     howTo: [

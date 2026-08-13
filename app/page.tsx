@@ -215,7 +215,7 @@ export default function Home() {
 
       {/* ═══════════════ المنتج البطلة ═══════════════ */}
       <section className="relative overflow-hidden bg-[#F7F1EC]" id="featured">
-        <div className="container mx-auto px-4 py-20 md:py-28">
+        <div className="container mx-auto px-4 py-12 md:py-28">
           <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-6">
             <FadeIn className="order-2 lg:order-1">
               <BeforeAfterResultVisual />
@@ -275,7 +275,7 @@ export default function Home() {
       </section>
 
       {/* ═══════════════ اختاري الستايل ═══════════════ */}
-      <section className="bg-white py-20 md:py-28">
+      <section className="bg-white py-12 md:py-28">
         <div className="container mx-auto px-4">
           <FadeIn>
             <div className="mb-12 max-w-xl text-left md:mb-16">
@@ -302,15 +302,15 @@ export default function Home() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412]/80 via-[#1C1412]/10 to-transparent" />
                   <span
-                    className="absolute left-3 top-8 text-base font-black tracking-[0.22em] text-white/90 md:left-4 md:top-10 md:text-xl"
+                    className="absolute left-2 top-6 hidden text-sm font-semibold tracking-[0.22em] text-white/90 sm:block md:left-4 md:top-10 md:text-xl"
                     style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
                   >
                     {look.en}
                   </span>
-                  <div className="absolute inset-x-3 bottom-4 text-left md:inset-x-4 md:bottom-5">
-                    <p className="text-lg font-black text-white md:text-xl">{look.title}</p>
-                    <p className="mt-1 text-[11px] font-medium text-white/80 md:text-sm">{look.line}</p>
-                    <p className="mt-2 text-[10px] font-black tracking-wide text-[#C4A484] md:text-xs">
+                  <div className="absolute inset-x-2 bottom-3 text-left md:inset-x-4 md:bottom-5">
+                    <p className="text-base font-semibold text-white md:text-xl">{look.title}</p>
+                    <p className="mt-0.5 text-[11px] font-medium text-white/80 md:mt-1 md:text-sm">{look.line}</p>
+                    <p className="mt-1 text-[10px] font-semibold tracking-wide text-[#C4A484] md:mt-2 md:text-xs">
                       {look.product}
                     </p>
                   </div>
@@ -322,7 +322,7 @@ export default function Home() {
       </section>
 
       {/* ═══════════════ المجموعة ═══════════════ */}
-      <section id="shop" className="relative z-[1] bg-[#F7F1EC] py-20 md:py-28">
+      <section id="shop" className="relative z-[1] bg-[#F7F1EC] py-12 md:py-28">
         <div className="container mx-auto px-4">
           <FadeIn>
             <div className="mb-8 text-center md:mb-10">
@@ -396,7 +396,7 @@ export default function Home() {
       </section>
 
       {homeReviews.length > 0 && (
-        <section className="bg-[#F7F1EC] py-20 md:py-28">
+        <section className="bg-[#F7F1EC] py-12 md:py-28">
           <div className="container mx-auto px-4">
             <FadeIn>
               <div className="mb-12 text-center">
@@ -423,7 +423,7 @@ export default function Home() {
       )}
 
       {/* ═══════════════ FAQ ═══════════════ */}
-      <section className="bg-white py-20 md:py-28">
+      <section className="bg-white py-12 md:py-28">
         <div className="container mx-auto max-w-3xl px-4">
           <FadeIn>
             <div className="mb-12 text-center">

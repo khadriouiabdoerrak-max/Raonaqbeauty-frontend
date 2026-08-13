@@ -83,6 +83,18 @@ body {
   color: var(--color-warm-black);
 }
 
+.container {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 72rem;
+}
+
+@media (min-width: 1400px) {
+  .container {
+    max-width: 80rem;
+  }
+}
+
 /*
   أزرار رونق — زوايا ناعمة (مش حاد، مش حبة دواء)
   radius ~12px = إحساس براند DTC فاخر

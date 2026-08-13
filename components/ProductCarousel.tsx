@@ -56,7 +56,7 @@ export default function ProductCarousel({ onAdd }: ProductCarouselProps) {
           <article
             key={product.id}
             data-product-card
-            className="relative z-[1] flex w-[min(82vw,300px)] shrink-0 snap-start flex-col overflow-hidden bg-white md:w-[280px] lg:w-[300px]"
+            className="relative z-[1] flex w-[min(78vw,280px)] shrink-0 snap-start flex-col overflow-hidden bg-white md:w-[240px] lg:w-[280px] xl:w-[300px]"
           >
             <Link href={`/products/${product.slug}`} className="block">
               <div className="relative aspect-[4/5] overflow-hidden bg-[#F7F1EC]">

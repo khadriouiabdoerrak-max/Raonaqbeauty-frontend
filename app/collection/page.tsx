@@ -49,7 +49,7 @@ export default function CollectionPage() {
             </div>
 
             <div className="relative">
-            <div className="relative aspect-[16/10] overflow-hidden bg-[#F7F1EC] lg:aspect-[5/6]">
+              <div className="relative aspect-[16/10] overflow-hidden bg-[#F7F1EC] lg:aspect-[5/6]">
                 <img
                   src="/images/raonaq-lifestyle-home.png"
                   alt="Raonaq — le salon, chez vous"
@@ -100,7 +100,7 @@ export default function CollectionPage() {
                 <div className="flex flex-1 flex-col pt-4">
                   <p className="text-[11px] font-medium tracking-[0.18em] text-[#C4A484]">{product.nameFr}</p>
                   <Link href={`/products/${product.slug}`}>
-                    <h2 className="font-display mt-1 text-3xl font-semibold tracking-wide text-[#1C1412]">
+                    <h2 className="font-display mt-1 text-2xl font-semibold tracking-wide text-[#1C1412] md:text-3xl">
                       {product.name}
                     </h2>
                     <p className="mt-1 text-sm text-[#1C1412]/55">{product.tagline}</p>

@@ -1,12 +1,20 @@
 ﻿"use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { getWhatsAppDisplay, getWhatsAppLink, getWhatsAppNumber } from "../../lib/contact";
 import { SITE } from "../../lib/site";
 
+const topics = [
+  "بغيت نختار الأداة المناسبة",
+  "بغيت نتبع طلبي",
+  "سؤال على التوصيل والدفع",
+  "حاجة أخرى",
+];
+
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
-  const [form, setForm] = useState({ name: "", phone: "", message: "" });
+  const [form, setForm] = useState({ name: "", phone: "", topic: topics[0], message: "" });
   const whatsappDisplay = getWhatsAppDisplay();
   const whatsappHref = getWhatsAppLink("مرحباً، بغيت نتواصل مع رونق");
 
@@ -14,135 +22,183 @@ export default function ContactPage() {
     e.preventDefault();
     const phone = getWhatsAppNumber();
     if (phone) {
-      const text = `الاسم: ${form.name}\nالهاتف: ${form.phone}\nالرسالة: ${form.message}`;
+      const text = `الاسم: ${form.name}\nالهاتف: ${form.phone}\nالموضوع: ${form.topic}\nالرسالة: ${form.message}`;
       window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, "_blank");
     }
     setSubmitted(true);
   };
 
+  const fieldClass =
+    "w-full rounded-xl border border-[#1C1412]/12 bg-white px-4 py-3 text-right outline-none transition-all focus:border-rosewood focus:ring-2 focus:ring-rosewood/25";
+
   return (
-    <div className="min-h-screen" dir="rtl">
-      <div className="bg-pearl-blush py-20 text-center">
-        <p className="text-champagne text-xl font-black mb-2">رونق</p>
-        <h1 className="text-4xl md:text-5xl font-black text-warm-black mb-3">اتصلي بنا</h1>
-        <p className="text-gray-500 text-lg max-w-lg mx-auto">
-          سؤال على النتيجة، الحماية، أو الطلب؟ فريقنا جاهز من الإثنين إلى السبت
-        </p>
-      </div>
-
-      <div className="container mx-auto px-4 py-16 grid md:grid-cols-2 gap-16">
-        <div className="space-y-8">
-          <h2 className="text-2xl font-black text-warm-black">تواصلي معنا</h2>
-          <p className="text-gray-600 leading-relaxed">
-            سؤال على المنتجات؟ مساعدة فالاختيار بين الحجم والنعومة؟ تتبع طلب؟ حنا هنا — نفس وعد رونق:
-            نتيجة احترافية، حماية للشعر، وثقة من الباب.
+    <div className="bg-[#F7F1EC]" dir="rtl">
+      <section className="relative overflow-hidden bg-[#1C1412] text-white">
+        <img
+          src="/images/raonaq-tools-editorial.png"
+          alt=""
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-20"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412] via-[#1C1412]/80 to-[#1C1412]/60" />
+        <div className="relative container mx-auto max-w-3xl px-4 py-20 md:py-28">
+          <p className="text-[11px] font-black tracking-[0.42em] text-[#C4A484]">RAONAQ · الدار البيضاء</p>
+          <h1 className="mt-4 text-4xl font-black leading-tight md:text-6xl">حنا هنا</h1>
+          <p className="mt-5 max-w-xl text-base leading-8 text-white/70 md:text-lg">
+            ما كنبيعوش من شاشة صامتة. كنأكدو الطلب معاك، وكنجاوبو على الاختيار، التوصيل، والتتبع — بنفس وعد الباب: تقلبي، عاد تخلصي.
           </p>
+        </div>
+      </section>
 
-          <div className="space-y-5">
-            <div className="flex gap-4 items-start">
-              <div className="w-12 h-12 bg-pearl-blush flex items-center justify-center text-sm font-black text-rosewood flex-shrink-0">
-                WA
-              </div>
-              <div>
-                <p className="font-bold text-warm-black">الهاتف / واتساب</p>
-                {whatsappHref ? (
-                  <a href={whatsappHref} className="text-rosewood hover:underline" target="_blank" rel="noopener noreferrer">
-                    {whatsappDisplay}
-                  </a>
-                ) : (
-                  <p className="text-gray-500 text-sm">عيّني الرقم فـ إعدادات الموقع (NEXT_PUBLIC_WHATSAPP_NUMBER)</p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex gap-4 items-start">
-              <div className="w-12 h-12 bg-pearl-blush flex items-center justify-center text-sm font-black text-rosewood flex-shrink-0">
-                @
-              </div>
-              <div>
-                <p className="font-bold text-warm-black">البريد</p>
-                <a href={`mailto:${SITE.email}`} className="text-rosewood hover:underline">
-                  {SITE.email}
+      <section className="container mx-auto px-4 py-14 md:py-20">
+        <div className="grid gap-4 md:grid-cols-3">
+          {[
+            { label: "واتساب", value: whatsappDisplay || "عيّني الرقم فالإعدادات", href: whatsappHref },
+            { label: "البريد", value: SITE.email, href: `mailto:${SITE.email}` },
+            { label: "المقر", value: SITE.city, href: null },
+          ].map((item) => (
+            <div key={item.label} className="border border-[#C4A484]/25 bg-white px-6 py-7">
+              <p className="text-[11px] font-black tracking-[0.22em] text-[#C4A484]">{item.label}</p>
+              {item.href ? (
+                <a
+                  href={item.href}
+                  target={item.href.startsWith("http") ? "_blank" : undefined}
+                  rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                  className="mt-3 block text-lg font-black text-[#1C1412] hover:text-[#C45B6A]"
+                >
+                  {item.value}
                 </a>
-              </div>
+              ) : (
+                <p className="mt-3 text-lg font-black text-[#1C1412]">{item.value}</p>
+              )}
             </div>
+          ))}
+        </div>
+        <p className="mt-5 text-center text-sm font-medium text-[#1C1412]/45">{SITE.hours}</p>
+      </section>
 
-            <div className="flex gap-4 items-start">
-              <div className="w-12 h-12 bg-pearl-blush flex items-center justify-center text-sm font-black text-rosewood flex-shrink-0">
-                ◇
-              </div>
-              <div>
-                <p className="font-bold text-warm-black">المقر</p>
-                <p className="text-gray-600">{SITE.city}</p>
-              </div>
-            </div>
-
-            <div className="flex gap-4 items-start">
-              <div className="w-12 h-12 bg-pearl-blush flex items-center justify-center text-sm font-black text-rosewood flex-shrink-0">
-                ◷
-              </div>
-              <div>
-                <p className="font-bold text-warm-black">أوقات العمل</p>
-                <p className="text-gray-600">{SITE.hours}</p>
-              </div>
-            </div>
-          </div>
+      <section className="container mx-auto grid gap-10 px-4 pb-20 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+        <div>
+          <p className="text-[11px] font-black tracking-[0.28em] text-[#C45B6A]">الخط المباشر</p>
+          <h2 className="mt-3 text-3xl font-black text-[#1C1412] md:text-4xl">واتساب هو الباب ديالنا</h2>
+          <p className="mt-4 text-[15px] leading-8 text-[#1C1412]/60">
+            فالمغرب، الثقة كتمشي مع الصوت والصورة. صيفطي رسالة، عاوني نختارو الأداة، أو أكّدي الطلب — نفس الفريق اللي كيتابع الشحن.
+          </p>
+          <ul className="mt-8 space-y-3 text-sm font-bold text-[#1C1412]/70">
+            <li className="flex gap-3">
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C45B6A]" />
+              اختيار بين الحجم، النعومة، واللمعان
+            </li>
+            <li className="flex gap-3">
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C45B6A]" />
+              تتبع الطلب بعد التأكيد بالهاتف
+            </li>
+            <li className="flex gap-3">
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C45B6A]" />
+              التوصيل المجاني والقلب عند الباب
+            </li>
+          </ul>
+          {whatsappHref && (
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-lg mt-8 bg-whatsapp text-white hover:brightness-95"
+            >
+              ابدئي واتساب
+            </a>
+          )}
+          <Link href="/collection" className="mt-4 block text-sm font-black text-[#C45B6A]">
+            أو شوفي المجموعة أولاً
+          </Link>
         </div>
 
-        <div className="bg-pearl-blush p-8 border border-champagne/20">
+        <div className="border border-[#C4A484]/25 bg-white p-6 md:p-9">
           {submitted ? (
-            <div className="text-center py-10">
-              <h3 className="text-2xl font-black text-warm-black mb-2">توصلنا برسالتك</h3>
-              <p className="text-gray-600">غادي نجاوبوك ف أقرب وقت — و إلا فتح واتساب كمّلي من تمّا.</p>
+            <div className="py-12 text-center">
+              <p className="text-[11px] font-black tracking-[0.28em] text-[#C4A484]">RAONAQ</p>
+              <h3 className="mt-4 text-2xl font-black text-[#1C1412]">توصلنا بيك</h3>
+              <p className="mx-auto mt-3 max-w-sm text-sm leading-7 text-[#1C1412]/55">
+                إلا فتح واتساب، كمّلي الرسالة من تمّا. إلا ما فتحش، راجعي الرقم وعاودي — حنا كنقراو كل طلب.
+              </p>
             </div>
           ) : (
             <>
-              <h2 className="text-2xl font-black text-warm-black mb-6">أرسلي رسالة</h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <p className="text-[11px] font-black tracking-[0.28em] text-[#C45B6A]">رسالة</p>
+              <h2 className="mt-2 text-2xl font-black text-[#1C1412]">كتبي لينا بهدوء</h2>
+              <form onSubmit={handleSubmit} noValidate className="mt-7 space-y-4">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">الاسم الكامل</label>
+                  <label className="mb-1 block text-sm font-bold text-[#1C1412]" htmlFor="contact-name">
+                    الاسم
+                  </label>
                   <input
+                    id="contact-name"
                     type="text"
-                    required
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 bg-white focus:ring-2 focus:ring-rosewood outline-none"
-                    placeholder="اسمك الكامل"
+                    className={fieldClass}
+                    placeholder="اسمك"
+                    autoComplete="name"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">رقم الهاتف</label>
+                  <label className="mb-1 block text-sm font-bold text-[#1C1412]" htmlFor="contact-phone">
+                    الهاتف
+                  </label>
                   <input
+                    id="contact-phone"
                     type="tel"
+                    inputMode="tel"
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 bg-white focus:ring-2 focus:ring-rosewood outline-none text-left"
+                    className={`${fieldClass} text-left`}
                     placeholder="0612345678"
                     dir="ltr"
+                    autoComplete="tel"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">الرسالة</label>
+                  <p className="mb-2 text-sm font-bold text-[#1C1412]">علاش كاتصلي</p>
+                  <div className="flex flex-wrap gap-2">
+                    {topics.map((topic) => (
+                      <button
+                        key={topic}
+                        type="button"
+                        onClick={() => setForm({ ...form, topic })}
+                        className={`rounded-full px-3 py-2 text-[12px] font-black ${
+                          form.topic === topic
+                            ? "bg-[#1C1412] text-white"
+                            : "bg-[#F7F1EC] text-[#1C1412]/70"
+                        }`}
+                      >
+                        {topic}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-bold text-[#1C1412]" htmlFor="contact-message">
+                    الرسالة
+                  </label>
                   <textarea
-                    required
+                    id="contact-message"
                     rows={4}
                     value={form.message}
                     onChange={(e) => setForm({ ...form, message: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 bg-white focus:ring-2 focus:ring-rosewood outline-none resize-none"
-                    placeholder="كيفاش نقدروا نعاونوك؟"
+                    className={`${fieldClass} resize-none`}
+                    placeholder="قولي شنو بغيتي بالضبط"
                   />
                 </div>
-                <button
-                  type="submit"
-                  className="btn btn-primary btn-block btn-lg"
-                >
-                  {whatsappHref ? "إرسال عبر واتساب" : "إرسال الرسالة"}
+                <button type="submit" className="btn btn-primary btn-block h-12 text-sm">
+                  {whatsappHref ? "صيفي عبر واتساب" : "صيفي الرسالة"}
                 </button>
+                <p className="text-center text-[11px] font-medium text-[#1C1412]/40">
+                  كنأكدو الطلبات بالهاتف قبل الشحن
+                </p>
               </form>
             </>
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

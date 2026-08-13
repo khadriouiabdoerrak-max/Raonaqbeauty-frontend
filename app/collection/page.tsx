@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCart } from "../../context/CartContext";
-import { products, productThumb, type Product } from "../../lib/products";
+import { products, productThumb, productCoverClass, type Product } from "../../lib/products";
 
 const trustBadges = ["توصيل مجاني", "الدفع عند الاستلام", "قلبي السلعة عاد خلصي"];
 
@@ -104,13 +104,7 @@ export default function CollectionPage() {
                     <img
                     src={product.heroImage}
                     alt={product.name}
-                      className={`absolute inset-0 h-full w-full transition-transform duration-700 group-hover:scale-105 ${
-                        product.heroImage.includes("-tool") || product.heroImage.includes("-box")
-                          ? "object-contain p-6"
-                          : product.slug === "raonaq-duo"
-                            ? "object-cover object-center"
-                            : "object-cover"
-                      }`}
+                      className={`absolute inset-0 h-full w-full transition-transform duration-700 group-hover:scale-105 ${productCoverClass(product.heroImage, product.slug)}`}
                     loading="lazy"
                     decoding="async"
                     onError={(event) => {

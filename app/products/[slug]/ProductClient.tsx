@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useCart } from "../../../context/CartContext";
 import { trackViewContent } from "../../../lib/pixels";
-import { products, productThumb, type Product } from "../../../lib/products";
+import { products, productThumb, productCoverClass, type Product } from "../../../lib/products";
 import { useInView } from "../../../lib/useInView";
 
 function FadeIn({
@@ -30,11 +30,8 @@ function FadeIn({
   );
 }
 
-function productImageClass(src?: string) {
-  const shouldContain = src?.includes("-tool") || src?.includes("-box");
-  if (shouldContain) return "bg-white object-contain p-4";
-  if (src?.includes("raonaq-duo")) return "object-cover object-center";
-  return "object-cover object-[center_18%]";
+function productImageClass(src?: string, slug?: string) {
+  return productCoverClass(src ?? "", slug);
 }
 
 function BuyPanel({
@@ -154,7 +151,7 @@ export default function ProductClient({ product }: { product: Product }) {
           <img
             src={shot?.src ?? product.heroImage}
             alt={`${product.name} — ${shot?.label ?? "رونق"}`}
-            className={`h-full w-full ${productImageClass(shot?.src ?? product.heroImage)}`}
+            className={`h-full w-full ${productImageClass(shot?.src ?? product.heroImage, product.slug)}`}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1C1412] via-[#1C1412]/40 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-5 pb-6 text-right text-white" dir="rtl">
@@ -175,7 +172,7 @@ export default function ProductClient({ product }: { product: Product }) {
                   selectedImage === i ? "border-[#C45B6A]" : "border-[#1C1412]/10"
                 }`}
               >
-                <img src={img.src} alt="" className={`h-full w-full ${productImageClass(img.src)}`} loading="lazy" decoding="async" />
+                <img src={img.src} alt="" className={`h-full w-full ${productImageClass(img.src, product.slug)}`} loading="lazy" decoding="async" />
               </button>
             ))}
           </div>
@@ -199,7 +196,7 @@ export default function ProductClient({ product }: { product: Product }) {
                 <img
                   src={shot?.src ?? product.heroImage}
                   alt={`${product.name} — ${shot?.label ?? ""}`}
-                  className={`h-full w-full ${productImageClass(shot?.src ?? product.heroImage)}`}
+                  className={`h-full w-full ${productImageClass(shot?.src ?? product.heroImage, product.slug)}`}
                 />
               </div>
             </div>
@@ -217,7 +214,7 @@ export default function ProductClient({ product }: { product: Product }) {
                     selectedImage === i ? "border-[#C45B6A]" : "border-[#1C1412]/10"
                   }`}
                 >
-                <img src={img.src} alt="" className={`h-full w-full ${productImageClass(img.src)}`} loading="lazy" decoding="async" />
+                <img src={img.src} alt="" className={`h-full w-full ${productImageClass(img.src, product.slug)}`} loading="lazy" decoding="async" />
               </button>
             ))}
           </div>
@@ -437,7 +434,7 @@ export default function ProductClient({ product }: { product: Product }) {
                     <img
                       src={p.heroImage}
                       alt={p.name}
-                      className={`h-full w-full transition-transform duration-700 group-hover:scale-[1.03] ${productImageClass(p.heroImage)}`}
+                      className={`h-full w-full transition-transform duration-700 group-hover:scale-[1.03] ${productImageClass(p.heroImage, p.slug)}`}
                       loading="lazy"
                       decoding="async"
                     />

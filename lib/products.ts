@@ -46,6 +46,17 @@ export type Product = {
 /** صورة مصغّرة للسلة / الكروت */
 export const productThumb = (p: Product): string => p.gallery[0]?.src ?? p.heroImage;
 
+/** قص الكارت: يعمّر الطول بحال باقي الصور، وDUO كيبان فيها الأداة على اليمين */
+export function productCoverClass(src: string, slug?: string) {
+  const isDuoPhoto =
+    slug === "raonaq-duo" ||
+    src.includes("raonaq-duo-woman") ||
+    src.includes("raonaq-duo-closeup");
+  if (isDuoPhoto) return "object-cover object-[84%_28%]";
+  if (src.includes("-tool") || src.includes("-box")) return "bg-white object-contain p-4";
+  return "object-cover object-[center_18%]";
+}
+
 export const products: Product[] = [
   {
     id: "p1",

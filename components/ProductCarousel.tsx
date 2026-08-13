@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import Link from "next/link";
-import { products, type Product } from "../lib/products";
+import { products, productCoverClass, type Product } from "../lib/products";
 
 type ProductCarouselProps = {
   onAdd: (product: Product) => void;
@@ -71,13 +71,7 @@ export default function ProductCarousel({ onAdd }: ProductCarouselProps) {
                   src={product.heroImage}
                   alt={product.name}
                   draggable={false}
-                  className={`pointer-events-none h-full w-full ${
-                    product.heroImage.includes("-tool") || product.heroImage.includes("-box")
-                      ? "object-contain p-8"
-                      : product.slug === "raonaq-duo"
-                        ? "object-cover object-center"
-                        : "object-cover object-[center_18%]"
-                  }`}
+                  className={`pointer-events-none h-full w-full ${productCoverClass(product.heroImage, product.slug)}`}
                   loading="lazy"
                   decoding="async"
                 />

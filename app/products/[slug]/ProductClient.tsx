@@ -46,34 +46,23 @@ function BuyFold({
   );
 }
 
-function VideoSlot({ product }: { product: Product }) {
-  if (product.video) {
-    return (
-      <video
-        className="h-full w-full object-cover"
-        poster={product.heroImage}
-        controls
-        playsInline
-        preload="metadata"
-      >
-        <source src={product.video} />
-      </video>
-    );
-  }
+function ProductVideo({ product }: { product: Product }) {
+  if (!product.video) return null;
 
   return (
-    <div className="relative flex h-full w-full items-center justify-center bg-[#1C1412]">
-      <img src={product.heroImage} alt="" className="absolute inset-0 h-full w-full object-cover opacity-40" />
-      <div className="relative z-10 px-6 text-center text-white">
-        <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/40">
-          <svg className="ml-1 h-7 w-7" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z" />
-          </svg>
-        </span>
-        <p className="mt-4 text-[11px] font-medium tracking-[0.28em] text-[#C4A484]">VIDÉO</p>
-        <p className="mt-2 text-sm font-medium text-white/70">La vidéo {product.name} sera ici.</p>
+    <section className="bg-[#1C1412] py-10 md:py-16">
+      <div className="container mx-auto px-4">
+        <video
+          className="aspect-[16/9] w-full object-cover"
+          poster={product.heroImage}
+          controls
+          playsInline
+          preload="metadata"
+        >
+          <source src={product.video} />
+        </video>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -121,7 +110,7 @@ function BuyPanel({
   return (
     <div>
       <p className="text-[11px] font-medium tracking-[0.32em] text-[#C4A484]">RAONAQ</p>
-      <h1 className="font-display mt-2 text-5xl font-semibold tracking-wide text-[#1C1412] md:text-6xl">
+      <h1 className="font-display mt-2 text-[2.5rem] font-semibold tracking-wide text-[#1C1412] md:text-6xl">
         {product.name}
       </h1>
       <p className="mt-2 text-sm text-[#1C1412]/50">{product.nameFr}</p>
@@ -144,10 +133,10 @@ function BuyPanel({
       </div>
 
       <div ref={ctaRef} className="mt-6 space-y-2">
-        <button type="button" onClick={() => onAdd(product.price1, 1)} className="btn btn-primary btn-block btn-lg">
-          Ajouter au panier — {product.price1} Dhs
+        <button type="button" onClick={() => onAdd(product.price1, 1)} className="btn btn-primary btn-block btn-lg min-h-14">
+          Commander — {product.price1} Dhs
         </button>
-        <button type="button" onClick={() => onAdd(product.price2, 2)} className="btn btn-secondary btn-block btn-md text-sm">
+        <button type="button" onClick={() => onAdd(product.price2, 2)} className="btn btn-secondary btn-block min-h-12 text-sm">
           Deux pièces — {product.price2} Dhs
         </button>
       </div>
@@ -193,10 +182,9 @@ function BuyPanel({
 }
 
 export default function ProductClient({ product }: { product: Product }) {
-  const { addToCart } = useCart();
+  const { addToCart, isCartOpen, isCheckoutOpen } = useCart();
   const [selectedImage, setSelectedImage] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [isSticky, setIsSticky] = useState(false);
   const [zoomOpen, setZoomOpen] = useState(false);
   const ctaRef = useRef<HTMLDivElement>(null);
   const others = products.filter((p) => p.id !== product.id).slice(0, 4);
@@ -212,12 +200,6 @@ export default function ProductClient({ product }: { product: Product }) {
     setSelectedImage(0);
     setOpenFaq(null);
     setZoomOpen(false);
-  }, [product.id]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => setIsSticky(!entry.isIntersecting), { threshold: 0 });
-    if (ctaRef.current) observer.observe(ctaRef.current);
-    return () => observer.disconnect();
   }, [product.id]);
 
   useEffect(() => {
@@ -244,13 +226,12 @@ export default function ProductClient({ product }: { product: Product }) {
     });
   };
 
-  const showVideo = selectedImage === 0;
-  const galleryIndex = showVideo ? 0 : selectedImage - 1;
-  const galleryShot = product.gallery[galleryIndex] ?? product.gallery[0];
+  const galleryShot = product.gallery[selectedImage] ?? product.gallery[0];
+  const showSticky = !isCartOpen && !isCheckoutOpen;
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-white pb-24 md:pb-0">
-      {zoomOpen && !showVideo && (
+    <div className="min-h-screen overflow-x-hidden bg-white pb-28 md:pb-0">
+      {zoomOpen && (
         <button
           type="button"
           className="fixed inset-0 z-[80] flex cursor-zoom-out items-center justify-center bg-[#1C1412]/90 p-4"
@@ -261,7 +242,7 @@ export default function ProductClient({ product }: { product: Product }) {
         </button>
       )}
 
-      <div className="container mx-auto px-4 pt-6 lg:px-8">
+      <div className="container mx-auto px-4 pt-4 lg:px-8 lg:pt-6">
         <nav className="text-[11px] font-medium text-[#1C1412]/40">
           <Link href="/collection" className="hover:text-[#C45B6A]">
             Collection
@@ -272,45 +253,26 @@ export default function ProductClient({ product }: { product: Product }) {
       </div>
 
       <section className="bg-white">
-        <div className="container mx-auto grid items-start gap-10 px-4 py-8 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16 lg:px-8 lg:py-12">
+        <div className="container mx-auto grid items-start gap-6 px-4 py-4 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16 lg:px-8 lg:py-12">
           <div>
-            <div className="aspect-[4/5] overflow-hidden bg-[#F7F1EC]">
-              {showVideo ? (
-                <VideoSlot product={product} />
-              ) : (
-                <button type="button" onClick={() => setZoomOpen(true)} className="h-full w-full cursor-zoom-in" aria-label="Agrandir">
-                  <img
-                    src={galleryShot?.src}
-                    alt={`${product.name} — ${galleryShot?.label ?? ""}`}
-                    className={`h-full w-full ${imgClass(galleryShot?.src, product.slug)}`}
-                  />
-                </button>
-              )}
-            </div>
-            <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-              <button
-                type="button"
-                onClick={() => setSelectedImage(0)}
-                aria-label="Vidéo"
-                className={`relative h-16 w-16 shrink-0 overflow-hidden border lg:h-[72px] lg:w-[72px] ${
-                  showVideo ? "border-[#C45B6A]" : "border-transparent"
-                }`}
-              >
-                <img src={product.heroImage} alt="" className="h-full w-full object-cover opacity-70" />
-                <span className="absolute inset-0 flex items-center justify-center text-white">
-                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </span>
+            <div className="aspect-[3/4] max-h-[52svh] overflow-hidden bg-[#F7F1EC] md:max-h-none md:aspect-[4/5]">
+              <button type="button" onClick={() => setZoomOpen(true)} className="h-full w-full cursor-zoom-in" aria-label="Agrandir">
+                <img
+                  src={galleryShot?.src}
+                  alt={`${product.name} — ${galleryShot?.label ?? ""}`}
+                  className={`h-full w-full ${imgClass(galleryShot?.src, product.slug)}`}
+                />
               </button>
+            </div>
+            <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1">
               {product.gallery.map((img, i) => (
                 <button
                   key={img.src}
                   type="button"
-                  onClick={() => setSelectedImage(i + 1)}
+                  onClick={() => setSelectedImage(i)}
                   aria-label={img.label}
-                  className={`h-16 w-16 shrink-0 overflow-hidden border lg:h-[72px] lg:w-[72px] ${
-                    selectedImage === i + 1 ? "border-[#C45B6A]" : "border-transparent"
+                  className={`h-14 w-14 shrink-0 overflow-hidden border md:h-16 md:w-16 lg:h-[72px] lg:w-[72px] ${
+                    selectedImage === i ? "border-[#C45B6A]" : "border-transparent"
                   }`}
                 >
                   <img src={img.src} alt="" className={`h-full w-full ${imgClass(img.src, product.slug)}`} loading="lazy" />
@@ -328,15 +290,15 @@ export default function ProductClient({ product }: { product: Product }) {
       <section className="border-y border-[#1C1412]/8 bg-[#F7F1EC]">
         <div className="container mx-auto grid grid-cols-2 gap-px md:grid-cols-4">
           {PDP_TRUST.map((item) => (
-            <div key={item.t} className="bg-[#F7F1EC] px-4 py-5 text-center">
-              <p className="text-[12px] font-semibold text-[#1C1412]">{item.t}</p>
-              <p className="mt-1 text-[11px] text-[#1C1412]/45">{item.d}</p>
+            <div key={item.t} className="bg-[#F7F1EC] px-3 py-4 text-center md:px-4 md:py-5">
+              <p className="text-[11px] font-semibold leading-snug text-[#1C1412] md:text-[12px]">{item.t}</p>
+              <p className="mt-1 text-[10px] text-[#1C1412]/45 md:text-[11px]">{item.d}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="bg-white py-16 md:py-24">
+      <section className="bg-white py-10 md:py-24">
         <div className="container mx-auto px-4">
           <p className="text-[11px] font-medium tracking-[0.32em] text-[#C4A484]">RAONAQ {product.name}</p>
           <h2 className="font-display mt-3 max-w-xl text-3xl font-semibold text-[#1C1412] md:text-5xl">{product.tagline}</h2>
@@ -356,7 +318,7 @@ export default function ProductClient({ product }: { product: Product }) {
       </section>
 
       {beforeAfter && (
-        <section className="bg-[#F7F1EC] py-16 md:py-24">
+        <section className="bg-[#F7F1EC] py-10 md:py-24">
           <div className="container mx-auto max-w-3xl px-4">
             <p className="text-[11px] font-medium tracking-[0.32em] text-[#C4A484]">AVANT / APRÈS</p>
             <h2 className="font-display mt-3 text-3xl font-semibold text-[#1C1412] md:text-5xl">La différence se voit</h2>
@@ -367,7 +329,7 @@ export default function ProductClient({ product }: { product: Product }) {
         </section>
       )}
 
-      <section className="bg-white py-16 md:py-24">
+      <section className="bg-white py-10 md:py-24">
         <div className="container mx-auto px-4">
           <p className="text-[11px] font-medium tracking-[0.32em] text-[#C4A484]">VOTRE CHEVEU</p>
           <h2 className="font-display mt-3 text-3xl font-semibold text-[#1C1412] md:text-5xl">La chaleur juste</h2>
@@ -383,7 +345,7 @@ export default function ProductClient({ product }: { product: Product }) {
         </div>
       </section>
 
-      <section className="bg-[#F7F1EC] py-16 md:py-24">
+      <section className="bg-[#F7F1EC] py-10 md:py-24">
         <div className="container mx-auto px-4">
           <p className="text-[11px] font-medium tracking-[0.32em] text-[#C4A484]">LE GESTE</p>
           <h2 className="font-display mt-3 text-3xl font-semibold text-[#1C1412] md:text-5xl">En quatre étapes</h2>
@@ -403,6 +365,8 @@ export default function ProductClient({ product }: { product: Product }) {
           </div>
         </div>
       </section>
+
+      <ProductVideo product={product} />
 
       <ReviewsSlot product={product} />
 
@@ -452,17 +416,15 @@ export default function ProductClient({ product }: { product: Product }) {
         </section>
       )}
 
-      {isSticky && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#1C1412]/10 bg-white px-3 pt-3 md:hidden pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <div className="flex items-center gap-3">
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-display text-lg font-semibold text-[#1C1412]">{product.name}</p>
-              <p className="text-[11px] text-[#1C1412]/45">Inspectez avant de payer</p>
-            </div>
-            <button type="button" onClick={() => add(product.price1, 1)} className="btn btn-primary btn-md shrink-0">
-              {product.price1} Dhs
-            </button>
-          </div>
+      {showSticky && (
+        <div className="fixed inset-x-0 bottom-0 z-[45] border-t border-[#1C1412]/10 bg-white/95 px-4 pt-3 backdrop-blur md:hidden pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <button
+            type="button"
+            onClick={() => add(product.price1, 1)}
+            className="btn btn-primary btn-block btn-lg min-h-14 text-base"
+          >
+            Commander — {product.price1} Dhs
+          </button>
         </div>
       )}
     </div>

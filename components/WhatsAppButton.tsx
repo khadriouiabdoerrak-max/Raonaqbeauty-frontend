@@ -10,6 +10,7 @@ export default function WhatsAppButton() {
   const href = getWhatsAppLink();
   const hideForFlow =
     isCartOpen || isCheckoutOpen || pathname === "/thank-you" || pathname === "/upsell";
+  const onProduct = pathname.startsWith("/products/");
 
   if (!href || hideForFlow) return null;
 
@@ -18,7 +19,11 @@ export default function WhatsAppButton() {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-5 left-4 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-whatsapp text-white shadow-[0_4px_14px_rgba(37,211,102,0.4)] md:bottom-6 md:left-6"
+      className={`fixed z-20 flex h-14 w-14 items-center justify-center rounded-full bg-whatsapp text-white shadow-[0_4px_14px_rgba(37,211,102,0.4)] ${
+        onProduct
+          ? "bottom-24 left-4 hidden md:bottom-6 md:left-6 md:flex"
+          : "bottom-5 left-4 md:bottom-6 md:left-6"
+      }`}
       aria-label={`WhatsApp ${getWhatsAppDisplay()}`}
     >
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-8 w-8">

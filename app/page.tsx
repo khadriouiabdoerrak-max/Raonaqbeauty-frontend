@@ -141,7 +141,7 @@ export default function Home() {
   return (
     <div className="overflow-x-hidden bg-[#F7F1EC]">
       {/* ═══════════════ HERO ═══════════════ */}
-      <section className="relative min-h-[calc(100svh-112px)] overflow-hidden bg-[#1C1412] md:min-h-[100svh]">
+      <section className="relative min-h-[85svh] overflow-hidden bg-[#1C1412] md:min-h-[100svh]">
         <picture>
           <source srcSet={heroMobileImage} media="(max-width: 767px)" />
           <img
@@ -157,8 +157,8 @@ export default function Home() {
         <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#1C1412]/50 to-transparent md:h-36" />
         <div className="absolute inset-y-0 right-0 hidden w-[55%] bg-gradient-to-l from-[#1C1412]/70 via-[#1C1412]/20 to-transparent md:block" />
 
-        <div className="relative z-10 flex min-h-[calc(100svh-112px)] w-full items-end md:min-h-[100svh]">
-          <div className="container mx-auto px-4 pb-10 pt-24 md:pb-28 md:pt-40">
+        <div className="relative z-10 flex min-h-[85svh] w-full items-end md:min-h-[100svh]">
+          <div className="container mx-auto px-4 pb-8 pt-20 md:pb-28 md:pt-40">
             <div className="hero-copy me-auto max-w-lg text-left text-white">
               <h1 className="font-display text-4xl font-semibold leading-[1.12] text-white md:text-6xl">
                 Le salon,

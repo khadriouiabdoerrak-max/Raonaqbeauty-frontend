@@ -49,7 +49,7 @@ export default function CollectionPage() {
             </div>
 
             <div className="relative">
-              <div className="relative aspect-[4/5] overflow-hidden bg-[#F7F1EC] lg:aspect-[5/6]">
+            <div className="relative aspect-[16/10] overflow-hidden bg-[#F7F1EC] lg:aspect-[5/6]">
                 <img
                   src="/images/raonaq-lifestyle-home.png"
                   alt="Raonaq — le salon, chez vous"

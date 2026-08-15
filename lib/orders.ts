@@ -73,13 +73,51 @@ export function toLastPurchase(data: {
   eventId: string;
   total: number;
   contents: PixelContent[];
+  customer: OrderCustomer;
 }): LastPurchase {
   return {
     orderId: data.orderId,
     eventId: data.eventId,
     value: data.total,
     contents: data.contents,
+    customer: data.customer,
   };
+}
+
+const LAST_ORDER_KEY = "raonaq_last_order";
+
+export function saveLastOrder(purchase: LastPurchase) {
+  try {
+    sessionStorage.setItem("last_purchase", JSON.stringify(purchase));
+    localStorage.setItem(LAST_ORDER_KEY, JSON.stringify(purchase));
+  } catch {
+    // ignore quota / private mode
+  }
+}
+
+export function readLastOrder(): LastPurchase | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const session = sessionStorage.getItem("last_purchase");
+    if (session) return JSON.parse(session) as LastPurchase;
+    const stored = localStorage.getItem(LAST_ORDER_KEY);
+    if (stored) return JSON.parse(stored) as LastPurchase;
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
+export function consumePurchaseForTracking(): LastPurchase | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem("last_purchase");
+    if (!raw) return null;
+    sessionStorage.removeItem("last_purchase");
+    return JSON.parse(raw) as LastPurchase;
+  } catch {
+    return null;
+  }
 }
 
 /** تسجيل الطلب مباشرة فالـ API (Postgres / pgweb) */

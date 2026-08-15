@@ -23,6 +23,12 @@ export type LastPurchase = {
   value: number;
   eventId: string;
   contents: PixelContent[];
+  customer?: {
+    name: string;
+    phone: string;
+    city: string;
+    address: string;
+  };
 };
 
 function getPixelWindow(): PixelWindow | null {

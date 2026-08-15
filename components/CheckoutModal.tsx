@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartContext";
 import { trackInitiateCheckout } from "../lib/pixels";
-import { createOrder, toLastPurchase } from "../lib/orders";
+import { createOrder, saveLastOrder, toLastPurchase } from "../lib/orders";
 
 type FieldKey = "name" | "phone" | "city" | "address";
 type FieldErrors = Partial<Record<FieldKey, string>>;
@@ -129,16 +129,14 @@ export default function CheckoutModal() {
       });
 
       try {
-        sessionStorage.setItem(
-          "last_purchase",
-          JSON.stringify(
-            toLastPurchase({
-              orderId: order.orderId,
-              eventId: order.eventId,
-              total: order.total,
-              contents: order.contents,
-            })
-          )
+        saveLastOrder(
+          toLastPurchase({
+            orderId: order.orderId,
+            eventId: order.eventId,
+            total: order.total,
+            contents: order.contents,
+            customer,
+          })
         );
       } catch (err) {
         console.error("Failed to save last purchase locally:", err);

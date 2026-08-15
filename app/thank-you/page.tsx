@@ -126,6 +126,7 @@ export default function ThankYouPage() {
   }, [finishOrder]);
 
   const customer = purchase?.customer;
+  const hasCustomer = Boolean(customer?.name?.trim() && customer?.phone?.trim());
   const greetName = firstName(customer?.name);
   const hasItems = Boolean(purchase && purchase.contents.length > 0);
   const boughtIds = useMemo(() => purchase?.contents.map((c) => c.id) ?? [], [purchase]);
@@ -218,23 +219,23 @@ export default function ThankYouPage() {
       </section>
 
       <div className="mx-auto max-w-2xl px-4 py-8 md:py-10">
-        {/* Fiche client — brandée */}
-        <section className="overflow-hidden border border-[#C4A484]/30 bg-white">
-          <div className="flex items-end justify-between gap-4 border-b border-[#1C1412]/08 bg-[#1C1412] px-5 py-4 md:px-8">
-            <div>
-              <p className="text-[10px] font-medium tracking-[0.32em] text-[#C4A484]">CLIENT RAONAQ</p>
-              <h2 className="font-display mt-1 text-xl font-semibold text-white md:text-2xl">
-                Vos informations
-              </h2>
+        {/* Fiche client — uniquement si infos complètes */}
+        {hasCustomer && customer ? (
+          <section className="border border-[#C4A484]/30 bg-white">
+            <div className="flex items-end justify-between gap-4 border-b border-[#1C1412]/08 bg-[#1C1412] px-5 py-4 md:px-8">
+              <div>
+                <p className="text-[10px] font-medium tracking-[0.32em] text-[#C4A484]">CLIENT RAONAQ</p>
+                <h2 className="font-display mt-1 text-xl font-semibold text-white md:text-2xl">
+                  Vos informations
+                </h2>
+              </div>
+              {purchase?.orderId ? (
+                <p className="shrink-0 text-[12px] font-medium tracking-wide text-white/40">
+                  N° {purchase.orderId}
+                </p>
+              ) : null}
             </div>
-            {purchase?.orderId ? (
-              <p className="shrink-0 text-[12px] font-medium tracking-wide text-white/40">
-                N° {purchase.orderId}
-              </p>
-            ) : null}
-          </div>
 
-          {customer ? (
             <div className="px-5 py-6 md:px-8 md:py-8">
               <p className="text-[13px] leading-relaxed text-[#1C1412]/55">
                 C’est sur ces coordonnées que nous appelons pour confirmer{" "}
@@ -244,7 +245,7 @@ export default function ThankYouPage() {
               <dl className="mt-6 grid gap-6 sm:grid-cols-2">
                 <div className="sm:col-span-2 border-b border-[#1C1412]/06 pb-5">
                   <dt className="text-[10px] font-medium tracking-[0.24em] text-[#C45B6A]">NOM COMPLET</dt>
-                  <dd className="font-display mt-1.5 text-2xl font-semibold text-[#1C1412]">
+                  <dd className="font-display mt-1.5 break-words text-2xl font-semibold text-[#1C1412]">
                     {customer.name}
                   </dd>
                 </div>
@@ -252,22 +253,24 @@ export default function ThankYouPage() {
                   <dt className="text-[10px] font-medium tracking-[0.24em] text-[#C45B6A]">
                     TÉLÉPHONE · APPEL
                   </dt>
-                  <dd className="mt-1.5 text-xl font-semibold tracking-wide text-[#1C1412]" dir="ltr">
+                  <dd className="mt-1.5 break-all text-xl font-semibold tracking-wide text-[#1C1412]" dir="ltr">
                     {customer.phone}
                   </dd>
                   <p className="mt-1 text-[12px] text-[#1C1412]/40">Le numéro qui sonnera</p>
                 </div>
                 <div>
                   <dt className="text-[10px] font-medium tracking-[0.24em] text-[#C45B6A]">VILLE</dt>
-                  <dd className="mt-1.5 text-xl font-semibold text-[#1C1412]">{customer.city}</dd>
+                  <dd className="mt-1.5 break-words text-xl font-semibold text-[#1C1412]">
+                    {customer.city || "—"}
+                  </dd>
                   <p className="mt-1 text-[12px] text-[#1C1412]/40">Livraison Maroc</p>
                 </div>
                 <div className="sm:col-span-2">
                   <dt className="text-[10px] font-medium tracking-[0.24em] text-[#C45B6A]">
                     ADRESSE DE LIVRAISON
                   </dt>
-                  <dd className="mt-1.5 text-[15px] leading-relaxed text-[#1C1412]">
-                    {customer.address}
+                  <dd className="mt-1.5 break-words text-[15px] leading-relaxed text-[#1C1412]">
+                    {customer.address || "—"}
                   </dd>
                 </div>
               </dl>
@@ -298,41 +301,40 @@ export default function ThankYouPage() {
                 </a>
               )}
             </div>
-          ) : (
-            <div className="px-5 py-8 md:px-8">
-              <p className="text-[14px] leading-relaxed text-[#1C1412]/55">
-                Après votre commande, votre nom, téléphone, ville et adresse s’affichent ici — pour
-                vérifier l’appel de confirmation.
-              </p>
-            </div>
-          )}
-        </section>
+          </section>
+        ) : null}
 
-        {/* WhatsApp */}
-        <section className="mt-5 border border-[#C4A484]/25 bg-[#1C1412] px-5 py-7 text-white md:px-8">
-          <p className="text-[10px] font-medium tracking-[0.32em] text-[#C4A484]">CONFIRMATION</p>
-          <h2 className="font-display mt-2 text-2xl font-semibold">Aussi sur WhatsApp</h2>
-          <p className="mt-2 max-w-md text-[13px] leading-relaxed text-white/55">
-            Un message maintenant accélère la validation — et peut raccourcir l’appel.
-          </p>
-          {whatsappConfirm ? (
-            <a
-              href={whatsappConfirm}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-5 flex w-full items-center justify-center gap-2.5 bg-[#25D366] px-5 py-4 text-[14px] font-semibold text-white transition hover:brightness-95"
-            >
-              <IconWhatsApp className="h-5 w-5" />
-              Confirmer sur WhatsApp
-            </a>
-          ) : (
-            <p className="mt-5 text-[13px] text-white/50">{SITE.email}</p>
-          )}
-          {whatsappDisplay ? (
-            <p className="mt-2.5 text-center text-[12px] text-white/35" dir="ltr">
-              {whatsappDisplay}
+        {/* WhatsApp — même carte que Client Raonaq */}
+        <section className={`${hasCustomer ? "mt-5" : ""} border border-[#C4A484]/30 bg-white`}>
+          <div className="border-b border-[#1C1412]/08 bg-[#1C1412] px-5 py-4 md:px-8">
+            <p className="text-[10px] font-medium tracking-[0.32em] text-[#C4A484]">CONFIRMATION</p>
+            <h2 className="font-display mt-1 text-xl font-semibold text-white md:text-2xl">
+              Aussi sur WhatsApp
+            </h2>
+          </div>
+          <div className="px-5 py-6 md:px-8 md:py-7">
+            <p className="text-[13px] leading-relaxed text-[#1C1412]/55">
+              Un message maintenant accélère la validation — et peut raccourcir l’appel.
             </p>
-          ) : null}
+            {whatsappConfirm ? (
+              <a
+                href={whatsappConfirm}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 flex w-full items-center justify-center gap-2.5 bg-[#25D366] px-5 py-4 text-[14px] font-semibold text-white transition hover:brightness-95"
+              >
+                <IconWhatsApp className="h-5 w-5" />
+                Confirmer sur WhatsApp
+              </a>
+            ) : (
+              <p className="mt-5 text-[13px] text-[#1C1412]/50">{SITE.email}</p>
+            )}
+            {whatsappDisplay ? (
+              <p className="mt-2.5 text-center text-[12px] text-[#1C1412]/35" dir="ltr">
+                {whatsappDisplay}
+              </p>
+            ) : null}
+          </div>
         </section>
 
         {/* Suite + émotion */}

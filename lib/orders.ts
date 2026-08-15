@@ -85,27 +85,52 @@ export function toLastPurchase(data: {
 }
 
 const LAST_ORDER_KEY = "raonaq_last_order";
+const LAST_CUSTOMER_KEY = "raonaq_last_customer";
 
 export function saveLastOrder(purchase: LastPurchase) {
   try {
     sessionStorage.setItem("last_purchase", JSON.stringify(purchase));
     localStorage.setItem(LAST_ORDER_KEY, JSON.stringify(purchase));
+    if (purchase.customer?.name && purchase.customer?.phone) {
+      localStorage.setItem(LAST_CUSTOMER_KEY, JSON.stringify(purchase.customer));
+    }
   } catch {
     // ignore quota / private mode
   }
 }
 
+function parsePurchase(raw: string | null): LastPurchase | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as LastPurchase;
+  } catch {
+    return null;
+  }
+}
+
+function readStoredCustomer(): OrderCustomer | null {
+  try {
+    const raw = localStorage.getItem(LAST_CUSTOMER_KEY);
+    if (!raw) return null;
+    const c = JSON.parse(raw) as OrderCustomer;
+    if (!c?.name || !c?.phone) return null;
+    return c;
+  } catch {
+    return null;
+  }
+}
+
+/** Préfère la commande qui contient les infos client */
 export function readLastOrder(): LastPurchase | null {
   if (typeof window === "undefined") return null;
-  try {
-    const session = sessionStorage.getItem("last_purchase");
-    if (session) return JSON.parse(session) as LastPurchase;
-    const stored = localStorage.getItem(LAST_ORDER_KEY);
-    if (stored) return JSON.parse(stored) as LastPurchase;
-  } catch {
-    // ignore
-  }
-  return null;
+  const session = parsePurchase(sessionStorage.getItem("last_purchase"));
+  const stored = parsePurchase(localStorage.getItem(LAST_ORDER_KEY));
+  const base = session?.customer ? session : stored?.customer ? stored : session || stored;
+  if (!base) return null;
+  if (base.customer?.name && base.customer?.phone) return base;
+  const fallback = readStoredCustomer();
+  if (!fallback) return base;
+  return { ...base, customer: fallback };
 }
 
 export function consumePurchaseForTracking(): LastPurchase | null {

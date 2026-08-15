@@ -143,8 +143,8 @@ export default function CheckoutModal() {
       }
 
       setForm(emptyForm);
-      finishOrder();
       router.push("/thank-you");
+      finishOrder();
     } catch (err) {
       console.error(err);
       setIsSubmitting(false);

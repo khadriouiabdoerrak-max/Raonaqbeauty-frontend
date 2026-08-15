@@ -1,6 +1,8 @@
 /** WhatsApp depuis l’env — ex. 2126XXXXXXXX sans + ni espaces */
+const FALLBACK_WHATSAPP = "212612345678";
+
 export function getWhatsAppNumber(): string {
-  const raw = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "";
+  const raw = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || FALLBACK_WHATSAPP;
   return raw.replace(/\D/g, "");
 }
 
@@ -13,9 +15,8 @@ export function getWhatsAppDisplay(): string {
   return `+${digits}`;
 }
 
-export function getWhatsAppLink(message?: string): string | null {
-  const phone = getWhatsAppNumber();
-  if (!phone) return null;
+export function getWhatsAppLink(message?: string): string {
+  const phone = getWhatsAppNumber() || FALLBACK_WHATSAPP;
   const text = message || "Bonjour, j’aimerais des informations sur Raonaq Beauty";
   return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
 }

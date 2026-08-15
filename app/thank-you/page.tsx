@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "../../context/CartContext";
 import { trackPurchase, type LastPurchase, type PixelContent } from "../../lib/pixels";
-import { getWhatsAppDisplay, getWhatsAppLink } from "../../lib/contact";
+import { getWhatsAppLink } from "../../lib/contact";
 import { clearPendingOrder, consumePurchaseForTracking, readLastOrder } from "../../lib/orders";
 import { products, productThumb, type Product } from "../../lib/products";
 import { SITE, getSocialLinks } from "../../lib/site";
@@ -103,7 +103,6 @@ export default function ThankYouPage() {
   const [purchase, setPurchase] = useState<LastPurchase | null>(null);
   const [callWin, setCallWin] = useState<CallWindow | null>(null);
   const social = getSocialLinks();
-  const whatsappDisplay = getWhatsAppDisplay();
 
   useEffect(() => {
     setMounted(true);
@@ -217,6 +216,19 @@ export default function ThankYouPage() {
               </span>
             </div>
           ) : null}
+
+          <a
+            href={whatsappConfirm}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-8 inline-flex w-full max-w-sm items-center justify-center gap-2.5 bg-[#25D366] px-6 py-4 text-[15px] font-semibold text-white transition hover:brightness-95"
+          >
+            <IconWhatsApp className="h-5 w-5" />
+            Confirmation via WhatsApp
+          </a>
+          <p className="mt-2.5 text-[12px] text-white/40">
+            Un message suffit pour valider votre commande plus vite.
+          </p>
         </div>
       </section>
 
@@ -306,40 +318,6 @@ export default function ThankYouPage() {
             </div>
           </section>
         ) : null}
-
-        <section className="w-full border-t border-[#C4A484]/20 bg-white">
-          <div className="w-full bg-[#1C1412]">
-            <div className="mx-auto max-w-3xl px-5 py-4 md:px-6">
-              <p className="text-[10px] font-medium tracking-[0.32em] text-[#C4A484]">CONFIRMATION</p>
-              <h2 className="font-display mt-1 text-xl font-semibold text-white md:text-2xl">
-                Aussi sur WhatsApp
-              </h2>
-            </div>
-          </div>
-          <div className="mx-auto max-w-3xl px-5 py-6 md:px-6 md:py-7">
-            <p className="text-[13px] leading-relaxed text-[#1C1412]/55">
-              Un message maintenant accélère la validation — et peut raccourcir l’appel.
-            </p>
-            {whatsappConfirm ? (
-              <a
-                href={whatsappConfirm}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-5 flex w-full items-center justify-center gap-2.5 bg-[#25D366] px-5 py-4 text-[14px] font-semibold text-white transition hover:brightness-95"
-              >
-                <IconWhatsApp className="h-5 w-5" />
-                Confirmer sur WhatsApp
-              </a>
-            ) : (
-              <p className="mt-5 text-[13px] text-[#1C1412]/50">{SITE.email}</p>
-            )}
-            {whatsappDisplay ? (
-              <p className="mt-2.5 text-center text-[12px] text-[#1C1412]/35" dir="ltr">
-                {whatsappDisplay}
-              </p>
-            ) : null}
-          </div>
-        </section>
       </div>
 
       <div className="mx-auto max-w-3xl px-5 py-8 md:px-6 md:py-10">

@@ -495,23 +495,26 @@ export default function ProductClient({ product }: { product: Product }) {
             Appel de confirmation · livraison gratuite · payez après inspection.
           </p>
 
-          <ol className="mx-auto mt-8 flex max-w-xs flex-col gap-4 text-left">
+          <ol className="mx-auto mt-6 w-full max-w-md space-y-3 text-left">
             {[
               { n: "01", t: "Commande", d: "Sans avance" },
               { n: "02", t: "Appel", d: "9h–21h" },
               { n: "03", t: "Livraison", d: "Puis payez" },
             ].map((s) => (
-              <li key={s.n} className="flex items-baseline gap-4">
-                <p className="font-display w-8 shrink-0 text-lg font-semibold text-[#C4A484]">{s.n}</p>
-                <div>
+              <li
+                key={s.n}
+                className="flex w-full items-baseline justify-between gap-4 border-b border-white/10 pb-3 last:border-b-0 last:pb-0"
+              >
+                <div className="flex min-w-0 items-baseline gap-3">
+                  <p className="font-display shrink-0 text-base font-semibold text-[#C4A484]">{s.n}</p>
                   <p className="text-[14px] font-semibold text-white">{s.t}</p>
-                  <p className="mt-0.5 text-[12px] text-white/40">{s.d}</p>
                 </div>
+                <p className="shrink-0 text-[12px] text-white/40">{s.d}</p>
               </li>
             ))}
           </ol>
 
-          <p className="mx-auto mt-6 max-w-sm text-[12px] leading-relaxed text-white/35">
+          <p className="mx-auto mt-4 w-full max-w-md text-left text-[12px] leading-snug text-white/35">
             Numéro inconnu ? <span className="text-white/60">Répondez — c’est Raonaq.</span>
           </p>
 

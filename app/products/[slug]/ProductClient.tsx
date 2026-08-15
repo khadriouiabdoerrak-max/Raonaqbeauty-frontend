@@ -9,11 +9,8 @@ import BeforeAfterSlider from "../../../components/BeforeAfterSlider";
 import ErrorBoundary from "../../../components/ErrorBoundary";
 import Price from "../../../components/Price";
 import Stars from "../../../components/Stars";
-import ReviewMarquee from "../../../components/ReviewMarquee";
 import ProductShot from "../../../components/ProductShot";
-import PdpTrustStrip from "../../../components/PdpTrustStrip";
 import PdpGalleryBanner from "../../../components/PdpGalleryBanner";
-import { voicesForProduct } from "../../../lib/pdp-voices";
 import {
   products,
   productThumb,
@@ -214,8 +211,6 @@ function BuyPanel({
         </a>
       )}
 
-      <ReviewMarquee items={voicesForProduct(product.slug)} />
-
       <div className="mt-6">
         <Fold title="Description" open={fold === "desc"} onToggle={() => toggle("desc")}>
           <p>{product.description}</p>
@@ -291,7 +286,6 @@ export default function ProductClient({ product }: { product: Product }) {
         <div className="container mx-auto grid max-w-full grid-cols-1 items-start gap-4 overflow-x-hidden px-0 pb-2 pt-2 md:grid-cols-2 md:gap-10 md:px-4 md:pb-0 md:pt-3 lg:gap-14 lg:px-8 lg:py-8 xl:grid-cols-[minmax(0,1fr)_420px]">
           <div className="min-w-0 max-w-full overflow-hidden">
             <PdpGalleryBanner product={product} />
-            {/* نفس إطار الرئيسية: طول 4/5 × عرض كامل */}
             <ProductShot
               src={galleryShot?.src ?? product.heroImage}
               alt={`${product.name} — ${galleryShot?.label ?? ""}`}
@@ -306,6 +300,7 @@ export default function ProductClient({ product }: { product: Product }) {
                   type="button"
                   onClick={() => setSelectedImage(i)}
                   aria-label={img.label}
+                  aria-current={selectedImage === i}
                   className={`relative h-16 w-16 shrink-0 overflow-hidden border bg-white md:h-[88px] md:w-[88px] ${
                     selectedImage === i ? "border-[#C45B6A]" : "border-[#1C1412]/10"
                   }`}
@@ -327,8 +322,6 @@ export default function ProductClient({ product }: { product: Product }) {
           </div>
         </div>
       </section>
-
-      <PdpTrustStrip />
 
       <section className="bg-[#F7F1EC] py-12 md:py-20">
         <div className="container mx-auto px-4">

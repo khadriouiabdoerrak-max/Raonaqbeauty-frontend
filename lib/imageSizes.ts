@@ -29,6 +29,45 @@ const IMAGE_SIZES: Record<string, { width: number; height: number }> = {
   "/images/raonaq-hair-curls.png": { width: 1024, height: 1536 },
   "/images/raonaq-hair-waves.png": { width: 1024, height: 1536 },
   "/images/raonaq-hair-blowout.png": { width: 1024, height: 1536 },
+  "/images/raonaq-studio-tool-straight.png": { width: 1024, height: 1536 },
+  "/images/raonaq-studio-gift-box.png": { width: 1024, height: 1536 },
+  "/images/raonaq-studio-air-brush.png": { width: 1024, height: 1536 },
+  "/images/raonaq-studio-wand-detail.png": { width: 1024, height: 1536 },
+  "/images/raonaq-studio-hair-shine.png": { width: 1024, height: 1536 },
+  "/images/raonaq-duo-collage.png": { width: 1024, height: 1536 },
+  "/images/raonaq-duo-before-after.png": { width: 1024, height: 1536 },
+  "/images/raonaq-duo-howto.png": { width: 1024, height: 1536 },
+  "/images/raonaq-duo-product-beauty.png": { width: 1024, height: 1536 },
+  "/images/raonaq-duo-product-hero.png": { width: 1024, height: 1536 },
+  "/images/raonaq-duo-product-line.png": { width: 1024, height: 1536 },
+  "/images/raonaq-duo-love.png": { width: 1024, height: 1536 },
+  "/images/raonaq-duo-ba.png": { width: 1024, height: 1536 },
+  "/images/raonaq-duo-steps.png": { width: 1024, height: 1536 },
+  "/images/raonaq-duo-showcase.png": { width: 1024, height: 1536 },
+  "/images/raonaq-duo-looks.png": { width: 1024, height: 1536 },
+  "/images/raonaq-duo-catalog.png": { width: 1024, height: 1536 },
+  "/images/raonaq-trio-collage.png": { width: 1024, height: 1536 },
+  "/images/raonaq-trio-before-after.png": { width: 1024, height: 1536 },
+  "/images/raonaq-trio-howto.png": { width: 1024, height: 1536 },
+  "/images/raonaq-volume-collage.png": { width: 1024, height: 1536 },
+  "/images/raonaq-volume-before-after.png": { width: 1024, height: 1536 },
+  "/images/raonaq-volume-howto.png": { width: 1024, height: 1536 },
+  "/images/raonaq-soft-collage.png": { width: 1024, height: 1536 },
+  "/images/raonaq-soft-before-after.png": { width: 1024, height: 1536 },
+  "/images/raonaq-soft-howto.png": { width: 1024, height: 1536 },
+  "/images/raonaq-jour-collage.png": { width: 1024, height: 1536 },
+  "/images/raonaq-jour-before-after.png": { width: 1024, height: 1536 },
+  "/images/raonaq-jour-howto.png": { width: 1024, height: 1536 },
+  "/images/raonaq-go-collage.png": { width: 1024, height: 1536 },
+  "/images/raonaq-go-before-after.png": { width: 1024, height: 1536 },
+  "/images/raonaq-go-howto.png": { width: 1024, height: 1536 },
+  "/images/raonaq-go-love.png": { width: 1024, height: 1536 },
+  "/images/raonaq-go-bag.png": { width: 1024, height: 1536 },
+  "/images/raonaq-go-inside.png": { width: 1024, height: 1536 },
+  "/images/raonaq-go-kit.png": { width: 1024, height: 1536 },
+  "/images/raonaq-go-battery.png": { width: 1024, height: 1536 },
+  "/images/raonaq-go-pov.png": { width: 1024, height: 1536 },
+  "/images/raonaq-go-catalog.png": { width: 1024, height: 1536 },
 };
 
 const DEFAULT_SIZE = { width: 1024, height: 1024 };
@@ -40,6 +79,15 @@ export function getImageSize(src: string): { width: number; height: number } {
 /** فين نركّزو الـ cover باش المنتوج / الوجه يبقاو باينين فإطار طولي */
 export function getObjectPosition(src: string): string {
   const { width, height } = getImageSize(src);
+  if (
+    src.includes("studio-") ||
+    src.includes("-collage") ||
+    src.includes("-howto") ||
+    src.includes("-before-after") ||
+    src.includes("-product-")
+  ) {
+    return "center center";
+  }
   if (width > height) {
     // صور عريضة (DUO / GO): الشخص + الأداة غالباً فاليمين
     if (src.includes("duo-woman") || src.includes("go-woman")) return "72% 42%";

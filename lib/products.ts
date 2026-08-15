@@ -224,10 +224,9 @@ export const products: Product[] = [
     ],
     gallery: [
       { src: "/images/raonaq-trio-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-trio-pack.png", label: "L’écrin Raonaq" },
-      { src: "/images/raonaq-trio-tools.png", label: "3 outils" },
-      { src: "/images/raonaq-hair-straight.png", label: "Lisse" },
-      { src: "/images/raonaq-trio-box.png", label: "Ce que vous recevez" },
+      { src: "/images/raonaq-trio-collage.png", label: "Ce qu’on aime" },
+      { src: "/images/raonaq-trio-before-after.png", label: "Avant / après" },
+      { src: "/images/raonaq-trio-howto.png", label: "Comment faire" },
     ],
     forWho: [
       "Pour changer de look sans multiplier les outils",
@@ -336,10 +335,9 @@ export const products: Product[] = [
     heroImage: "/images/raonaq-air-soft-woman.png",
     gallery: [
       { src: "/images/raonaq-air-soft-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-air-soft-pack.png", label: "L’écrin Raonaq" },
-      { src: "/images/raonaq-air-soft-tool.png", label: "L’outil" },
-      { src: "/images/raonaq-hair-curls.png", label: "Lisse sans frisottis" },
-      { src: "/images/raonaq-air-soft-box.png", label: "Ce que vous recevez" },
+      { src: "/images/raonaq-soft-collage.png", label: "Ce qu’on aime" },
+      { src: "/images/raonaq-soft-before-after.png", label: "Avant / après" },
+      { src: "/images/raonaq-soft-howto.png", label: "Comment faire" },
     ],
   },
   {
@@ -425,10 +423,9 @@ export const products: Product[] = [
     heroImage: "/images/raonaq-air-pink-woman.png",
     gallery: [
       { src: "/images/raonaq-air-pink-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-air-pink-pack.png", label: "L’écrin Raonaq" },
-      { src: "/images/raonaq-air-pink-tool.png", label: "L’outil" },
-      { src: "/images/raonaq-hair-waves.png", label: "Look net, vite" },
-      { src: "/images/raonaq-air-pink-box.png", label: "Ce que vous recevez" },
+      { src: "/images/raonaq-jour-collage.png", label: "Ce qu’on aime" },
+      { src: "/images/raonaq-jour-before-after.png", label: "Avant / après" },
+      { src: "/images/raonaq-jour-howto.png", label: "Comment faire" },
     ],
   },
   {
@@ -518,10 +515,9 @@ export const products: Product[] = [
     heroImage: "/images/raonaq-volume-woman.png",
     gallery: [
       { src: "/images/raonaq-volume-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-volume-pack.png", label: "L’écrin Raonaq" },
-      { src: "/images/raonaq-volume-tool.png", label: "L’outil" },
-      { src: "/images/raonaq-hair-blowout.png", label: "Volume des racines" },
-      { src: "/images/raonaq-volume-box.png", label: "Ce que vous recevez" },
+      { src: "/images/raonaq-volume-collage.png", label: "Ce qu’on aime" },
+      { src: "/images/raonaq-volume-before-after.png", label: "Avant / après" },
+      { src: "/images/raonaq-volume-howto.png", label: "Comment faire" },
     ],
   },
   {
@@ -607,10 +603,10 @@ export const products: Product[] = [
     heroImage: "/images/raonaq-go-woman.png",
     gallery: [
       { src: "/images/raonaq-go-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-go-lifestyle.png", label: "Retouche partout" },
-      { src: "/images/raonaq-go-closeup.png", label: "L’outil" },
-      { src: "/images/raonaq-go-unboxing.png", label: "L’écrin" },
-      { src: "/images/raonaq-go-box.png", label: "Ce que vous recevez" },
+      { src: "/images/raonaq-go-catalog.png", label: "L’outil" },
+      { src: "/images/raonaq-go-inside.png", label: "La tech" },
+      { src: "/images/raonaq-go-battery.png", label: "USB-C" },
+      { src: "/images/raonaq-go-kit.png", label: "L’écrin" },
     ],
   },
   {
@@ -697,9 +693,12 @@ export const products: Product[] = [
     heroImage: "/images/raonaq-duo-woman.png",
     gallery: [
       { src: "/images/raonaq-duo-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-duo-tool.png", label: "L’outil" },
-      { src: "/images/raonaq-duo-unboxing.png", label: "L’écrin" },
-      { src: "/images/raonaq-duo-closeup.png", label: "Le geste" },
+      { src: "/images/raonaq-duo-catalog.png", label: "L’outil" },
+      { src: "/images/raonaq-duo-showcase.png", label: "Lisser et onduler" },
+      { src: "/images/raonaq-duo-love.png", label: "Ce qu’on aime" },
+      { src: "/images/raonaq-duo-ba.png", label: "Avant / après" },
+      { src: "/images/raonaq-duo-steps.png", label: "Comment faire" },
+      { src: "/images/raonaq-duo-looks.png", label: "Les looks" },
     ],
   },
 ];

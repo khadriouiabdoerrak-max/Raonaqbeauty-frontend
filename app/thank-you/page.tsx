@@ -1,31 +1,40 @@
 ﻿"use client";
 
-import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "../../context/CartContext";
 import { trackPurchase, type LastPurchase, type PixelContent } from "../../lib/pixels";
 import { getWhatsAppDisplay, getWhatsAppLink } from "../../lib/contact";
 import { clearPendingOrder, consumePurchaseForTracking, readLastOrder } from "../../lib/orders";
-import { products, productThumb } from "../../lib/products";
+import { products, productThumb, type Product } from "../../lib/products";
 import { SITE, getSocialLinks } from "../../lib/site";
+import { getCallWindow, type CallWindow } from "../../lib/callWindow";
 
-/**
- * Thank-you — pattern des marques DTC premium (Massima / Glossier / Mejuri),
- * adapté COD Maroc : 1 CTA = confirmer WhatsApp (équivalent « Track order »).
- *
- * Above the fold : succès + n° + CTA
- * Ensuite : reçu (adresse + articles) + timeline + pied marque
- */
-
-const timeline = [
-  { label: "Confirmée", detail: "WhatsApp ou appel" },
-  { label: "Préparée", detail: "Depuis Casablanca" },
-  { label: "Expédiée", detail: "Livraison gratuite" },
-  { label: "Chez vous", detail: "Inspectez, puis payez" },
+const PROOFS = [
+  {
+    name: "Salma",
+    city: "Casablanca",
+    text: "Ils m’ont appelée le jour même. À la porte j’ai ouvert, vérifié, puis payé. Simple.",
+  },
+  {
+    name: "Imane",
+    city: "Rabat",
+    text: "Le numéro était inconnu — j’ai répondu. Commande confirmée en deux minutes.",
+  },
+  {
+    name: "Nour",
+    city: "Marrakech",
+    text: "Livraison rapide. Résultat salon chez moi. Je recommande Raonaq.",
+  },
 ];
 
 function itemImage(id: string) {
   const product = products.find((p) => p.id === id);
   return product ? productThumb(product) : "";
+}
+
+function productById(id: string): Product | undefined {
+  return products.find((p) => p.id === id);
 }
 
 function IconWhatsApp({ className = "h-5 w-5" }: { className?: string }) {
@@ -41,16 +50,64 @@ function firstName(full?: string) {
   return full.trim().split(/\s+/)[0] || "";
 }
 
+function suggestProducts(boughtIds: string[], limit = 3): Product[] {
+  const set = new Set(boughtIds);
+  const preferred = ["p6", "p5", "p4", "p2", "p3", "p1"];
+  const ranked = [
+    ...preferred.map((id) => products.find((p) => p.id === id)).filter(Boolean),
+    ...products,
+  ] as Product[];
+  const out: Product[] = [];
+  for (const p of ranked) {
+    if (set.has(p.id)) continue;
+    if (out.some((x) => x.id === p.id)) continue;
+    out.push(p);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+function resultTease(boughtIds: string[]): { title: string; text: string } {
+  const names = boughtIds
+    .map((id) => productById(id)?.name)
+    .filter(Boolean)
+    .join(", ");
+  if (boughtIds.includes("p1")) {
+    return {
+      title: "Trois looks, chez vous",
+      text: "Lisse, ondulation, volume — TRIO arrive en écrin Raonaq. Après l’appel, la préparation part vite.",
+    };
+  }
+  if (boughtIds.includes("p4")) {
+    return {
+      title: "Volume dès les racines",
+      text: "VOLUME : effet salon sans rendez-vous. Répondez à l’appel — puis la livraison gratuite.",
+    };
+  }
+  if (boughtIds.includes("p6")) {
+    return {
+      title: "Lisser et onduler",
+      text: "DUO : un outil, deux gestes. Bientôt à votre porte — après un appel Raonaq.",
+    };
+  }
+  return {
+    title: names ? `Votre ${names}` : "Votre écrin Raonaq",
+    text: "Résultat salon à la maison. On confirme, on prépare, on livre — vous inspectez, puis vous payez.",
+  };
+}
+
 export default function ThankYouPage() {
   const { finishOrder } = useCart();
   const tracked = useRef(false);
   const [purchase, setPurchase] = useState<LastPurchase | null>(null);
+  const [callWin, setCallWin] = useState<CallWindow | null>(null);
   const social = getSocialLinks();
   const whatsappDisplay = getWhatsAppDisplay();
 
   useEffect(() => {
     finishOrder();
     clearPendingOrder();
+    setCallWin(getCallWindow());
 
     const data = readLastOrder();
     if (data) setPurchase(data);
@@ -71,229 +128,412 @@ export default function ThankYouPage() {
   const customer = purchase?.customer;
   const greetName = firstName(customer?.name);
   const hasItems = Boolean(purchase && purchase.contents.length > 0);
+  const boughtIds = useMemo(() => purchase?.contents.map((c) => c.id) ?? [], [purchase]);
+  const suggestions = useMemo(() => suggestProducts(boughtIds), [boughtIds]);
+  const tease = useMemo(() => resultTease(boughtIds), [boughtIds]);
 
-  const whatsappBody = (() => {
-    const lines = ["Bonjour Raonaq,"];
-    if (purchase?.orderId) lines.push(`Je confirme ma commande N° ${purchase.orderId}.`);
-    else lines.push("Je souhaite confirmer ma commande.");
-    if (customer?.name) lines.push(`Nom : ${customer.name}`);
-    if (customer?.phone) lines.push(`Téléphone : ${customer.phone}`);
-    if (customer?.city) lines.push(`Ville : ${customer.city}`);
-    if (customer?.address) lines.push(`Adresse : ${customer.address}`);
-    lines.push("Merci de me recontacter pour valider la livraison.");
-    return lines.join("\n");
-  })();
+  const whatsappConfirm = getWhatsAppLink(
+    (() => {
+      const lines = ["Bonjour Raonaq,"];
+      if (purchase?.orderId) lines.push(`Je confirme ma commande N° ${purchase.orderId}.`);
+      else lines.push("Je souhaite confirmer ma commande.");
+      if (customer?.name) lines.push(`Nom : ${customer.name}`);
+      if (customer?.phone) lines.push(`Téléphone : ${customer.phone}`);
+      if (customer?.city) lines.push(`Ville : ${customer.city}`);
+      if (customer?.address) lines.push(`Adresse : ${customer.address}`);
+      lines.push("Je suis disponible pour l’appel de confirmation.");
+      return lines.join("\n");
+    })(),
+  );
 
-  const whatsapp = getWhatsAppLink(whatsappBody);
   const whatsappFix = getWhatsAppLink(
     purchase?.orderId
       ? `Bonjour Raonaq,\nJe souhaite corriger les infos de ma commande N° ${purchase.orderId}.`
       : "Bonjour Raonaq,\nJe souhaite corriger les infos de ma commande.",
   );
 
+  function addOnWhatsApp(product: Product) {
+    return getWhatsAppLink(
+      purchase?.orderId
+        ? `Bonjour Raonaq,\nJe souhaite ajouter ${product.name} (${product.price1} Dhs) à ma commande N° ${purchase.orderId}.`
+        : `Bonjour Raonaq,\nJe souhaite ajouter ${product.name} (${product.price1} Dhs) à ma commande.`,
+    );
+  }
+
   return (
     <div className="min-h-full bg-[#F7F1EC]">
-      {/* 1. Confirmation header — calm, brand, like Mejuri / Massima */}
-      <header className="border-b border-[#1C1412]/08 bg-[#F7F1EC]">
-        <div className="mx-auto max-w-xl px-5 pt-10 pb-8 text-center md:pt-14 md:pb-10">
-          <p className="font-display text-2xl font-semibold tracking-[0.12em] text-[#1C1412]">
+      {/* Banner COD */}
+      {callWin && (
+        <div className="sticky top-0 z-40 border-b border-[#C4A484]/25 bg-[#1C1412] text-white">
+          <div className="mx-auto flex max-w-3xl flex-col gap-2.5 px-4 py-3.5 sm:flex-row sm:items-center sm:gap-5 sm:px-6">
+            <span className="inline-flex w-fit shrink-0 bg-[#C45B6A] px-2.5 py-1 text-[10px] font-semibold tracking-[0.2em] uppercase">
+              {callWin.badge}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[14px] font-semibold leading-snug">{callWin.headline}</p>
+              <p className="mt-0.5 text-[12px] leading-relaxed text-white/55">{callWin.detail}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hero marque */}
+      <section className="relative overflow-hidden bg-[#1C1412] text-white">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(196,164,132,0.28),transparent)]" />
+        <div className="relative mx-auto max-w-2xl px-5 py-12 text-center md:py-16">
+          <p className="font-display text-4xl font-semibold tracking-[0.1em] text-[#C4A484] md:text-5xl">
             رونق
           </p>
-          <p className="mt-1 text-[10px] font-medium tracking-[0.4em] text-[#1C1412]/40">RAONAQ</p>
+          <p className="mt-2 text-[10px] font-medium tracking-[0.48em] text-white/40">
+            RAONAQ · MAISON MAROCAINE
+          </p>
+          <p className="mt-3 text-[13px] font-medium text-white/45">نتيجة صالون فدارك</p>
 
-          <div className="mx-auto mt-7 flex h-11 w-11 items-center justify-center rounded-full bg-[#1C1412]">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-5 w-5 text-[#C4A484]">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-            </svg>
-          </div>
+          <div className="mx-auto mt-8 h-px w-14 bg-[#C4A484]/50" />
 
-          <h1 className="font-display mt-5 text-3xl font-semibold leading-tight text-[#1C1412] md:text-4xl">
-            {greetName ? `Merci, ${greetName}` : "Merci"}
+          <h1 className="font-display mt-8 text-[2.4rem] leading-[1.08] font-semibold md:text-5xl">
+            {greetName ? (
+              <>
+                Merci,
+                <br />
+                <span className="text-[#C4A484]">{greetName}</span>
+              </>
+            ) : (
+              "Merci"
+            )}
           </h1>
-          <p className="mx-auto mt-2 max-w-sm text-[14px] leading-relaxed text-[#1C1412]/55">
-            Votre commande est enregistrée. Confirmez-la pour lancer la préparation.
+          <p className="mx-auto mt-4 max-w-md text-[15px] leading-relaxed text-white/60">
+            Votre commande est enregistrée. Un appel Raonaq confirme l’adresse — puis l’écrin part vers vous.
           </p>
 
           {purchase?.orderId ? (
-            <p className="mt-5 text-[13px] text-[#1C1412]/45">
-              Commande{" "}
-              <span className="font-semibold tracking-wide text-[#1C1412]">N° {purchase.orderId}</span>
-            </p>
+            <div className="mt-8 inline-flex flex-col items-center gap-1 border border-[#C4A484]/35 bg-white/[0.04] px-10 py-4">
+              <span className="text-[9px] font-medium tracking-[0.36em] text-white/40">COMMANDE</span>
+              <span className="font-display text-2xl font-semibold tracking-wide text-[#C4A484]">
+                N° {purchase.orderId}
+              </span>
+            </div>
           ) : null}
         </div>
-      </header>
+      </section>
 
-      <div className="mx-auto max-w-xl px-5 py-8 md:py-10">
-        {/* 2. Primary CTA — une seule action (pattern mondial) */}
-        <div>
-          <p className="text-[11px] font-medium tracking-[0.22em] text-[#C45B6A]">PROCHAINE ÉTAPE</p>
-          <h2 className="font-display mt-1 text-2xl font-semibold text-[#1C1412]">
-            Confirmer la commande
-          </h2>
-          <p className="mt-2 text-[13px] leading-relaxed text-[#1C1412]/55">
-            Sans confirmation, nous n’expédions pas. Un message WhatsApp suffit.
+      <div className="mx-auto max-w-2xl px-4 py-8 md:py-10">
+        {/* Fiche client — brandée */}
+        <section className="overflow-hidden border border-[#C4A484]/30 bg-white">
+          <div className="flex items-end justify-between gap-4 border-b border-[#1C1412]/08 bg-[#1C1412] px-5 py-4 md:px-8">
+            <div>
+              <p className="text-[10px] font-medium tracking-[0.32em] text-[#C4A484]">CLIENT RAONAQ</p>
+              <h2 className="font-display mt-1 text-xl font-semibold text-white md:text-2xl">
+                Vos informations
+              </h2>
+            </div>
+            {purchase?.orderId ? (
+              <p className="shrink-0 text-[12px] font-medium tracking-wide text-white/40">
+                N° {purchase.orderId}
+              </p>
+            ) : null}
+          </div>
+
+          {customer ? (
+            <div className="px-5 py-6 md:px-8 md:py-8">
+              <p className="text-[13px] leading-relaxed text-[#1C1412]/55">
+                C’est sur ces coordonnées que nous appelons pour confirmer{" "}
+                <span className="font-medium text-[#1C1412]">avant l’expédition</span>.
+              </p>
+
+              <dl className="mt-6 grid gap-6 sm:grid-cols-2">
+                <div className="sm:col-span-2 border-b border-[#1C1412]/06 pb-5">
+                  <dt className="text-[10px] font-medium tracking-[0.24em] text-[#C45B6A]">NOM COMPLET</dt>
+                  <dd className="font-display mt-1.5 text-2xl font-semibold text-[#1C1412]">
+                    {customer.name}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[10px] font-medium tracking-[0.24em] text-[#C45B6A]">
+                    TÉLÉPHONE · APPEL
+                  </dt>
+                  <dd className="mt-1.5 text-xl font-semibold tracking-wide text-[#1C1412]" dir="ltr">
+                    {customer.phone}
+                  </dd>
+                  <p className="mt-1 text-[12px] text-[#1C1412]/40">Le numéro qui sonnera</p>
+                </div>
+                <div>
+                  <dt className="text-[10px] font-medium tracking-[0.24em] text-[#C45B6A]">VILLE</dt>
+                  <dd className="mt-1.5 text-xl font-semibold text-[#1C1412]">{customer.city}</dd>
+                  <p className="mt-1 text-[12px] text-[#1C1412]/40">Livraison Maroc</p>
+                </div>
+                <div className="sm:col-span-2">
+                  <dt className="text-[10px] font-medium tracking-[0.24em] text-[#C45B6A]">
+                    ADRESSE DE LIVRAISON
+                  </dt>
+                  <dd className="mt-1.5 text-[15px] leading-relaxed text-[#1C1412]">
+                    {customer.address}
+                  </dd>
+                </div>
+              </dl>
+
+              <div className="mt-7 grid gap-3 border-t border-[#1C1412]/08 pt-5 sm:grid-cols-2">
+                <div className="bg-[#F7F1EC] px-4 py-3.5">
+                  <p className="text-[12px] font-semibold text-[#1C1412]">Numéro inconnu ?</p>
+                  <p className="mt-1 text-[12px] leading-relaxed text-[#1C1412]/55">
+                    Répondez — c’est un conseiller Raonaq.
+                  </p>
+                </div>
+                <div className="bg-[#F7F1EC] px-4 py-3.5">
+                  <p className="text-[12px] font-semibold text-[#1C1412]">Horaires d’appel</p>
+                  <p className="mt-1 text-[12px] leading-relaxed text-[#1C1412]/55">
+                    9h–21h · souvent sous 10 minutes
+                  </p>
+                </div>
+              </div>
+
+              {whatsappFix && (
+                <a
+                  href={whatsappFix}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-5 inline-block text-[13px] font-semibold text-[#C45B6A] underline-offset-4 hover:underline"
+                >
+                  Corriger mes informations
+                </a>
+              )}
+            </div>
+          ) : (
+            <div className="px-5 py-8 md:px-8">
+              <p className="text-[14px] leading-relaxed text-[#1C1412]/55">
+                Après votre commande, votre nom, téléphone, ville et adresse s’affichent ici — pour
+                vérifier l’appel de confirmation.
+              </p>
+            </div>
+          )}
+        </section>
+
+        {/* WhatsApp */}
+        <section className="mt-5 border border-[#C4A484]/25 bg-[#1C1412] px-5 py-7 text-white md:px-8">
+          <p className="text-[10px] font-medium tracking-[0.32em] text-[#C4A484]">CONFIRMATION</p>
+          <h2 className="font-display mt-2 text-2xl font-semibold">Aussi sur WhatsApp</h2>
+          <p className="mt-2 max-w-md text-[13px] leading-relaxed text-white/55">
+            Un message maintenant accélère la validation — et peut raccourcir l’appel.
           </p>
-
-          {whatsapp ? (
+          {whatsappConfirm ? (
             <a
-              href={whatsapp}
+              href={whatsappConfirm}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-5 flex w-full items-center justify-center gap-2.5 bg-[#25D366] px-5 py-4 text-[15px] font-semibold text-white transition hover:brightness-95"
+              className="mt-5 flex w-full items-center justify-center gap-2.5 bg-[#25D366] px-5 py-4 text-[14px] font-semibold text-white transition hover:brightness-95"
             >
-              <IconWhatsApp className="h-5 w-5 shrink-0" />
+              <IconWhatsApp className="h-5 w-5" />
               Confirmer sur WhatsApp
             </a>
           ) : (
-            <div className="mt-5 border border-[#C4A484]/30 bg-white px-5 py-4">
-              <p className="text-sm font-semibold text-[#1C1412]">Nous vous contactons sous peu</p>
-              <p className="mt-1 text-[13px] text-[#1C1412]/55">
-                Gardez votre téléphone à portée — avant l’expédition.
-              </p>
-              <a
-                href={`mailto:${SITE.email}?subject=${encodeURIComponent(
-                  purchase?.orderId ? `Confirmation commande ${purchase.orderId}` : "Confirmation Raonaq",
-                )}`}
-                className="mt-2 inline-block text-[13px] font-semibold text-[#C45B6A] underline-offset-4 hover:underline"
-              >
-                {SITE.email}
-              </a>
-            </div>
+            <p className="mt-5 text-[13px] text-white/50">{SITE.email}</p>
           )}
-
           {whatsappDisplay ? (
-            <p className="mt-2 text-center text-[12px] text-[#1C1412]/40" dir="ltr">
+            <p className="mt-2.5 text-center text-[12px] text-white/35" dir="ltr">
               {whatsappDisplay}
             </p>
           ) : null}
-        </div>
+        </section>
 
-        {/* 3. Timeline — “what happens next” (réduit WISMO) */}
-        <div className="mt-10">
-          <p className="text-[11px] font-medium tracking-[0.22em] text-[#C45B6A]">ENSUITE</p>
-          <h2 className="font-display mt-1 text-xl font-semibold text-[#1C1412]">
-            De la confirmation à la porte
-          </h2>
+        {/* Suite + émotion */}
+        <section className="mt-10">
+          <p className="text-[10px] font-medium tracking-[0.32em] text-[#C45B6A]">ENSUITE</p>
+          <h2 className="font-display mt-1.5 text-2xl font-semibold text-[#1C1412]">{tease.title}</h2>
+          <p className="mt-2 text-[14px] leading-relaxed text-[#1C1412]/55">{tease.text}</p>
 
-          <ol className="mt-6 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4 sm:gap-2">
-            {timeline.map((step, i) => (
-              <li key={step.label} className="relative text-left sm:text-center">
-                <div className="flex items-center gap-2 sm:flex-col sm:gap-3">
-                  <span
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center text-[12px] font-semibold sm:mx-auto ${
-                      i === 0
-                        ? "bg-[#1C1412] text-[#C4A484]"
-                        : "border border-[#C4A484]/40 text-[#C45B6A]"
-                    }`}
-                  >
-                    {i + 1}
-                  </span>
-                  <div>
-                    <p className="text-[13px] font-semibold text-[#1C1412]">{step.label}</p>
-                    <p className="mt-0.5 text-[11px] leading-snug text-[#1C1412]/45">{step.detail}</p>
-                  </div>
+          <ol className="mt-7 space-y-0 border-t border-[#C4A484]/25">
+            {[
+              {
+                t: "Vous répondez",
+                d: "Appel Raonaq — parfois numéro inconnu. 1–2 min pour valider l’adresse.",
+              },
+              {
+                t: "On prépare l’écrin",
+                d: "Depuis Casablanca, souvent le jour même ou le lendemain.",
+              },
+              {
+                t: "Chez vous · vous inspectez",
+                d: "Livraison gratuite 24–48 h. Ouvrez, vérifiez, puis payez.",
+              },
+            ].map((s, i) => (
+              <li
+                key={s.t}
+                className="flex gap-4 border-b border-[#C4A484]/25 py-5"
+              >
+                <span className="font-display text-2xl font-semibold text-[#C4A484]/70">
+                  0{i + 1}
+                </span>
+                <div>
+                  <p className="font-semibold text-[#1C1412]">{s.t}</p>
+                  <p className="mt-1 text-[13px] leading-relaxed text-[#1C1412]/50">{s.d}</p>
                 </div>
               </li>
             ))}
           </ol>
+        </section>
 
-          <p className="mt-6 text-[13px] leading-relaxed text-[#1C1412]/50">
-            Livraison gratuite · généralement <span className="font-medium text-[#1C1412]">24–48 h</span> selon
-            la ville · paiement à la porte après inspection.
-          </p>
-        </div>
-
-        {/* 4. Reçu — adresse + articles (non-négociable chez les grandes marques) */}
-        {(customer || hasItems) && (
-          <div className="mt-10 border-t border-[#1C1412]/10 pt-8">
-            <p className="text-[11px] font-medium tracking-[0.22em] text-[#C45B6A]">REÇU</p>
-            <h2 className="font-display mt-1 text-xl font-semibold text-[#1C1412]">
-              Récapitulatif
-            </h2>
-
-            {customer && (
-              <div className="mt-6">
-                <p className="text-[12px] font-semibold uppercase tracking-wider text-[#1C1412]/35">
-                  Livraison
-                </p>
-                <div className="mt-3 space-y-1 text-[14px] leading-relaxed text-[#1C1412]">
-                  <p className="font-semibold">{customer.name}</p>
-                  <p dir="ltr">{customer.phone}</p>
-                  <p>
-                    {customer.address}
-                    {customer.city ? `, ${customer.city}` : ""}
-                  </p>
-                </div>
-                {whatsappFix && (
-                  <a
-                    href={whatsappFix}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 inline-block text-[13px] font-medium text-[#C45B6A] underline-offset-4 hover:underline"
-                  >
-                    Modifier sur WhatsApp
-                  </a>
-                )}
+        {/* Reçu aéré */}
+        {hasItems && purchase && (
+          <section className="mt-10 bg-white px-5 py-7 md:px-8 md:py-8">
+            <div className="flex items-baseline justify-between gap-4 border-b border-[#1C1412]/08 pb-4">
+              <div>
+                <p className="text-[10px] font-medium tracking-[0.32em] text-[#C45B6A]">ÉCRIN</p>
+                <h2 className="font-display mt-1 text-xl font-semibold text-[#1C1412]">
+                  Votre commande
+                </h2>
               </div>
-            )}
+              {purchase.orderId ? (
+                <p className="text-[12px] text-[#1C1412]/35">N° {purchase.orderId}</p>
+              ) : null}
+            </div>
 
-            {hasItems && purchase && (
-              <div className={customer ? "mt-8" : "mt-6"}>
-                <p className="text-[12px] font-semibold uppercase tracking-wider text-[#1C1412]/35">
-                  Articles
-                </p>
-                <ul className="mt-4 space-y-4">
-                  {purchase.contents.map((item) => (
-                    <li key={`${item.id}-${item.name}`} className="flex gap-4">
-                      {itemImage(item.id) ? (
-                        <div className="h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden bg-white">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={itemImage(item.id)} alt="" className="h-full w-full object-cover" />
-                        </div>
-                      ) : null}
-                      <div className="flex min-w-0 flex-1 flex-col justify-center">
-                        <p className="truncate font-semibold text-[#1C1412]">{item.name}</p>
-                        <p className="text-[12px] text-[#1C1412]/45">Qté {item.quantity}</p>
-                      </div>
-                      <p className="shrink-0 self-center text-[14px] font-semibold text-[#1C1412]">
-                        {item.price * item.quantity} Dhs
+            <ul className="divide-y divide-[#1C1412]/06">
+              {purchase.contents.map((item) => (
+                <li key={`${item.id}-${item.name}`} className="flex gap-5 py-6">
+                  {itemImage(item.id) ? (
+                    <div className="h-28 w-24 shrink-0 overflow-hidden bg-[#F7F1EC]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={itemImage(item.id)} alt="" className="h-full w-full object-cover" />
+                    </div>
+                  ) : null}
+                  <div className="flex min-w-0 flex-1 flex-col justify-between">
+                    <div>
+                      <p className="font-display text-xl font-semibold text-[#1C1412]">{item.name}</p>
+                      <p className="mt-1 text-[12px] tracking-wide text-[#1C1412]/40">
+                        Quantité {item.quantity}
                       </p>
-                    </li>
-                  ))}
-                </ul>
+                    </div>
+                    <p className="mt-4 text-[16px] font-semibold tabular-nums text-[#1C1412]">
+                      {item.price * item.quantity}
+                      <span className="ml-1 text-[12px] font-medium text-[#1C1412]/40">Dhs</span>
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
 
-                <div className="mt-6 space-y-2 border-t border-[#1C1412]/10 pt-4 text-[14px]">
-                  <div className="flex justify-between text-[#1C1412]/50">
-                    <span>Livraison</span>
-                    <span className="font-medium text-[#1C1412]">Gratuite</span>
-                  </div>
-                  <div className="flex justify-between text-[#1C1412]/50">
-                    <span>Paiement</span>
-                    <span className="font-medium text-[#1C1412]">À la porte · COD</span>
-                  </div>
-                  <div className="flex items-baseline justify-between pt-2">
-                    <span className="font-semibold text-[#1C1412]">Total</span>
-                    <span className="font-display text-2xl font-semibold text-[#1C1412]">
-                      {purchase.value} Dhs
-                    </span>
-                  </div>
-                </div>
+            <div className="space-y-3 border-t border-[#1C1412]/08 pt-5">
+              <div className="flex justify-between text-[13px] text-[#1C1412]/45">
+                <span>Livraison</span>
+                <span className="font-medium text-[#1C1412]">Gratuite</span>
               </div>
-            )}
-          </div>
+              <div className="flex justify-between text-[13px] text-[#1C1412]/45">
+                <span>Paiement</span>
+                <span className="font-medium text-[#1C1412]">À la porte · COD</span>
+              </div>
+              <div className="flex items-end justify-between pt-2">
+                <span className="text-[13px] font-semibold tracking-wide text-[#1C1412]">
+                  Total à la livraison
+                </span>
+                <span className="font-display text-3xl font-semibold tabular-nums text-[#1C1412]">
+                  {purchase.value}
+                  <span className="ml-1 text-base font-medium">Dhs</span>
+                </span>
+              </div>
+            </div>
+          </section>
         )}
 
-        {/* 5. Pied marque — léger, pas une 2e landing */}
-        <footer className="mt-12 border-t border-[#1C1412]/10 pt-8 text-center">
-          <p className="font-display text-lg font-semibold text-[#1C1412]">
-            Ouvrez · inspectez · puis payez
-          </p>
-          <p className="mt-2 text-[12px] leading-relaxed text-[#1C1412]/45">
-            Maison marocaine · Casablanca · {SITE.hours}
-          </p>
+        {/* Preuve */}
+        <section className="mt-10">
+          <p className="text-[10px] font-medium tracking-[0.32em] text-[#C45B6A]">VOIX DU MAROC</p>
+          <h2 className="font-display mt-1.5 text-2xl font-semibold text-[#1C1412]">
+            Elles ont répondu à l’appel
+          </h2>
+          <div className="mt-6 space-y-4">
+            {PROOFS.map((p) => (
+              <blockquote
+                key={p.name}
+                className="border-l-[3px] border-[#C4A484] bg-white px-5 py-4"
+              >
+                <p className="text-[14px] leading-relaxed text-[#1C1412]/70">“{p.text}”</p>
+                <footer className="mt-3 text-[12px] font-semibold tracking-wide text-[#1C1412]">
+                  {p.name}
+                  <span className="font-normal text-[#1C1412]/40"> · {p.city}</span>
+                </footer>
+              </blockquote>
+            ))}
+          </div>
+        </section>
 
+        {/* Suggestions */}
+        {suggestions.length > 0 && (
+          <section className="mt-10">
+            <p className="text-[10px] font-medium tracking-[0.32em] text-[#C45B6A]">COLLECTION</p>
+            <h2 className="font-display mt-1.5 text-2xl font-semibold text-[#1C1412]">
+              Ajouter au même colis
+            </h2>
+            <p className="mt-2 text-[13px] leading-relaxed text-[#1C1412]/50">
+              Pendant l’appel ou sur WhatsApp — une seule livraison Raonaq.
+            </p>
+
+            <ul className="mt-6 space-y-3">
+              {suggestions.map((p) => {
+                const wa = addOnWhatsApp(p);
+                return (
+                  <li key={p.id} className="flex gap-4 bg-white p-3 sm:p-4">
+                    <Link
+                      href={`/products/${p.slug}`}
+                      className="h-28 w-24 shrink-0 overflow-hidden bg-[#F7F1EC]"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={productThumb(p)} alt={p.name} className="h-full w-full object-cover" />
+                    </Link>
+                    <div className="flex min-w-0 flex-1 flex-col justify-between py-0.5">
+                      <div>
+                        <Link
+                          href={`/products/${p.slug}`}
+                          className="font-display text-lg font-semibold text-[#1C1412] hover:text-[#C45B6A]"
+                        >
+                          {p.name}
+                        </Link>
+                        <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-[#1C1412]/45">
+                          {p.compareLine || p.tagline}
+                        </p>
+                        <p className="mt-2 text-[15px] font-semibold tabular-nums text-[#1C1412]">
+                          {p.price1}
+                          <span className="ml-1 text-[12px] font-medium text-[#1C1412]/40">Dhs</span>
+                        </p>
+                      </div>
+                      {wa ? (
+                        <a
+                          href={wa}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-3 inline-flex w-fit items-center gap-1.5 text-[12px] font-semibold tracking-wide text-[#C45B6A] underline-offset-4 hover:underline"
+                        >
+                          <IconWhatsApp className="h-3.5 w-3.5" />
+                          Ajouter sur WhatsApp
+                        </a>
+                      ) : null}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
+        {/* Promesse brand */}
+        <section className="relative mt-10 overflow-hidden bg-[#1C1412] px-6 py-12 text-center text-white">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(196,164,132,0.15),transparent_65%)]" />
+          <div className="relative">
+            <p className="font-display text-2xl font-semibold tracking-[0.08em] text-[#C4A484]">رونق</p>
+            <p className="font-display mt-4 text-2xl font-semibold leading-snug md:text-3xl">
+              Ouvrez · inspectez · puis payez
+            </p>
+            <p className="mx-auto mt-3 max-w-sm text-[13px] leading-relaxed text-white/50">
+              Maison marocaine. Collection courte. Confiance à la porte — aucun paiement d’avance.
+            </p>
+          </div>
+        </section>
+
+        <footer className="mt-8 pb-8 text-center">
+          <p className="text-[11px] tracking-wide text-[#1C1412]/35">
+            {SITE.fullName} · Casablanca · Appels 9h–21h
+          </p>
           {(social.instagram || social.tiktok || social.facebook) && (
-            <p className="mt-4 text-[12px] text-[#1C1412]/40">
+            <p className="mt-2 text-[12px]">
               {social.instagram && (
                 <a
                   href={social.instagram}

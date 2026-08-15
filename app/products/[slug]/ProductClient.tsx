@@ -12,6 +12,7 @@ import Stars from "../../../components/Stars";
 import ReviewMarquee from "../../../components/ReviewMarquee";
 import ProductShot from "../../../components/ProductShot";
 import PdpTrustStrip from "../../../components/PdpTrustStrip";
+import PdpGalleryBanner from "../../../components/PdpGalleryBanner";
 import { voicesForProduct } from "../../../lib/pdp-voices";
 import {
   products,
@@ -289,6 +290,7 @@ export default function ProductClient({ product }: { product: Product }) {
       <section className="bg-white">
         <div className="container mx-auto grid max-w-full grid-cols-1 items-start gap-4 overflow-x-hidden px-0 pb-2 pt-2 md:grid-cols-2 md:gap-10 md:px-4 md:pb-0 md:pt-3 lg:gap-14 lg:px-8 lg:py-8 xl:grid-cols-[minmax(0,1fr)_420px]">
           <div className="min-w-0 max-w-full overflow-hidden">
+            <PdpGalleryBanner product={product} />
             {/* نفس إطار الرئيسية: طول 4/5 × عرض كامل */}
             <ProductShot
               src={galleryShot?.src ?? product.heroImage}

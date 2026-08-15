@@ -107,6 +107,22 @@ export const COMMON_PDP_FAQS: ProductFaq[] = [
 
 export const productThumb = (p: Product): string => p.gallery[0]?.src ?? p.heroImage;
 
+/** % économie si prix barré réel — sinon null (pas de faux rabais) */
+export function productSavePercent(p: Product): number | null {
+  if (p.priceWas == null || p.priceWas <= p.price1) return null;
+  return Math.round((1 - p.price1 / p.priceWas) * 100);
+}
+
+/** Bandeau galerie PDP — accroche + offre seule (le nom reste dans le panneau achat) */
+export function productGalleryBanner(p: Product) {
+  const save = productSavePercent(p);
+  return {
+    hook: p.compareLine || p.tagline,
+    saveLabel: save != null ? `Économisez ${save}%` : null,
+    accent: save == null ? (p.tag ?? "Livraison gratuite") : null,
+  };
+}
+
 export function productBeforeAfter(_p?: Product) {
   return {
     after: "/images/raonaq-result-after.png",

@@ -60,6 +60,8 @@ export type Product = {
   voice: { name: string; city: string; text: string };
   price1: number;
   price2: number;
+  /** Ancien prix affiché barré — seulement si réel */
+  priceWas?: number;
   heroImage: string;
   gallery: ProductShot[];
   /** Déposez le fichier dans /public/videos puis renseignez le chemin, ex. /videos/raonaq-trio.mp4 */
@@ -118,14 +120,17 @@ export function productStoryCards(p: Product) {
   ];
 }
 
-export function productCoverClass(src: string, slug?: string) {
-  const isDuoPhoto =
-    slug === "raonaq-duo" ||
-    src.includes("raonaq-duo-woman") ||
-    src.includes("raonaq-duo-closeup");
-  if (isDuoPhoto) return "object-cover object-[84%_28%]";
-  if (src.includes("-tool") || src.includes("-box")) return "bg-white object-contain p-4";
-  return "object-cover object-[center_18%]";
+export function productCoverClass(src: string, _slug?: string) {
+  if (
+    src.includes("-tool") ||
+    src.includes("-tools") ||
+    src.includes("-box") ||
+    src.includes("-pack") ||
+    src.includes("-unboxing")
+  ) {
+    return "bg-[#F7F1EC] object-contain p-3";
+  }
+  return "object-contain object-center";
 }
 
 export const products: Product[] = [
@@ -133,7 +138,7 @@ export const products: Product[] = [
     id: "p1",
     slug: "raonaq-trio",
     name: "TRIO",
-    nameFr: "Coffret 3-en-1",
+    nameFr: "3-en-1 Lisse, Sèche & Volume",
     chips: ["3-en-1", "Lisse · ondule · volume", "Coffret cadeau", "220 V"],
     hairGuide: [
       { label: "Épais / bouclé", setting: "Cran 2 ou 3", note: "Chaleur moyenne à haute. Mèche par mèche, sans précipiter." },
@@ -223,7 +228,7 @@ export const products: Product[] = [
     id: "p2",
     slug: "raonaq-air-soft",
     name: "SOFT",
-    nameFr: "Brosse air — sans frisottis",
+    nameFr: "Brosse Air Kératine",
     chips: ["Sèche + coiffe", "Sans frisottis", "Cheveux épais", "220 V"],
     hairGuide: [
       { label: "Épais", setting: "Cran 2", note: "Cheveux encore un peu humides. Le lisse vient du passage, pas du cran max." },
@@ -316,7 +321,7 @@ export const products: Product[] = [
     id: "p3",
     slug: "raonaq-air-pink",
     name: "JOUR",
-    nameFr: "Brosse quotidienne",
+    nameFr: "Brosse Séchoir Quotidienne",
     chips: ["Rituel du matin", "Léger", "Air froid", "220 V"],
     hairGuide: [
       { label: "Fin", setting: "Cran 1", note: "Le cran bas. Ordre et brillance avant de sortir." },
@@ -405,7 +410,7 @@ export const products: Product[] = [
     id: "p4",
     slug: "raonaq-volume",
     name: "VOLUME",
-    nameFr: "Brosse volume",
+    nameFr: "Brosse Volume One-Step",
     chips: ["Volume des racines", "Brushing", "Mi-long / long", "220 V"],
     hairGuide: [
       { label: "Fin / plat", setting: "Cran 1", note: "Soulevez la mèche deux secondes aux racines, puis glissez." },
@@ -498,7 +503,7 @@ export const products: Product[] = [
     id: "p5",
     slug: "raonaq-go",
     name: "GO",
-    nameFr: "Retouche nomade",
+    nameFr: "Mini Styler Nomade",
     chips: ["Nomade", "Sans fil", "Sac à main", "Retouche"],
     hairGuide: [
       { label: "Mèches du visage", setting: "1 passage", note: "Chaleur douce. 3–8 min. Laissez refroidir." },
@@ -587,7 +592,7 @@ export const products: Product[] = [
     id: "p6",
     slug: "raonaq-duo",
     name: "DUO",
-    nameFr: "2-en-1 lisser & onduler",
+    nameFr: "2-en-1 Lisse & Ondule",
     chips: ["2-en-1", "Lisser", "Onduler", "220 V"],
     hairGuide: [
       { label: "Mi-long / long", setting: "Cran 2", note: "Petites mèches. Lisse ou waves — le même cran pour commencer." },
@@ -661,8 +666,9 @@ export const products: Product[] = [
     ],
     voice: { name: "", city: "", text: "" },
     reviews: [],
-    price1: 199,
-    price2: 279,
+    price1: 599,
+    price2: 999,
+    priceWas: 1000,
     heroImage: "/images/raonaq-duo-woman.png",
     gallery: [
       { src: "/images/raonaq-duo-woman.png", label: "Le résultat" },

@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useCart } from "../context/CartContext";
-import { products, productThumb } from "../lib/products";
+import { products } from "../lib/products";
 import { useInView } from "../lib/useInView";
 import ProductCarousel from "../components/ProductCarousel";
+import ProductShot from "../components/ProductShot";
 import BeforeAfterSlider from "../components/BeforeAfterSlider";
 import ErrorBoundary from "../components/ErrorBoundary";
+import Price from "../components/Price";
+import Stars from "../components/Stars";
 
 function FadeIn({
   children,
@@ -22,8 +24,8 @@ function FadeIn({
   return (
     <div
       ref={ref}
-      className={`transition-all duration-700 ease-out ${
-        inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+      className={`transition-transform duration-700 ease-out ${
+        inView ? "translate-y-0" : "translate-y-4"
       } ${className}`}
       style={{ transitionDelay: `${delay}ms` }}
     >
@@ -34,7 +36,7 @@ function FadeIn({
 
 function BeforeAfterResultVisual() {
   return (
-    <div className="relative mx-auto w-full max-w-md overflow-hidden border border-[#C4A484]/25">
+    <div className="relative mx-auto w-full min-w-0 max-w-md overflow-hidden border border-[#C4A484]/25">
       <ErrorBoundary>
         <BeforeAfterSlider />
       </ErrorBoundary>
@@ -47,7 +49,7 @@ const heroMobileImage = "/images/raonaq-hero-mobile.png";
 const lifestyleImage = "/images/raonaq-lifestyle-home.png";
 const toolsImage = "/images/raonaq-tools-editorial.png";
 
-const featured = products[0];
+const featured = products.find((p) => p.slug === "raonaq-duo") ?? products[0];
 const homeReviews = products.flatMap((p) => p.reviews ?? []).slice(0, 6);
 
 const looks = [
@@ -105,29 +107,19 @@ const faqs = [
 ];
 
 export default function Home() {
-  const { addToCart } = useCart();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-
-  const addOne = (id: string, name: string, price: number, image: string, qty = 1) => {
-    addToCart({
-      id,
-      name,
-      price: qty > 1 ? price / qty : price,
-      quantity: qty,
-      image,
-    });
-  };
 
   return (
     <div className="overflow-x-hidden bg-[#F7F1EC]">
       {/* ═══════════════ HERO ═══════════════ */}
-      <section className="relative min-h-[85svh] overflow-hidden bg-[#1C1412] md:min-h-[100svh]">
+      <section className="relative min-h-[85svh] w-full max-w-full overflow-hidden bg-[#1C1412] md:min-h-[100svh]">
         <picture>
           <source srcSet={heroMobileImage} media="(max-width: 767px)" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={heroImage}
             alt="Raonaq — le salon, chez vous"
-            className="hero-media absolute inset-0 h-full w-full object-cover object-[center_top] md:object-[center_18%]"
+            className="hero-media absolute inset-0 h-full w-full max-w-none object-cover object-[center_top] md:object-[center_18%]"
             loading="eager"
             decoding="async"
           />
@@ -194,16 +186,16 @@ export default function Home() {
       </section>
 
       {/* ═══════════════ المنتج البطلة ═══════════════ */}
-      <section className="relative overflow-hidden bg-[#F7F1EC]" id="featured">
-        <div className="container mx-auto px-4 py-12 md:py-28">
-          <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-6">
-            <FadeIn className="order-2 lg:order-1">
+      <section className="relative w-full max-w-full overflow-hidden bg-[#F7F1EC]" id="featured">
+        <div className="container mx-auto max-w-full px-4 py-12 md:py-28">
+          <div className="grid min-w-0 items-center gap-10 lg:grid-cols-2 lg:gap-6">
+            <FadeIn className="order-2 min-w-0 lg:order-1">
               <BeforeAfterResultVisual />
             </FadeIn>
 
-            <FadeIn delay={120} className="order-1 space-y-6 text-left lg:order-2">
+            <FadeIn delay={120} className="order-1 min-w-0 space-y-6 text-left lg:order-2">
               <div>
-                <p className="text-[11px] font-medium tracking-[0.3em] text-[#C45B6A]">LE COFFRET</p>
+                <p className="text-[11px] font-medium tracking-[0.3em] text-[#C45B6A]">2-EN-1</p>
                 <h2 className="font-display mt-2 text-4xl font-semibold leading-tight text-[#1C1412] md:text-5xl">
                   {featured.name}
                 </h2>
@@ -226,11 +218,12 @@ export default function Home() {
       </section>
 
       {/* ═══════════════ النتيجة ═══════════════ */}
-      <section className="relative min-h-[70vh] overflow-hidden bg-[#1C1412]" id="looks">
+      <section className="relative min-h-[70vh] w-full max-w-full overflow-hidden bg-[#1C1412]" id="looks">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={lifestyleImage}
           alt="Coiffer chez soi avec Raonaq"
-          className="absolute inset-0 h-full w-full object-cover object-[center_25%] opacity-50"
+          className="absolute inset-0 h-full w-full max-w-none object-cover object-[center_25%] opacity-50"
           loading="lazy"
           decoding="async"
         />
@@ -255,8 +248,8 @@ export default function Home() {
       </section>
 
       {/* ═══════════════ اختاري الستايل ═══════════════ */}
-      <section className="bg-white py-12 md:py-28">
-        <div className="container mx-auto px-4">
+      <section className="w-full max-w-full overflow-x-hidden bg-white py-12 md:py-28">
+        <div className="container mx-auto max-w-full px-4">
           <FadeIn>
             <div className="mb-12 max-w-xl text-left md:mb-16">
               <p className="text-sm font-medium tracking-[0.25em] text-[#C45B6A]">CHOISIR</p>
@@ -269,14 +262,15 @@ export default function Home() {
             </div>
           </FadeIn>
 
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
+          <div className="grid min-w-0 grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
             {looks.map((look, i) => (
-              <FadeIn key={look.en} delay={i * 70}>
-                <Link href={look.href} className="group relative block aspect-[3/4] overflow-hidden">
+              <FadeIn key={look.en} delay={i * 70} className="min-w-0">
+                <Link href={look.href} className="group relative block aspect-[3/4] w-full max-w-full overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={look.image}
                     alt={look.title}
-                    className="h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-105"
+                    className="absolute inset-0 h-full w-full max-w-none object-cover transition-transform duration-[900ms] ease-out group-hover:scale-105"
                     loading="lazy"
                     decoding="async"
                   />
@@ -302,8 +296,8 @@ export default function Home() {
       </section>
 
       {/* ═══════════════ المجموعة ═══════════════ */}
-      <section id="shop" className="relative z-[1] bg-[#F7F1EC] py-12 md:py-28">
-        <div className="container mx-auto px-4">
+      <section id="shop" className="relative z-[1] w-full max-w-full overflow-x-hidden bg-[#F7F1EC] py-12 md:py-28">
+        <div className="container mx-auto max-w-full px-4">
           <FadeIn>
             <div className="mb-8 text-center md:mb-10">
               <p className="text-sm font-medium tracking-[0.25em] text-[#C45B6A]">COLLECTION</p>
@@ -311,16 +305,50 @@ export default function Home() {
                 L’outil qui vous ressemble
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-[#1C1412]/60">
-                Une collection courte. Faites glisser pour tout voir.
+                Une collection courte. DUO en premier — les autres juste en dessous.
               </p>
             </div>
           </FadeIn>
 
-          <ProductCarousel
-            onAdd={(product) =>
-              addOne(product.id, `Raonaq ${product.name}`, product.price1, productThumb(product), 1)
-            }
-          />
+          <FadeIn>
+            <article className="mb-10 overflow-hidden bg-white md:mb-14">
+              <div className="grid min-w-0 md:grid-cols-2">
+                <Link href={`/products/${featured.slug}`} className="block min-w-0 overflow-hidden bg-white">
+                  <ProductShot
+                    src={featured.heroImage}
+                    alt={`Raonaq ${featured.name}`}
+                    variant="card"
+                    priority
+                  />
+                </Link>
+                <div className="flex flex-col justify-center px-6 py-8 text-left md:px-12 md:py-14">
+                  <Link href={`/products/${featured.slug}`} className="block">
+                    <p className="text-[11px] font-medium tracking-[0.3em] text-[#C45B6A]">2-EN-1</p>
+                    <h3 className="font-display mt-2 text-5xl font-semibold tracking-wide text-[#1C1412] md:text-6xl">
+                      {featured.name}
+                    </h3>
+                    <p className="font-display mt-2 text-xl leading-snug text-[#1C1412]/80 md:text-2xl">
+                      {featured.nameFr}
+                    </p>
+                  </Link>
+                  <Stars className="mt-3" />
+                  <p className="mt-4 max-w-sm text-base leading-relaxed text-[#1C1412]/65">
+                    {featured.tagline}
+                  </p>
+                  <div className="mt-6">
+                    <Price amount={featured.price1} was={featured.priceWas} size="lg" />
+                  </div>
+                  <div className="mt-8 flex w-full max-w-sm flex-col gap-3">
+                    <Link href={`/products/${featured.slug}`} className="btn btn-primary btn-lg w-full">
+                      Voir DUO
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </FadeIn>
+
+          <ProductCarousel />
 
           <div className="mt-8 text-center">
             <Link href="/collection" className="btn btn-secondary btn-lg">
@@ -333,11 +361,12 @@ export default function Home() {
       {/* ═══════════════ الثقة ═══════════════ */}
       <section className="bg-white">
         <div className="grid lg:grid-cols-2">
-          <div className="relative min-h-[260px] md:min-h-[420px] overflow-hidden bg-[#1C1412]">
+          <div className="relative min-h-[260px] w-full max-w-full overflow-hidden bg-[#1C1412] md:min-h-[420px]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={toolsImage}
               alt="Outils Raonaq — résultat salon à la maison"
-              className="absolute inset-0 h-full w-full object-cover object-center"
+              className="absolute inset-0 h-full w-full max-w-none object-cover object-center"
               loading="lazy"
               decoding="async"
             />

@@ -67,6 +67,26 @@
   animation: raonaq-ba-line 5.5s ease-in-out infinite;
 }
 
+@keyframes raonaq-review-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.raonaq-review-track {
+  width: max-content;
+  animation: raonaq-review-marquee 36s linear infinite;
+}
+
+.raonaq-review-track:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .raonaq-review-track {
+    animation: none;
+  }
+}
+
 .salon-copy {
   animation: salon-rise 0.9s ease-out both;
 }
@@ -94,6 +114,13 @@
 body {
   background-color: var(--color-pearl-blush);
   color: var(--color-warm-black);
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+html {
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 .container {
@@ -117,8 +144,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 0.75rem;
-  font-weight: 900;
+  border-radius: 1.15rem;
+  font-weight: 600;
   letter-spacing: 0.01em;
   line-height: 1.2;
   cursor: pointer;
@@ -190,8 +217,16 @@ body {
 }
 
 .btn-lg {
-  padding: 1rem 1.5rem;
+  padding: 1.05rem 1.4rem;
   font-size: 0.95rem;
+  min-height: 3.25rem;
+}
+
+@media (min-width: 768px) {
+  .btn-lg {
+    padding: 1.1rem 1.6rem;
+    min-height: 3.5rem;
+  }
 }
 
 .btn-md {
@@ -238,4 +273,64 @@ body {
 
 .product-carousel::-webkit-scrollbar {
   display: none;
+}
+
+/* أمان عام: الصور ما تقدرش تفجّر العرض */
+main img {
+  max-width: 100%;
+}
+main img.absolute,
+main .absolute > img,
+main img.hero-media,
+main img.max-w-none {
+  max-width: none;
+}
+.raonaq-home-shot {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  line-height: 0;
+}
+.raonaq-home-shot__img {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  object-fit: contain !important;
+}
+
+.raonaq-home-card {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+.raonaq-home-card__img {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+.raonaq-product-frame {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  background: #ffffff;
+  line-height: 0;
+}
+.raonaq-product-photo {
+  display: block !important;
+  position: static !important;
+  inset: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+  object-fit: contain !important;
+  object-position: center !important;
 }

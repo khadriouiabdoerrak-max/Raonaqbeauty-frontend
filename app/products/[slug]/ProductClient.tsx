@@ -7,17 +7,17 @@ import { trackViewContent } from "../../../lib/pixels";
 import { getWhatsAppLink } from "../../../lib/contact";
 import BeforeAfterSlider from "../../../components/BeforeAfterSlider";
 import ErrorBoundary from "../../../components/ErrorBoundary";
+import Price from "../../../components/Price";
+import Stars from "../../../components/Stars";
+import ReviewMarquee from "../../../components/ReviewMarquee";
+import ProductShot from "../../../components/ProductShot";
+import { voicesForProduct } from "../../../lib/pdp-voices";
 import {
   products,
   productThumb,
-  productCoverClass,
   PDP_PROOF,
   type Product,
 } from "../../../lib/products";
-
-function imgClass(src?: string, slug?: string) {
-  return productCoverClass(src ?? "", slug);
-}
 
 function IconCheck() {
   return (
@@ -119,13 +119,13 @@ function BuyPanel({
       <h1 className="font-display mt-1 text-4xl font-semibold leading-[1.05] tracking-wide text-[#1C1412] md:text-5xl">
         {product.name}
       </h1>
-      <p className="mt-1.5 text-sm text-[#1C1412]/55">{product.nameFr}</p>
+      <p className="font-display mt-2 text-xl leading-snug text-[#1C1412]/80 md:text-2xl">
+        {product.nameFr}
+      </p>
+      <Stars className="mt-2.5" />
 
-      <div className="mt-5 flex items-baseline gap-2">
-        <p className="text-4xl font-semibold leading-none text-[#C45B6A]">
-          {product.price1}
-          <span className="ml-1.5 text-lg font-medium">Dhs</span>
-        </p>
+      <div className="mt-5">
+        <Price amount={product.price1} was={product.priceWas} size="lg" />
       </div>
       <p className="mt-1.5 text-[12px] text-[#1C1412]/45">Paiement à la livraison · inspectez d’abord</p>
 
@@ -162,41 +162,43 @@ function BuyPanel({
         <p className="mt-0.5 text-[12px] text-[#1C1412]/50">Tout le Maroc · gratuite · confirmation par téléphone</p>
       </div>
 
-      <div className="mt-5 flex items-center gap-3">
-        <div className="flex h-12 items-center border border-[#1C1412]/12">
+      <div className="mt-5 flex flex-col gap-2">
+        <div className="flex items-stretch gap-2">
+          <div className="flex h-14 shrink-0 items-center overflow-hidden rounded-[1.15rem] border border-[#1C1412]/12">
+            <button
+              type="button"
+              className="h-14 w-12 text-lg text-[#1C1412]/60"
+              onClick={() => setQty((n) => Math.max(1, n - 1))}
+              aria-label="Moins"
+            >
+              −
+            </button>
+            <span className="w-8 text-center text-sm font-semibold">{qty}</span>
+            <button
+              type="button"
+              className="h-14 w-12 text-lg text-[#1C1412]/60"
+              onClick={() => setQty((n) => Math.min(6, n + 1))}
+              aria-label="Plus"
+            >
+              +
+            </button>
+          </div>
           <button
             type="button"
-            className="h-12 w-11 text-lg text-[#1C1412]/60"
-            onClick={() => setQty((n) => Math.max(1, n - 1))}
-            aria-label="Moins"
+            onClick={() => onAdd(product.price1, qty)}
+            className="btn btn-primary min-h-14 flex-1 px-3 text-sm"
           >
-            −
-          </button>
-          <span className="w-8 text-center text-sm font-semibold">{qty}</span>
-          <button
-            type="button"
-            className="h-12 w-11 text-lg text-[#1C1412]/60"
-            onClick={() => setQty((n) => Math.min(6, n + 1))}
-            aria-label="Plus"
-          >
-            +
+            Acheter
           </button>
         </div>
         <button
           type="button"
-          onClick={() => onAdd(product.price1, qty)}
-          className="btn btn-primary min-h-12 flex-1 px-4 text-[13px] sm:text-sm"
+          onClick={() => onAdd(product.price2, 2)}
+          className="btn btn-secondary btn-block min-h-12 text-sm"
         >
-          Acheter — {product.price1 * qty} Dhs
+          Deux pièces — {product.price2} Dhs
         </button>
       </div>
-      <button
-        type="button"
-        onClick={() => onAdd(product.price2, 2)}
-        className="btn btn-secondary btn-block mt-2 min-h-11 text-sm"
-      >
-        Deux pièces — {product.price2} Dhs
-      </button>
       <p className="mt-2 text-center text-[12px] font-medium text-[#1C1412]/50">Paiement à la livraison</p>
 
       {whatsapp && (
@@ -209,6 +211,8 @@ function BuyPanel({
           Une question ? WhatsApp
         </a>
       )}
+
+      <ReviewMarquee items={voicesForProduct(product.slug)} />
 
       <div className="mt-6">
         <Fold title="Description" open={fold === "desc"} onToggle={() => toggle("desc")}>
@@ -244,7 +248,6 @@ export default function ProductClient({ product }: { product: Product }) {
   const { addToCart, isCartOpen, isCheckoutOpen } = useCart();
   const [selectedImage, setSelectedImage] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const [zoomOpen, setZoomOpen] = useState(false);
   const others = products.filter((p) => p.id !== product.id).slice(0, 4);
   const whatsapp = getWhatsAppLink(`Bonjour, j’aimerais des informations sur Raonaq ${product.name}`);
 
@@ -255,22 +258,7 @@ export default function ProductClient({ product }: { product: Product }) {
   useEffect(() => {
     setSelectedImage(0);
     setOpenFaq(0);
-    setZoomOpen(false);
   }, [product.id]);
-
-  useEffect(() => {
-    if (!zoomOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setZoomOpen(false);
-    };
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [zoomOpen]);
 
   const add = (price: number, qty: number) => {
     addToCart({
@@ -286,19 +274,8 @@ export default function ProductClient({ product }: { product: Product }) {
   const showSticky = !isCartOpen && !isCheckoutOpen;
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-white pb-28 md:pb-0">
-      {zoomOpen && (
-        <button
-          type="button"
-          className="fixed inset-0 z-[80] flex cursor-zoom-out items-center justify-center bg-[#1C1412]/90 p-4"
-          onClick={() => setZoomOpen(false)}
-          aria-label="Fermer"
-        >
-          <img src={galleryShot?.src} alt="" className="max-h-[90vh] max-w-full object-contain" />
-        </button>
-      )}
-
-      <div className="container mx-auto px-4 pt-3 lg:px-8 lg:pt-5">
+    <div className="min-h-screen overflow-x-hidden bg-white pb-24 md:pb-0">
+      <div className="container mx-auto px-4 pt-2 md:pt-3 lg:px-8 lg:pt-5">
         <nav className="text-[11px] font-medium text-[#1C1412]/40">
           <Link href="/collection" className="hover:text-[#C45B6A]">
             Collection
@@ -309,29 +286,34 @@ export default function ProductClient({ product }: { product: Product }) {
       </div>
 
       <section className="bg-white">
-        <div className="container mx-auto grid items-start gap-6 px-0 py-3 md:grid-cols-2 md:gap-10 md:px-4 lg:gap-14 lg:px-8 lg:py-8 xl:grid-cols-[minmax(0,1fr)_420px]">
-          <div className="min-w-0">
-            <div className="relative aspect-[4/5] overflow-hidden bg-[#F7F1EC] md:aspect-auto md:h-[min(72vh,680px)]">
-              <button type="button" onClick={() => setZoomOpen(true)} className="absolute inset-0 cursor-zoom-in" aria-label="Agrandir">
-                <img
-                  src={galleryShot?.src}
-                  alt={`${product.name} — ${galleryShot?.label ?? ""}`}
-                  className={`h-full w-full ${imgClass(galleryShot?.src, product.slug)}`}
-                />
-              </button>
-            </div>
-            <div className="mt-2 flex gap-1.5 overflow-x-auto px-3 pb-1 md:mt-3 md:flex-wrap md:gap-2 md:overflow-visible md:px-0">
+        <div className="container mx-auto grid max-w-full grid-cols-1 items-start gap-4 overflow-x-hidden px-0 pb-2 pt-2 md:grid-cols-2 md:gap-10 md:px-4 md:pb-0 md:pt-3 lg:gap-14 lg:px-8 lg:py-8 xl:grid-cols-[minmax(0,1fr)_420px]">
+          <div className="min-w-0 max-w-full overflow-hidden">
+            {/* نفس إطار الرئيسية: طول 4/5 × عرض كامل */}
+            <ProductShot
+              src={galleryShot?.src ?? product.heroImage}
+              alt={`${product.name} — ${galleryShot?.label ?? ""}`}
+              variant="card"
+              priority
+            />
+
+            <div className="flex max-w-full gap-1.5 overflow-x-auto px-3 py-2 md:mt-3 md:flex-wrap md:gap-2 md:overflow-visible md:px-0">
               {product.gallery.map((img, i) => (
                 <button
                   key={img.src}
                   type="button"
                   onClick={() => setSelectedImage(i)}
                   aria-label={img.label}
-                  className={`h-[72px] w-[72px] shrink-0 overflow-hidden border md:h-20 md:w-20 ${
-                    selectedImage === i ? "border-[#C45B6A]" : "border-transparent"
+                  className={`relative h-16 w-16 shrink-0 overflow-hidden border bg-white md:h-[88px] md:w-[88px] ${
+                    selectedImage === i ? "border-[#C45B6A]" : "border-[#1C1412]/10"
                   }`}
                 >
-                  <img src={img.src} alt="" className={`h-full w-full ${imgClass(img.src, product.slug)}`} loading="lazy" />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={img.src}
+                    alt=""
+                    loading="lazy"
+                    className="h-full w-full object-cover object-center"
+                  />
                 </button>
               ))}
             </div>
@@ -467,9 +449,11 @@ export default function ProductClient({ product }: { product: Product }) {
             <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
               {others.map((p) => (
                 <Link key={p.id} href={`/products/${p.slug}`} className="group block">
-                  <div className="aspect-[4/5] overflow-hidden bg-white">
-                    <img src={p.heroImage} alt={p.name} className={`h-full w-full ${imgClass(p.heroImage, p.slug)}`} loading="lazy" />
-                  </div>
+                  <ProductShot
+                    src={p.heroImage}
+                    alt={p.name}
+                    variant="card"
+                  />
                   <p className="mt-2 text-[11px] tracking-[0.18em] text-[#C4A484]">{p.nameFr}</p>
                   <p className="font-display text-lg font-semibold text-[#1C1412]">{p.name}</p>
                   <p className="text-xs font-medium text-[#C45B6A]">{p.price1} Dhs</p>
@@ -485,12 +469,14 @@ export default function ProductClient({ product }: { product: Product }) {
           <div className="flex items-center gap-3">
             <div className="min-w-0">
               <p className="truncate font-display text-lg font-semibold text-[#1C1412]">{product.name}</p>
-              <p className="text-[13px] font-semibold text-[#C45B6A]">{product.price1} Dhs</p>
+              <div className="mt-0.5">
+                <Price amount={product.price1} was={product.priceWas} size="sm" />
+              </div>
             </div>
             <button
               type="button"
               onClick={() => add(product.price1, 1)}
-              className="btn btn-primary btn-md min-h-12 shrink-0 px-5"
+              className="btn btn-primary min-h-12 min-w-[7.5rem] shrink-0 px-5 text-sm"
             >
               Acheter
             </button>

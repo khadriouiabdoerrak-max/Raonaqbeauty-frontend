@@ -75,12 +75,12 @@ export default function BeforeAfterSlider({
         resumeTimer.current = window.setTimeout(() => setHeld(false), 2500);
       }}
     >
-      <img src={beforeSrc} alt="" draggable={false} className="pointer-events-none absolute inset-0 h-full w-full object-cover" />
+      <img src={beforeSrc} alt="" draggable={false} className="pointer-events-none absolute inset-0 h-full w-full max-w-none object-cover" />
       <div
         className={`pointer-events-none absolute inset-0 ${held ? "" : "raonaq-ba-reveal"}`}
         style={held ? { clipPath: `inset(0 ${100 - pos}% 0 0)` } : undefined}
       >
-        <img src={afterSrc} alt="" draggable={false} className="h-full w-full object-cover" />
+        <img src={afterSrc} alt="" draggable={false} className="h-full w-full max-w-none object-cover" />
       </div>
 
       <div

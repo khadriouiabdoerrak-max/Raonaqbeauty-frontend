@@ -1,5 +1,5 @@
 ﻿import type { Metadata } from "next";
-import { Cormorant_Garamond, Outfit } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { CartProvider } from "../context/CartContext";
 import Header from "../components/Header";
@@ -10,16 +10,23 @@ import Pixels from "../components/Pixels";
 import WhatsAppButton from "../components/WhatsAppButton";
 import { SITE } from "../lib/site";
 
-const outfit = Outfit({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const outfit = localFont({
+  src: [
+    { path: "./fonts/outfit-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/outfit-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/outfit-latin-600-normal.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/outfit-latin-700-normal.woff2", weight: "700", style: "normal" },
+  ],
   display: "swap",
   variable: "--font-sans",
 });
 
-const display = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
+const display = localFont({
+  src: [
+    { path: "./fonts/cormorant-garamond-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/cormorant-garamond-latin-600-normal.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/cormorant-garamond-latin-700-normal.woff2", weight: "700", style: "normal" },
+  ],
   display: "swap",
   variable: "--font-display",
 });

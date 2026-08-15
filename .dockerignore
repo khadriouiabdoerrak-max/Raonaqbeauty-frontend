@@ -1,0 +1,8 @@
+node_modules
+.next
+.git
+.font-tmp
+scripts
+*.md
+.env*
+npm-debug.log*

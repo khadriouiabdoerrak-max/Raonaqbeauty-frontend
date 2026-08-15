@@ -2,13 +2,12 @@
 
 import { useRef } from "react";
 import Link from "next/link";
-import { products, productCoverClass, type Product } from "../lib/products";
+import { products } from "../lib/products";
+import Price from "./Price";
+import Stars from "./Stars";
+import ProductShot from "./ProductShot";
 
-type ProductCarouselProps = {
-  onAdd: (product: Product) => void;
-};
-
-export default function ProductCarousel({ onAdd }: ProductCarouselProps) {
+export default function ProductCarousel() {
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   const scrollByCard = (step: number) => {
@@ -56,39 +55,35 @@ export default function ProductCarousel({ onAdd }: ProductCarouselProps) {
           <article
             key={product.id}
             data-product-card
-            className="relative z-[1] flex w-[min(78vw,280px)] shrink-0 snap-start flex-col overflow-hidden bg-white md:w-[240px] lg:w-[280px] xl:w-[300px]"
+            className="relative z-[1] flex w-[min(78vw,280px)] max-w-full shrink-0 snap-start flex-col overflow-hidden bg-white md:w-[240px] lg:w-[280px] xl:w-[300px]"
           >
-            <Link href={`/products/${product.slug}`} className="block">
-              <div className="relative aspect-[4/5] overflow-hidden bg-[#F7F1EC]">
-                {product.tag && (
-                  <span className="absolute left-3 top-3 z-10 bg-[#1C1412] px-3 py-1.5 text-[10px] font-medium tracking-wide text-white">
-                    {product.tag}
-                  </span>
-                )}
-                <img
-                  src={product.heroImage}
-                  alt={product.name}
-                  draggable={false}
-                  className={`pointer-events-none h-full w-full ${productCoverClass(product.heroImage, product.slug)}`}
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
+            <Link href={`/products/${product.slug}`} className="relative block">
+              {product.tag && (
+                <span className="absolute left-3 top-3 z-10 bg-[#1C1412] px-3 py-1.5 text-[10px] font-medium tracking-wide text-white">
+                  {product.tag}
+                </span>
+              )}
+              <ProductShot
+                src={product.heroImage}
+                alt={product.name}
+                variant="card"
+              />
               <div className="px-4 pb-1 text-left">
                 <h3 className="font-display text-2xl font-semibold tracking-wide text-[#1C1412]">{product.name}</h3>
-                <p className="mt-0.5 text-[11px] font-medium tracking-wide text-[#C4A484]">{product.nameFr}</p>
-                <p className="mt-1 text-sm text-[#1C1412]/55">{product.tagline}</p>
-                <p className="mt-3 text-lg font-semibold text-[#C45B6A]">{product.price1} Dhs</p>
+                <p className="mt-0.5 text-[12px] font-medium leading-snug text-[#1C1412]/70">{product.nameFr}</p>
+                <Stars className="mt-1.5" />
+                <div className="mt-3">
+                  <Price amount={product.price1} was={product.priceWas} />
+                </div>
               </div>
             </Link>
             <div className="mt-auto px-4 pb-4">
-              <button
-                type="button"
-                onClick={() => onAdd(product)}
-                className="btn btn-primary btn-block h-12 whitespace-nowrap px-4 text-[13px] md:h-[52px] md:text-sm"
+              <Link
+                href={`/products/${product.slug}`}
+                className="btn btn-primary btn-block min-h-12 px-3 text-sm md:min-h-[52px]"
               >
-                Ajouter — {product.price1} Dhs
-              </button>
+                Voir
+              </Link>
             </div>
           </article>
         ))}

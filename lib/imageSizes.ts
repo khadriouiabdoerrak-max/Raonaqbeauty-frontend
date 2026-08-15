@@ -68,6 +68,18 @@ const IMAGE_SIZES: Record<string, { width: number; height: number }> = {
   "/images/raonaq-go-battery.png": { width: 1024, height: 1536 },
   "/images/raonaq-go-pov.png": { width: 1024, height: 1536 },
   "/images/raonaq-go-catalog.png": { width: 1024, height: 1536 },
+  "/images/raonaq-trio-catalog.png": { width: 1024, height: 1536 },
+  "/images/raonaq-trio-love.png": { width: 1024, height: 1536 },
+  "/images/raonaq-trio-showcase.png": { width: 1024, height: 1536 },
+  "/images/raonaq-soft-catalog.png": { width: 1024, height: 1536 },
+  "/images/raonaq-soft-love.png": { width: 1024, height: 1536 },
+  "/images/raonaq-soft-showcase.png": { width: 1024, height: 1536 },
+  "/images/raonaq-jour-catalog.png": { width: 1024, height: 1536 },
+  "/images/raonaq-jour-love.png": { width: 1024, height: 1536 },
+  "/images/raonaq-jour-showcase.png": { width: 1024, height: 1536 },
+  "/images/raonaq-volume-catalog.png": { width: 1024, height: 1536 },
+  "/images/raonaq-volume-love.png": { width: 1024, height: 1536 },
+  "/images/raonaq-volume-showcase.png": { width: 1024, height: 1536 },
 };
 
 const DEFAULT_SIZE = { width: 1024, height: 1024 };
@@ -84,7 +96,10 @@ export function getObjectPosition(src: string): string {
     src.includes("-collage") ||
     src.includes("-howto") ||
     src.includes("-before-after") ||
-    src.includes("-product-")
+    src.includes("-product-") ||
+    src.includes("-catalog") ||
+    src.includes("-love") ||
+    src.includes("-showcase")
   ) {
     return "center center";
   }

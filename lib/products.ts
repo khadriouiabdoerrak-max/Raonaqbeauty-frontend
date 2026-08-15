@@ -224,9 +224,10 @@ export const products: Product[] = [
     ],
     gallery: [
       { src: "/images/raonaq-trio-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-trio-collage.png", label: "Ce qu’on aime" },
+      { src: "/images/raonaq-trio-catalog.png", label: "L’écrin" },
+      { src: "/images/raonaq-trio-showcase.png", label: "3 looks dans un coffret" },
+      { src: "/images/raonaq-trio-love.png", label: "Ce qu’on aime" },
       { src: "/images/raonaq-trio-before-after.png", label: "Avant / après" },
-      { src: "/images/raonaq-trio-howto.png", label: "Comment faire" },
     ],
     forWho: [
       "Pour changer de look sans multiplier les outils",
@@ -335,9 +336,8 @@ export const products: Product[] = [
     heroImage: "/images/raonaq-air-soft-woman.png",
     gallery: [
       { src: "/images/raonaq-air-soft-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-soft-collage.png", label: "Ce qu’on aime" },
-      { src: "/images/raonaq-soft-before-after.png", label: "Avant / après" },
-      { src: "/images/raonaq-soft-howto.png", label: "Comment faire" },
+      { src: "/images/raonaq-soft-showcase.png", label: "Lisse sans frisottis" },
+      { src: "/images/raonaq-soft-love.png", label: "Ce qu’on aime" },
     ],
   },
   {
@@ -423,9 +423,9 @@ export const products: Product[] = [
     heroImage: "/images/raonaq-air-pink-woman.png",
     gallery: [
       { src: "/images/raonaq-air-pink-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-jour-collage.png", label: "Ce qu’on aime" },
-      { src: "/images/raonaq-jour-before-after.png", label: "Avant / après" },
-      { src: "/images/raonaq-jour-howto.png", label: "Comment faire" },
+      { src: "/images/raonaq-jour-catalog.png", label: "L’outil" },
+      { src: "/images/raonaq-jour-showcase.png", label: "Rituel du matin" },
+      { src: "/images/raonaq-jour-love.png", label: "Ce qu’on aime" },
     ],
   },
   {
@@ -515,9 +515,8 @@ export const products: Product[] = [
     heroImage: "/images/raonaq-volume-woman.png",
     gallery: [
       { src: "/images/raonaq-volume-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-volume-collage.png", label: "Ce qu’on aime" },
-      { src: "/images/raonaq-volume-before-after.png", label: "Avant / après" },
-      { src: "/images/raonaq-volume-howto.png", label: "Comment faire" },
+      { src: "/images/raonaq-volume-showcase.png", label: "Volume des racines" },
+      { src: "/images/raonaq-volume-love.png", label: "Ce qu’on aime" },
     ],
   },
   {

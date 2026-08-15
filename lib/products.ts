@@ -77,6 +77,15 @@ export const PDP_PROOF = [
   { t: "WhatsApp", d: "Avant et après la commande. Défaut : remplacement." },
 ] as const;
 
+/** Bandeau confiance PDP — style Massima, promesse Raonaq (Maroc / COD) */
+export const PDP_TRUST_STRIP = [
+  { id: "ship", label: "Livraison gratuite", detail: "Maroc · 24–48 h" },
+  { id: "cod", label: "Inspectez, puis payez", detail: "Paiement à la livraison" },
+  { id: "swap", label: "Remplacement si défaut", detail: "Via WhatsApp" },
+  { id: "heat", label: "Protection chaleur", detail: "Cheveu préservé" },
+  { id: "support", label: "Support sous 1 jour", detail: "Jour ouvré · WhatsApp" },
+] as const;
+
 export const COMMON_PDP_FAQS: ProductFaq[] = [
   {
     q: "Puis-je refuser à la livraison ?",

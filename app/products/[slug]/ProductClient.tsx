@@ -11,6 +11,7 @@ import Price from "../../../components/Price";
 import Stars from "../../../components/Stars";
 import ReviewMarquee from "../../../components/ReviewMarquee";
 import ProductShot from "../../../components/ProductShot";
+import PdpTrustStrip from "../../../components/PdpTrustStrip";
 import { voicesForProduct } from "../../../lib/pdp-voices";
 import {
   products,
@@ -325,6 +326,8 @@ export default function ProductClient({ product }: { product: Product }) {
         </div>
       </section>
 
+      <PdpTrustStrip />
+
       <section className="bg-[#F7F1EC] py-12 md:py-20">
         <div className="container mx-auto px-4">
           <p className="text-[11px] font-medium tracking-[0.28em] text-[#C4A484]">RAONAQ {product.name}</p>
@@ -343,11 +346,14 @@ export default function ProductClient({ product }: { product: Product }) {
       </section>
 
       <section className="border-y border-[#1C1412]/8 bg-white">
-        <div className="container mx-auto grid sm:grid-cols-2 lg:grid-cols-4">
+        <div className="container mx-auto space-y-3 px-4 py-5 md:px-8 md:py-6 lg:px-8">
           {PDP_PROOF.map((item) => (
-            <div key={item.t} className="border-[#1C1412]/8 px-5 py-7 sm:border-r sm:last:border-r-0 lg:[&:nth-child(2)]:border-r">
-              <p className="text-[13px] font-semibold text-[#1C1412]">{item.t}</p>
-              <p className="mt-1.5 text-[12px] leading-5 text-[#1C1412]/50">{item.d}</p>
+            <div
+              key={item.t}
+              className="flex flex-col gap-0.5 border-b border-[#1C1412]/8 pb-3 last:border-b-0 last:pb-0 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6"
+            >
+              <p className="shrink-0 text-[13px] font-semibold text-[#1C1412]">{item.t}</p>
+              <p className="text-[12px] leading-5 text-[#1C1412]/55 sm:text-right">{item.d}</p>
             </div>
           ))}
         </div>

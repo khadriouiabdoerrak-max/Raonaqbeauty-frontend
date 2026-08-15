@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getObjectPosition } from "../lib/imageSizes";
 
 type ProductShotProps = {
@@ -6,11 +7,13 @@ type ProductShotProps = {
   variant?: "card" | "native";
   priority?: boolean;
   className?: string;
+  /** Hint for next/image srcset — defaults by variant */
+  sizes?: string;
 };
 
 /**
- * card: إطار طولي 4/5 كامل (object-cover) — باش يبان المنتوج مزيان
- * native: عرض 100% بنسبة الصورة الحقيقية
+ * card: إطار طولي 4/5 (object-cover) عبر next/image
+ * native: عرض 100% بنسبة الصورة
  */
 export default function ProductShot({
   src,
@@ -18,24 +21,22 @@ export default function ProductShot({
   variant = "card",
   priority = false,
   className = "",
+  sizes,
 }: ProductShotProps) {
   if (variant === "native") {
     return (
-      <div className={`min-w-0 w-full max-w-full overflow-hidden bg-white ${className}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+      <div className={`relative min-w-0 w-full max-w-full overflow-hidden bg-white ${className}`}>
+        <Image
           key={src}
           src={src}
           alt={alt}
-          decoding="async"
-          fetchPriority={priority ? "high" : "auto"}
-          loading={priority ? "eager" : "lazy"}
-          style={{
-            display: "block",
-            width: "100%",
-            maxWidth: "100%",
-            height: "auto",
-          }}
+          width={1200}
+          height={1500}
+          sizes={sizes ?? "(max-width: 768px) 100vw, 50vw"}
+          quality={72}
+          priority={priority}
+          className="h-auto w-full max-w-full"
+          style={{ objectPosition: getObjectPosition(src) }}
         />
       </div>
     );
@@ -46,23 +47,16 @@ export default function ProductShot({
       className={`relative min-w-0 w-full max-w-full overflow-hidden bg-[#F7F1EC] ${className}`}
       style={{ aspectRatio: "4 / 5" }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         key={src}
         src={src}
         alt={alt}
-        loading={priority ? "eager" : "lazy"}
-        decoding="async"
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          display: "block",
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          objectPosition: getObjectPosition(src),
-        }}
+        fill
+        sizes={sizes ?? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 420px"}
+        quality={72}
+        priority={priority}
+        className="object-cover"
+        style={{ objectPosition: getObjectPosition(src) }}
       />
     </div>
   );

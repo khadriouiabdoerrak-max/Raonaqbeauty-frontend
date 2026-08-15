@@ -1,4 +1,7 @@
+"use client";
+
 import type { ProductReview } from "../lib/products";
+import { useVisible } from "../lib/useVisible";
 
 const STAR =
   "M10 1.6 12.2 7l5.8.5-4.4 3.8 1.4 5.7L10 14.2 4.99 17l1.4-5.7L2 7.5 7.8 7 10 1.6Z";
@@ -34,15 +37,26 @@ function Card({ item }: { item: ProductReview }) {
   );
 }
 
-export default function ReviewMarquee({ items }: { items: ProductReview[] }) {
+export default function ReviewMarquee({
+  items,
+  showLabel = true,
+}: {
+  items: ProductReview[];
+  showLabel?: boolean;
+}) {
+  const { ref, visible } = useVisible();
   if (items.length === 0) return null;
   const loop = [...items, ...items];
 
   return (
-    <div className="mt-5">
-      <p className="mb-2.5 text-[11px] font-medium tracking-[0.22em] text-[#C4A484]">ELLES ONT ESSAYÉ</p>
+    <div ref={ref} className={showLabel ? "mt-5" : ""}>
+      {showLabel ? (
+        <p className="mb-2.5 text-[11px] font-medium tracking-[0.22em] text-[#C4A484]">ELLES ONT ESSAYÉ</p>
+      ) : null}
       <div className="overflow-hidden">
-        <div className="raonaq-review-track flex gap-3">
+        <div
+          className={`raonaq-review-track flex gap-3 ${visible ? "" : "raonaq-anim-paused"}`}
+        >
           {loop.map((item, i) => (
             <Card key={`${item.name}-${item.city}-${i}`} item={item} />
           ))}

@@ -81,8 +81,23 @@
   animation-play-state: paused;
 }
 
+@keyframes raonaq-trust-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-33.333%); }
+}
+
+.raonaq-trust-track {
+  width: max-content;
+  animation: raonaq-trust-marquee 28s linear infinite;
+}
+
+.raonaq-trust-track:hover {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .raonaq-review-track {
+  .raonaq-review-track,
+  .raonaq-trust-track {
     animation: none;
   }
 }

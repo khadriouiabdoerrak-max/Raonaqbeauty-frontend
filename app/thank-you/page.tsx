@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -99,12 +99,14 @@ function resultTease(boughtIds: string[]): { title: string; text: string } {
 export default function ThankYouPage() {
   const { finishOrder } = useCart();
   const tracked = useRef(false);
+  const [mounted, setMounted] = useState(false);
   const [purchase, setPurchase] = useState<LastPurchase | null>(null);
   const [callWin, setCallWin] = useState<CallWindow | null>(null);
   const social = getSocialLinks();
   const whatsappDisplay = getWhatsAppDisplay();
 
   useEffect(() => {
+    setMounted(true);
     finishOrder();
     clearPendingOrder();
     setCallWin(getCallWindow());
@@ -163,8 +165,8 @@ export default function ThankYouPage() {
 
   return (
     <div className="min-h-full bg-[#F7F1EC]">
-      {/* Banner COD */}
-      {callWin && (
+      {/* Banner COD — après mount (évite hydration mismatch) */}
+      {mounted && callWin ? (
         <div className="sticky top-0 z-40 border-b border-[#C4A484]/25 bg-[#1C1412] text-white">
           <div className="mx-auto flex max-w-3xl flex-col gap-2.5 px-4 py-3.5 sm:flex-row sm:items-center sm:gap-5 sm:px-6">
             <span className="inline-flex w-fit shrink-0 bg-[#C45B6A] px-2.5 py-1 text-[10px] font-semibold tracking-[0.2em] uppercase">
@@ -176,12 +178,12 @@ export default function ThankYouPage() {
             </div>
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* Hero marque */}
       <section className="relative overflow-hidden bg-[#1C1412] text-white">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(196,164,132,0.28),transparent)]" />
-        <div className="relative mx-auto max-w-2xl px-5 py-12 text-center md:py-16">
+        <div className="relative mx-auto max-w-3xl px-5 py-12 text-center md:px-6 md:py-16">
           <p className="font-display text-4xl font-semibold tracking-[0.1em] text-[#C4A484] md:text-5xl">
             رونق
           </p>
@@ -218,25 +220,26 @@ export default function ThankYouPage() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-2xl px-4 py-8 md:py-10">
-        {/* Fiche client — uniquement si infos complètes */}
-        {hasCustomer && customer ? (
-          <section className="border border-[#C4A484]/30 bg-white">
-            <div className="flex items-end justify-between gap-4 border-b border-[#1C1412]/08 bg-[#1C1412] px-5 py-4 md:px-8">
-              <div>
-                <p className="text-[10px] font-medium tracking-[0.32em] text-[#C4A484]">CLIENT RAONAQ</p>
-                <h2 className="font-display mt-1 text-xl font-semibold text-white md:text-2xl">
-                  Vos informations
-                </h2>
+      {/* Cadres Client + WhatsApp — pleine largeur, même colonne max-w-3xl */}
+      <div className="w-full">
+        {mounted && hasCustomer && customer ? (
+          <section className="w-full bg-white">
+            <div className="w-full bg-[#1C1412]">
+              <div className="mx-auto flex max-w-3xl items-end justify-between gap-4 px-5 py-4 md:px-6">
+                <div>
+                  <p className="text-[10px] font-medium tracking-[0.32em] text-[#C4A484]">CLIENT RAONAQ</p>
+                  <h2 className="font-display mt-1 text-xl font-semibold text-white md:text-2xl">
+                    Vos informations
+                  </h2>
+                </div>
+                {purchase?.orderId ? (
+                  <p className="shrink-0 text-[12px] font-medium tracking-wide text-white/40">
+                    N° {purchase.orderId}
+                  </p>
+                ) : null}
               </div>
-              {purchase?.orderId ? (
-                <p className="shrink-0 text-[12px] font-medium tracking-wide text-white/40">
-                  N° {purchase.orderId}
-                </p>
-              ) : null}
             </div>
-
-            <div className="px-5 py-6 md:px-8 md:py-8">
+            <div className="mx-auto max-w-3xl px-5 py-6 md:px-6 md:py-8">
               <p className="text-[13px] leading-relaxed text-[#1C1412]/55">
                 C’est sur ces coordonnées que nous appelons pour confirmer{" "}
                 <span className="font-medium text-[#1C1412]">avant l’expédition</span>.
@@ -304,15 +307,16 @@ export default function ThankYouPage() {
           </section>
         ) : null}
 
-        {/* WhatsApp — même carte que Client Raonaq */}
-        <section className={`${hasCustomer ? "mt-5" : ""} border border-[#C4A484]/30 bg-white`}>
-          <div className="border-b border-[#1C1412]/08 bg-[#1C1412] px-5 py-4 md:px-8">
-            <p className="text-[10px] font-medium tracking-[0.32em] text-[#C4A484]">CONFIRMATION</p>
-            <h2 className="font-display mt-1 text-xl font-semibold text-white md:text-2xl">
-              Aussi sur WhatsApp
-            </h2>
+        <section className="w-full border-t border-[#C4A484]/20 bg-white">
+          <div className="w-full bg-[#1C1412]">
+            <div className="mx-auto max-w-3xl px-5 py-4 md:px-6">
+              <p className="text-[10px] font-medium tracking-[0.32em] text-[#C4A484]">CONFIRMATION</p>
+              <h2 className="font-display mt-1 text-xl font-semibold text-white md:text-2xl">
+                Aussi sur WhatsApp
+              </h2>
+            </div>
           </div>
-          <div className="px-5 py-6 md:px-8 md:py-7">
+          <div className="mx-auto max-w-3xl px-5 py-6 md:px-6 md:py-7">
             <p className="text-[13px] leading-relaxed text-[#1C1412]/55">
               Un message maintenant accélère la validation — et peut raccourcir l’appel.
             </p>
@@ -336,7 +340,9 @@ export default function ThankYouPage() {
             ) : null}
           </div>
         </section>
+      </div>
 
+      <div className="mx-auto max-w-3xl px-5 py-8 md:px-6 md:py-10">
         {/* Suite + émotion */}
         <section className="mt-10">
           <p className="text-[10px] font-medium tracking-[0.32em] text-[#C45B6A]">ENSUITE</p>

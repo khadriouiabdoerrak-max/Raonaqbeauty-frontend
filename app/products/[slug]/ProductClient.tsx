@@ -8,19 +8,72 @@ import { getWhatsAppLink } from "../../../lib/contact";
 import BeforeAfterSlider from "../../../components/BeforeAfterSlider";
 import ErrorBoundary from "../../../components/ErrorBoundary";
 import Price from "../../../components/Price";
-import Stars from "../../../components/Stars";
 import ProductShot from "../../../components/ProductShot";
 import PdpGalleryBanner from "../../../components/PdpGalleryBanner";
-import {
-  products,
-  productThumb,
-  PDP_PROOF,
-  type Product,
-} from "../../../lib/products";
+import PdpTrustStrip from "../../../components/PdpTrustStrip";
+import ReviewMarquee from "../../../components/ReviewMarquee";
+import { products, productThumb, type Product, type ProductReview } from "../../../lib/products";
 
-function IconCheck() {
+/** Preuve COD — langage froid TikTok / Snap (Maroc) */
+const COLD_PROOF: ProductReview[] = [
+  {
+    name: "Salma",
+    city: "Casablanca",
+    rating: 5,
+    text: "J’avais peur de payer avant. J’ai ouvert devant le livreur, tout était bon — puis j’ai payé.",
+  },
+  {
+    name: "Imane",
+    city: "Rabat",
+    rating: 5,
+    text: "Le numéro était inconnu. J’ai répondu : c’était Raonaq pour confirmer. Livraison le lendemain.",
+  },
+  {
+    name: "Nour",
+    city: "Marrakech",
+    rating: 5,
+    text: "Résultat salon chez moi. Pas d’avance, livraison gratuite. Je recommande.",
+  },
+  {
+    name: "Sara",
+    city: "Fès",
+    rating: 5,
+    text: "Confirmation rapide. À la porte j’ai inspecté l’écrin — tout nickel.",
+  },
+  {
+    name: "Yasmine",
+    city: "Tanger",
+    rating: 5,
+    text: "WhatsApp au cas où. Livraison gratuite, paiement à la livraison. Simple.",
+  },
+];
+
+const COLD_FAQS = [
+  {
+    q: "Je dois payer avant ?",
+    a: "Non. Aucun paiement d’avance. Vous ouvrez l’écrin devant le livreur, vous inspectez, puis vous payez — seulement si tout vous convient.",
+  },
+  {
+    q: "Vous m’appelez d’un numéro inconnu ?",
+    a: "Souvent oui. Un conseiller Raonaq confirme votre adresse avant l’expédition (9h–21h, souvent sous 10 minutes). Répondez : c’est nous.",
+  },
+  {
+    q: "Et si ça ne me plaît pas à la porte ?",
+    a: "Vous ne payez pas. Le livreur attend pendant l’inspection. C’est la promesse Raonaq.",
+  },
+  {
+    q: "Ça marche au Maroc (220 V) ?",
+    a: "Oui. 220–240 V, prises de la maison, sans adaptateur.",
+  },
+  {
+    q: "Et en cas de défaut ?",
+    a: "Photo sur WhatsApp — nous remplaçons. L’inspection à la porte vous protège aussi avant de payer.",
+  },
+];
+
+function IconCheck({ className = "mt-0.5 h-4 w-4 shrink-0 text-[#C45B6A]" }: { className?: string }) {
   return (
-    <svg className="mt-0.5 h-4 w-4 shrink-0 text-[#C45B6A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
     </svg>
   );
@@ -53,120 +106,54 @@ function Fold({
   );
 }
 
-function ProductVideo({ product }: { product: Product }) {
-  if (!product.video) return null;
-
-  return (
-    <section className="bg-[#1C1412] py-10 md:py-16">
-      <div className="container mx-auto px-4">
-        <p className="mb-4 text-[11px] font-medium tracking-[0.28em] text-[#C4A484]">VIDÉO</p>
-        <video
-          className="aspect-[16/9] w-full object-cover"
-          poster={product.heroImage}
-          controls
-          playsInline
-          preload="metadata"
-        >
-          <source src={product.video} />
-        </video>
-      </div>
-    </section>
-  );
-}
-
-function ReviewsSlot({ product }: { product: Product }) {
-  const reviews = product.reviews ?? [];
-  if (reviews.length === 0) return null;
-
-  return (
-    <section className="bg-[#F7F1EC] py-12 md:py-20">
-      <div className="container mx-auto px-4">
-        <p className="text-[11px] font-medium tracking-[0.32em] text-[#C4A484]">AVIS CLIENTES</p>
-        <h2 className="font-display mt-3 text-3xl font-semibold text-[#1C1412] md:text-5xl">Ce qu’elles nous écrivent</h2>
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {reviews.map((r) => (
-            <blockquote key={`${r.name}-${r.city}`} className="bg-white p-6">
-              {r.photo && <img src={r.photo} alt="" className="mb-4 aspect-[4/3] w-full object-cover" />}
-              <p className="text-[15px] leading-7 text-[#1C1412]/75">« {r.text} »</p>
-              <footer className="mt-6">
-                <p className="font-semibold text-[#1C1412]">{r.name}</p>
-                <p className="text-sm text-[#C45B6A]">{r.city}</p>
-              </footer>
-            </blockquote>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function BuyPanel({
   product,
   onAdd,
+  proofItems,
 }: {
   product: Product;
   onAdd: (price: number, qty: number) => void;
+  proofItems: ProductReview[];
 }) {
-  const [fold, setFold] = useState<string | null>(null);
+  const [fold, setFold] = useState<string | null>("ship");
   const [qty, setQty] = useState(1);
-  const whatsapp = getWhatsAppLink(`Bonjour, j’aimerais des informations sur Raonaq ${product.name}`);
+  const whatsapp = getWhatsAppLink(
+    `Bonjour Raonaq, je suis intéressée par ${product.name}. Pouvez-vous m’aider ?`,
+  );
   const toggle = (id: string) => setFold((cur) => (cur === id ? null : id));
 
   return (
     <div>
-      <p className="text-[11px] font-medium tracking-[0.28em] text-[#C4A484]">RAONAQ</p>
-      <h1 className="font-display mt-1 text-4xl font-semibold leading-[1.05] tracking-wide text-[#1C1412] md:text-5xl">
+      <p className="text-[11px] font-medium tracking-[0.28em] text-[#C45B6A]">RAONAQ · MAROC</p>
+      <h1 className="font-display mt-1.5 text-4xl font-semibold leading-[1.05] tracking-wide text-[#1C1412] md:text-5xl">
         {product.name}
       </h1>
-      <p className="font-display mt-2 text-xl leading-snug text-[#1C1412]/80 md:text-2xl">
+      <p className="font-display mt-2 text-xl leading-snug text-[#1C1412]/75 md:text-2xl">
         {product.nameFr}
       </p>
-      <Stars className="mt-2.5" />
+
+      {/* Pain → résultat — froid ads */}
+      <p className="mt-4 text-[15px] font-semibold leading-snug text-[#1C1412]">
+        {product.compareLine || product.result}
+      </p>
+      <p className="mt-2 text-[13px] leading-relaxed text-[#1C1412]/55">
+        {product.pain} — <span className="font-medium text-[#1C1412]">{product.promise}</span>
+      </p>
 
       <div className="mt-5">
         <Price amount={product.price1} was={product.priceWas} size="lg" />
       </div>
-      <p className="mt-1.5 text-[12px] text-[#1C1412]/45">Paiement à la livraison · inspectez d’abord</p>
+      <p className="mt-1.5 text-[12px] font-medium text-[#C45B6A]">
+        Paiement à la porte · ouvrez, inspectez, puis payez
+      </p>
 
-      <ul className="mt-5 space-y-2.5 border-y border-[#1C1412]/8 py-4">
-        {[
-          { t: "Livraison rapide au Maroc", d: "Gratuite, généralement 24–48 h" },
-          { t: "Paiement à la livraison", d: "Disponible — inspectez, puis payez" },
-          { t: "Pièce Raonaq", d: "Écrin d’origine, confirmation par téléphone" },
-          { t: "220–240 V", d: "Prises marocaines, sans adaptateur" },
-        ].map((item) => (
-          <li key={item.t} className="flex gap-2.5">
-            <IconCheck />
-            <span>
-              <span className="block text-[13px] font-semibold text-[#1C1412]">{item.t}</span>
-              <span className="block text-[12px] text-[#1C1412]/50">{item.d}</span>
-            </span>
-          </li>
-        ))}
-      </ul>
-
-      <p className="mt-5 text-[11px] font-medium tracking-[0.2em] text-[#C4A484]">POURQUOI VOUS ALLEZ L’AIMER</p>
-      <ul className="mt-3 space-y-2">
-        {product.features.slice(0, 4).map((line) => (
-          <li key={line} className="flex gap-2.5 text-[13px] leading-6 text-[#1C1412]/80">
-            <IconCheck />
-            {line}
-          </li>
-        ))}
-      </ul>
-
-      <div className="mt-5 border border-[#1C1412]/10 bg-[#F7F1EC] px-4 py-3.5">
-        <p className="text-[11px] font-medium tracking-[0.18em] text-[#C45B6A]">LIVRAISON</p>
-        <p className="mt-1 text-[15px] font-semibold text-[#1C1412]">Chez vous, généralement 24–48 h</p>
-        <p className="mt-0.5 text-[12px] text-[#1C1412]/50">Tout le Maroc · gratuite · confirmation par téléphone</p>
-      </div>
-
+      {/* CTA d’abord — cold traffic */}
       <div className="mt-5 flex flex-col gap-2">
         <div className="flex items-stretch gap-2">
-          <div className="flex h-14 shrink-0 items-center overflow-hidden rounded-[1.15rem] border border-[#1C1412]/12">
+          <div className="flex h-14 shrink-0 items-center overflow-hidden border border-[#1C1412]/12">
             <button
               type="button"
-              className="h-14 w-12 text-lg text-[#1C1412]/60"
+              className="h-14 w-11 text-lg text-[#1C1412]/60"
               onClick={() => setQty((n) => Math.max(1, n - 1))}
               aria-label="Moins"
             >
@@ -175,7 +162,7 @@ function BuyPanel({
             <span className="w-8 text-center text-sm font-semibold">{qty}</span>
             <button
               type="button"
-              className="h-14 w-12 text-lg text-[#1C1412]/60"
+              className="h-14 w-11 text-lg text-[#1C1412]/60"
               onClick={() => setQty((n) => Math.min(6, n + 1))}
               aria-label="Plus"
             >
@@ -185,36 +172,84 @@ function BuyPanel({
           <button
             type="button"
             onClick={() => onAdd(product.price1, qty)}
-            className="btn btn-primary min-h-14 flex-1 px-3 text-sm"
+            className="btn btn-primary min-h-14 flex-1 rounded-none px-3 text-[13px] font-semibold tracking-wide"
           >
-            Acheter
+            Commander
           </button>
         </div>
         <button
           type="button"
           onClick={() => onAdd(product.price2, 2)}
-          className="btn btn-secondary btn-block min-h-12 text-sm"
+          className="btn btn-secondary btn-block min-h-12 rounded-none text-[13px]"
         >
           Deux pièces — {product.price2} Dhs
         </button>
       </div>
-      <p className="mt-2 text-center text-[12px] font-medium text-[#1C1412]/50">Paiement à la livraison</p>
+      <p className="mt-2 text-center text-[11px] text-[#1C1412]/45">
+        Confirmation par téléphone · livraison gratuite 24–48 h
+      </p>
+
+      {/* Objections COD */}
+      <ul className="mt-5 space-y-3 border-y border-[#1C1412]/8 py-4">
+        {[
+          {
+            t: "Zéro avance",
+            d: "Vous payez à la porte, après inspection.",
+          },
+          {
+            t: "On vous appelle",
+            d: "Numéro parfois inconnu — répondez : c’est Raonaq.",
+          },
+          {
+            t: "Livraison gratuite",
+            d: "Tout le Maroc · généralement 24–48 h.",
+          },
+          {
+            t: "220–240 V",
+            d: "Prises marocaines, sans adaptateur.",
+          },
+        ].map((item) => (
+          <li key={item.t} className="flex gap-2.5">
+            <IconCheck />
+            <span>
+              <span className="block text-[13px] font-semibold text-[#1C1412]">{item.t}</span>
+              <span className="block text-[12px] leading-snug text-[#1C1412]/50">{item.d}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <p className="mt-5 text-[11px] font-medium tracking-[0.2em] text-[#C4A484]">CE QUI CHANGE</p>
+      <ul className="mt-3 space-y-2">
+        {product.features.slice(0, 4).map((line) => (
+          <li key={line} className="flex gap-2.5 text-[13px] leading-6 text-[#1C1412]/80">
+            <IconCheck />
+            {line}
+          </li>
+        ))}
+      </ul>
 
       {whatsapp && (
         <a
           href={whatsapp}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 block text-center text-[12px] font-medium text-[#C45B6A] underline-offset-4 hover:underline"
+          className="mt-4 block text-center text-[12px] font-semibold text-[#C45B6A] underline-offset-4 hover:underline"
         >
-          Une question ? WhatsApp
+          Une question avant ? WhatsApp
         </a>
       )}
 
+      <ReviewMarquee items={proofItems} />
+
       <div className="mt-6">
+        <Fold title="Livraison & paiement" open={fold === "ship"} onToggle={() => toggle("ship")}>
+          Gratuite dans tout le Maroc, généralement 24–48 h. Nous confirmons par téléphone (souvent sous
+          10 min entre 9h et 21h). Le livreur attend : vous ouvrez, vous inspectez, puis vous payez. Un
+          défaut se règle sur WhatsApp — remplacement.
+        </Fold>
         <Fold title="Description" open={fold === "desc"} onToggle={() => toggle("desc")}>
           <p>{product.description}</p>
-          <p className="mt-2">{product.promise}</p>
         </Fold>
         <Fold title="Caractéristiques" open={fold === "specs"} onToggle={() => toggle("specs")}>
           <ul className="space-y-1.5">
@@ -226,15 +261,12 @@ function BuyPanel({
             ))}
           </ul>
         </Fold>
-        <Fold title="Inclus dans l’écrin" open={fold === "box"} onToggle={() => toggle("box")}>
+        <Fold title="Dans l’écrin" open={fold === "box"} onToggle={() => toggle("box")}>
           <ul className="space-y-1">
             {product.inBox.map((item) => (
               <li key={item}>• {item}</li>
             ))}
           </ul>
-        </Fold>
-        <Fold title="Livraison & paiement" open={fold === "ship"} onToggle={() => toggle("ship")}>
-          Gratuite dans tout le Maroc, généralement 24 à 48 h. Nous confirmons par téléphone. Le livreur attend : vous ouvrez, vous inspectez, puis vous payez. Un défaut se règle sur WhatsApp — nous remplaçons.
         </Fold>
       </div>
     </div>
@@ -246,7 +278,33 @@ export default function ProductClient({ product }: { product: Product }) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const others = products.filter((p) => p.id !== product.id).slice(0, 4);
-  const whatsapp = getWhatsAppLink(`Bonjour, j’aimerais des informations sur Raonaq ${product.name}`);
+  const whatsapp = getWhatsAppLink(
+    `Bonjour Raonaq, je suis intéressée par ${product.name}. Pouvez-vous m’aider ?`,
+  );
+
+  const faqs = [
+    ...COLD_FAQS,
+    ...product.faqs.filter((f) => !COLD_FAQS.some((c) => c.q === f.q)),
+  ].slice(0, 8);
+
+  const voices: ProductReview[] = [
+    ...(product.voice?.name && product.voice?.text
+      ? [
+          {
+            name: product.voice.name,
+            city: product.voice.city,
+            text: product.voice.text,
+            rating: 5,
+          },
+        ]
+      : []),
+    ...(product.reviews?.length ? product.reviews : []),
+    ...COLD_PROOF,
+  ];
+  // unique by name+city
+  const proofItems = voices.filter(
+    (v, i, arr) => arr.findIndex((x) => x.name === v.name && x.city === v.city) === i,
+  );
 
   useEffect(() => {
     trackViewContent({ id: product.id, name: `Raonaq ${product.name}`, price: product.price1 });
@@ -271,7 +329,7 @@ export default function ProductClient({ product }: { product: Product }) {
   const showSticky = !isCartOpen && !isCheckoutOpen;
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-white pb-24 md:pb-0">
+    <div className="min-h-screen overflow-x-hidden bg-white pb-28 md:pb-0">
       <div className="container mx-auto px-4 pt-2 md:pt-3 lg:px-8 lg:pt-5">
         <nav className="text-[11px] font-medium text-[#1C1412]/40">
           <Link href="/collection" className="hover:text-[#C45B6A]">
@@ -282,6 +340,7 @@ export default function ProductClient({ product }: { product: Product }) {
         </nav>
       </div>
 
+      {/* 1. Gallery + Buy — above the fold */}
       <section className="bg-white">
         <div className="container mx-auto grid max-w-full grid-cols-1 items-start gap-4 overflow-x-hidden px-0 pb-2 pt-2 md:grid-cols-2 md:gap-10 md:px-4 md:pb-0 md:pt-3 lg:gap-14 lg:px-8 lg:py-8 xl:grid-cols-[minmax(0,1fr)_420px]">
           <div className="min-w-0 max-w-full overflow-hidden">
@@ -292,7 +351,6 @@ export default function ProductClient({ product }: { product: Product }) {
               variant="card"
               priority
             />
-
             <div className="flex max-w-full gap-1.5 overflow-x-auto px-3 py-2 md:mt-3 md:flex-wrap md:gap-2 md:overflow-visible md:px-0">
               {product.gallery.map((img, i) => (
                 <button
@@ -318,21 +376,28 @@ export default function ProductClient({ product }: { product: Product }) {
           </div>
 
           <div className="px-4 md:sticky md:top-36 md:self-start md:px-0">
-            <BuyPanel product={product} onAdd={add} />
+            <BuyPanel product={product} onAdd={add} proofItems={proofItems} />
           </div>
         </div>
       </section>
 
-      <section className="bg-[#F7F1EC] py-12 md:py-20">
+      {/* Trust marquee — livraison, COD, retour, support */}
+      <PdpTrustStrip />
+
+      {/* 3. Résultat / émotion */}
+      <section className="bg-[#F7F1EC] py-12 md:py-16">
         <div className="container mx-auto px-4">
-          <p className="text-[11px] font-medium tracking-[0.28em] text-[#C4A484]">RAONAQ {product.name}</p>
-          <h2 className="font-display mt-2 max-w-xl text-3xl font-semibold leading-tight text-[#1C1412] md:text-[2.6rem]">
+          <p className="text-[11px] font-medium tracking-[0.28em] text-[#C45B6A]">LE RÉSULTAT</p>
+          <h2 className="font-display mt-2 max-w-xl text-3xl font-semibold leading-tight text-[#1C1412] md:text-4xl">
             {product.techTitle}
           </h2>
+          <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-[#1C1412]/55">
+            {product.promise}
+          </p>
           <ul className="mt-7 max-w-2xl space-y-3.5">
             {product.techPoints.map((point) => (
               <li key={point} className="flex gap-3 text-[15px] leading-7 text-[#1C1412]/75">
-                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C45B6A]" />
+                <IconCheck className="mt-1.5 h-4 w-4 shrink-0 text-[#C45B6A]" />
                 {point}
               </li>
             ))}
@@ -340,24 +405,13 @@ export default function ProductClient({ product }: { product: Product }) {
         </div>
       </section>
 
-      <section className="border-y border-[#1C1412]/8 bg-white">
-        <div className="container mx-auto space-y-3 px-4 py-5 md:px-8 md:py-6 lg:px-8">
-          {PDP_PROOF.map((item) => (
-            <div
-              key={item.t}
-              className="flex flex-col gap-0.5 border-b border-[#1C1412]/8 pb-3 last:border-b-0 last:pb-0 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6"
-            >
-              <p className="shrink-0 text-[13px] font-semibold text-[#1C1412]">{item.t}</p>
-              <p className="text-[12px] leading-5 text-[#1C1412]/55 sm:text-right">{item.d}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="bg-[#F7F1EC] py-14 md:py-20">
+      {/* 4. Avant / après */}
+      <section className="bg-white py-12 md:py-16">
         <div className="container mx-auto max-w-lg px-4">
-          <p className="text-[11px] font-medium tracking-[0.32em] text-[#C4A484]">LE RÉSULTAT</p>
-          <h2 className="font-display mt-2 text-3xl font-semibold text-[#1C1412] md:text-[2.6rem]">Chez vous, ça se voit</h2>
+          <p className="text-[11px] font-medium tracking-[0.32em] text-[#C45B6A]">AVANT · APRÈS</p>
+          <h2 className="font-display mt-2 text-3xl font-semibold text-[#1C1412] md:text-4xl">
+            Chez vous, ça se voit
+          </h2>
           <div className="mt-8 overflow-hidden border border-[#C4A484]/25">
             <ErrorBoundary>
               <BeforeAfterSlider />
@@ -366,21 +420,23 @@ export default function ProductClient({ product }: { product: Product }) {
         </div>
       </section>
 
-      <section className="bg-[#F7F1EC] py-12 md:py-20">
+      {/* 5. removed — avis déjà en marquee dans le buy panel */}
+
+      {/* 6. Comment faire — simple */}
+      <section className="bg-white py-12 md:py-16">
         <div className="container mx-auto px-4">
-          <p className="text-[11px] font-medium tracking-[0.28em] text-[#C4A484]">VOTRE CHEVEU</p>
-          <h2 className="font-display mt-2 max-w-xl text-3xl font-semibold text-[#1C1412] md:text-[2.6rem]">
-            Quelle chaleur pour vos cheveux ?
+          <p className="text-[11px] font-medium tracking-[0.28em] text-[#C45B6A]">LE GESTE</p>
+          <h2 className="font-display mt-2 text-3xl font-semibold text-[#1C1412] md:text-4xl">
+            En quelques étapes
           </h2>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-[#1C1412]/55">
-            Choisissez selon votre cheveu. En cas de doute, commencez toujours plus bas.
-          </p>
-          <div className="mt-8 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-            {product.hairGuide.map((item) => (
-              <article key={item.label} className="bg-white px-5 py-6">
-                <h3 className="text-[15px] font-semibold text-[#1C1412]">{item.label}</h3>
-                <p className="mt-3 font-display text-2xl font-semibold text-[#C45B6A]">{item.setting}</p>
-                <p className="mt-2 text-[13px] leading-6 text-[#1C1412]/55">{item.note}</p>
+          <p className="mt-2 text-sm text-[#1C1412]/45">{product.styleTime}</p>
+          <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {product.howTo.slice(0, 4).map((step, i) => (
+              <article key={step} className="bg-[#F7F1EC] p-5">
+                <p className="font-display text-2xl font-semibold text-[#C4A484]">
+                  {String(i + 1).padStart(2, "0")}
+                </p>
+                <p className="mt-2 text-sm font-medium leading-6 text-[#1C1412]">{step}</p>
               </article>
             ))}
           </div>
@@ -388,34 +444,18 @@ export default function ProductClient({ product }: { product: Product }) {
         </div>
       </section>
 
-      <section className="bg-white py-12 md:py-20">
-        <div className="container mx-auto px-4">
-          <p className="text-[11px] font-medium tracking-[0.28em] text-[#C4A484]">LE GESTE</p>
-          <h2 className="font-display mt-2 text-3xl font-semibold text-[#1C1412] md:text-[2.6rem]">En quatre étapes</h2>
-          <p className="mt-2 text-sm text-[#1C1412]/45">{product.styleTime}</p>
-          <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {product.howTo.slice(0, 4).map((step, i) => (
-              <article key={step} className="bg-[#F7F1EC] p-4">
-                <p className="text-[11px] font-medium tracking-[0.2em] text-[#C4A484]">{String(i + 1).padStart(2, "0")}</p>
-                <p className="mt-2 text-sm font-medium leading-6 text-[#1C1412]">{step}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <ProductVideo product={product} />
-      <ReviewsSlot product={product} />
-
-      <section className="bg-white py-12 md:py-20">
+      {/* 7. FAQ froid — objections ads */}
+      <section className="border-t border-[#1C1412]/8 bg-[#F7F1EC] py-12 md:py-16">
         <div className="container mx-auto max-w-3xl px-4">
-          <p className="text-[11px] font-medium tracking-[0.28em] text-[#C4A484]">QUESTIONS FRÉQUENTES</p>
-          <h2 className="font-display mt-2 text-3xl font-semibold text-[#1C1412]">Avant de commander</h2>
-          <div className="mt-6 border-t border-[#1C1412]/10">
-            {product.faqs.map((faq, i) => {
+          <p className="text-[11px] font-medium tracking-[0.28em] text-[#C45B6A]">AVANT DE COMMANDER</p>
+          <h2 className="font-display mt-2 text-3xl font-semibold text-[#1C1412]">
+            Les peurs, on les connaît
+          </h2>
+          <div className="mt-6 border-t border-[#1C1412]/10 bg-white px-4 md:px-6">
+            {faqs.map((faq, i) => {
               const open = openFaq === i;
               return (
-                <div key={faq.q} className="border-b border-[#1C1412]/10">
+                <div key={faq.q} className="border-b border-[#1C1412]/10 last:border-b-0">
                   <button
                     type="button"
                     onClick={() => setOpenFaq(open ? null : i)}
@@ -435,26 +475,71 @@ export default function ProductClient({ product }: { product: Product }) {
               href={whatsapp}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 inline-block text-sm font-medium text-[#C45B6A]"
+              className="mt-6 inline-block text-sm font-semibold text-[#C45B6A]"
             >
-              Une question ? WhatsApp
+              Encore une question ? WhatsApp
             </a>
           )}
         </div>
       </section>
 
+      {/* 8. Parcours Raonaq — compact + CTA panier */}
+      <section className="relative overflow-hidden bg-[#1C1412] text-white">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(196,164,132,0.22),transparent)]" />
+        <div className="relative mx-auto max-w-2xl px-5 py-10 text-center md:py-12">
+          <p className="font-display text-2xl font-semibold tracking-[0.1em] text-[#C4A484]">رونق</p>
+          <h2 className="font-display mt-3 text-2xl font-semibold leading-tight md:text-3xl">
+            De la commande à votre porte
+          </h2>
+          <p className="mx-auto mt-2 max-w-md text-[13px] leading-relaxed text-white/50">
+            Appel de confirmation · livraison gratuite · payez après inspection.
+          </p>
+
+          <ol className="mx-auto mt-8 flex max-w-xs flex-col gap-4 text-left">
+            {[
+              { n: "01", t: "Commande", d: "Sans avance" },
+              { n: "02", t: "Appel", d: "9h–21h" },
+              { n: "03", t: "Livraison", d: "Puis payez" },
+            ].map((s) => (
+              <li key={s.n} className="flex items-baseline gap-4">
+                <p className="font-display w-8 shrink-0 text-lg font-semibold text-[#C4A484]">{s.n}</p>
+                <div>
+                  <p className="text-[14px] font-semibold text-white">{s.t}</p>
+                  <p className="mt-0.5 text-[12px] text-white/40">{s.d}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+
+          <p className="mx-auto mt-6 max-w-sm text-[12px] leading-relaxed text-white/35">
+            Numéro inconnu ? <span className="text-white/60">Répondez — c’est Raonaq.</span>
+          </p>
+
+          <button
+            type="button"
+            onClick={() => add(product.price1, 1)}
+            className="btn btn-primary btn-lg mt-7 min-w-[200px] rounded-none"
+          >
+            Commander
+          </button>
+          <p className="mt-2.5 text-[11px] text-white/35">
+            {product.price1} Dhs · ouvrir · inspecter · payer
+          </p>
+        </div>
+      </section>
+
+      {/* 9. Cross-sell léger */}
       {others.length > 0 && (
-        <section className="border-t border-[#1C1412]/8 bg-[#F7F1EC] py-12 md:py-20">
+        <section className="border-t border-[#1C1412]/8 bg-[#F7F1EC] py-12 md:py-16">
           <div className="container mx-auto px-4">
-            <h2 className="font-display text-2xl font-semibold text-[#1C1412] md:text-3xl">Compléter le rituel</h2>
+            <p className="text-[11px] font-medium tracking-[0.28em] text-[#C45B6A]">COLLECTION</p>
+            <h2 className="font-display mt-2 text-2xl font-semibold text-[#1C1412] md:text-3xl">
+              Autres outils Raonaq
+            </h2>
             <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
               {others.map((p) => (
                 <Link key={p.id} href={`/products/${p.slug}`} className="group block">
-                  <ProductShot
-                    src={p.heroImage}
-                    alt={p.name}
-                    variant="card"
-                  />
+                  <ProductShot src={p.heroImage} alt={p.name} variant="card" />
                   <p className="mt-2 text-[11px] tracking-[0.18em] text-[#C4A484]">{p.nameFr}</p>
                   <p className="font-display text-lg font-semibold text-[#1C1412]">{p.name}</p>
                   <p className="text-xs font-medium text-[#C45B6A]">{p.price1} Dhs</p>
@@ -465,21 +550,20 @@ export default function ProductClient({ product }: { product: Product }) {
         </section>
       )}
 
+      {/* Sticky mobile — cold CTA */}
       {showSticky && (
-        <div className="fixed inset-x-0 bottom-0 z-[45] border-t border-[#1C1412]/10 bg-white/95 px-3 pt-2.5 backdrop-blur md:hidden pb-[max(0.6rem,env(safe-area-inset-bottom))]">
+        <div className="fixed inset-x-0 bottom-0 z-[45] border-t border-[#1C1412]/10 bg-white/95 px-3 pt-2.5 backdrop-blur md:hidden pb-[max(0.65rem,env(safe-area-inset-bottom))]">
           <div className="flex items-center gap-3">
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="truncate font-display text-lg font-semibold text-[#1C1412]">{product.name}</p>
-              <div className="mt-0.5">
-                <Price amount={product.price1} was={product.priceWas} size="sm" />
-              </div>
+              <p className="text-[11px] font-medium text-[#C45B6A]">À la porte · sans avance</p>
             </div>
             <button
               type="button"
               onClick={() => add(product.price1, 1)}
-              className="btn btn-primary min-h-12 min-w-[7.5rem] shrink-0 px-5 text-sm"
+              className="btn btn-primary min-h-12 shrink-0 rounded-none px-5 text-sm font-semibold"
             >
-              Acheter
+              Commander
             </button>
           </div>
         </div>

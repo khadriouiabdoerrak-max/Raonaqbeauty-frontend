@@ -81,6 +81,7 @@ export const PDP_PROOF = [
 export const PDP_TRUST_STRIP = [
   { id: "ship", label: "Livraison gratuite", detail: "Maroc · 24–48 h" },
   { id: "cod", label: "Inspectez, puis payez", detail: "Paiement à la livraison" },
+  { id: "return", label: "Refus à la porte", detail: "Si ça ne convient pas" },
   { id: "swap", label: "Remplacement si défaut", detail: "Via WhatsApp" },
   { id: "heat", label: "Protection chaleur", detail: "Cheveu préservé" },
   { id: "support", label: "Support sous 1 jour", detail: "Jour ouvré · WhatsApp" },

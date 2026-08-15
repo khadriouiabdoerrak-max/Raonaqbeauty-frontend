@@ -75,24 +75,35 @@
 .raonaq-review-track {
   width: max-content;
   animation: raonaq-review-marquee 36s linear infinite;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
-.raonaq-review-track:hover {
+.raonaq-review-track:hover,
+.raonaq-review-track.raonaq-anim-paused {
   animation-play-state: paused;
 }
 
 @keyframes raonaq-trust-marquee {
   from { transform: translateX(0); }
-  to { transform: translateX(-33.333%); }
+  to { transform: translateX(-50%); }
 }
 
 .raonaq-trust-track {
   width: max-content;
   animation: raonaq-trust-marquee 28s linear infinite;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
-.raonaq-trust-track:hover {
+.raonaq-trust-track:hover,
+.raonaq-trust-track.raonaq-anim-paused {
   animation-play-state: paused;
+}
+
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 280px;
 }
 
 @media (prefers-reduced-motion: reduce) {

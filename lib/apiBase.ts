@@ -17,9 +17,12 @@ export function getServerApiBases(): string[] {
     "https://api.raonaqbeauty.com",
   ]
     .filter((value): value is string => Boolean(value && value.trim()))
-    .map(normalizeApiBase);
+    .map(normalizeApiBase)
+    // Ancien host EasyPanel public — 404 sur /api/v1/*
+    .filter((base) => !/toxb9v\.easypanel\.host/i.test(base));
 
-  return [...new Set(bases)];
+  const unique = [...new Set(bases)];
+  return unique.length > 0 ? unique : ["https://api.raonaqbeauty.com"];
 }
 
 export function fetchWithTimeout(

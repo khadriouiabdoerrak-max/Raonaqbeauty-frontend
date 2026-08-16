@@ -330,7 +330,7 @@ export async function adminLogin(username: string, password: string) {
     cache: 'no-store',
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data?.detail || 'فشل تسجيل الدخول');
+  if (!res.ok) throw new Error(data?.detail || data?.message || 'فشل تسجيل الدخول');
   return data as { token: string; expires_at: string };
 }
 

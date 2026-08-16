@@ -71,8 +71,21 @@ export default function StoreInsightsPanel({ token }: { token: string }) {
   );
 
   useEffect(() => {
+    if (!token) {
+      setLoading(false);
+      setError('جلسة غير متاحة');
+      return;
+    }
     void load(period);
-  }, [load, period]);
+  }, [load, period, token]);
+
+  if (!token) {
+    return (
+      <p className="text-sm text-[#6a5648]">سجّل الدخول باش تشوف الإحصائيات.</p>
+    );
+  }
+
+  const store = data?.store;
 
   return (
     <div className="space-y-6" dir="ltr">
@@ -171,21 +184,18 @@ export default function StoreInsightsPanel({ token }: { token: string }) {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           <StatTile
             label="Max order value"
-            value={mad(data?.store.max_order_value)}
+            value={mad(store?.max_order_value)}
           />
           <StatTile
             label="Average order value"
-            value={mad(data?.store.avg_order_value)}
+            value={mad(store?.avg_order_value)}
           />
           <StatTile
             label="Min order value"
-            value={mad(data?.store.min_order_value)}
+            value={mad(store?.min_order_value)}
           />
-          <StatTile
-            label="Orders"
-            value={String(data?.store.orders ?? 0)}
-          />
-          <StatTile label="Sales" value={mad(data?.store.sales)} />
+          <StatTile label="Orders" value={String(store?.orders ?? 0)} />
+          <StatTile label="Sales" value={mad(store?.sales)} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -193,9 +203,9 @@ export default function StoreInsightsPanel({ token }: { token: string }) {
             <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#6a5648]">
               Top products
             </p>
-            {data?.store.top_products?.length ? (
+            {store?.top_products?.length ? (
               <ul className="space-y-2">
-                {data.store.top_products.map((p) => (
+                {store.top_products.map((p) => (
                   <li
                     key={p.name}
                     className="flex items-center justify-between gap-3 text-sm border-b border-[#f0e6dc] pb-2 last:border-0"
@@ -218,9 +228,9 @@ export default function StoreInsightsPanel({ token }: { token: string }) {
             <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#6a5648]">
               Top cities
             </p>
-            {data?.store.top_cities?.length ? (
+            {store?.top_cities?.length ? (
               <ul className="space-y-2">
-                {data.store.top_cities.map((c) => (
+                {store.top_cities.map((c) => (
                   <li
                     key={c.city}
                     className="flex items-center justify-between gap-3 text-sm border-b border-[#f0e6dc] pb-2 last:border-0"
@@ -239,12 +249,12 @@ export default function StoreInsightsPanel({ token }: { token: string }) {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <StatTile
             label="Delivered earnings"
-            value={mad(data?.store.earnings)}
-            hint={`${data?.store.delivered ?? 0} livré`}
+            value={mad(store?.earnings)}
+            hint={`${store?.delivered ?? 0} livré`}
           />
           <StatTile
             label="Conversion rate"
-            value={`${data?.store.conversion_rate ?? 0} %`}
+            value={`${store?.conversion_rate ?? 0} %`}
             hint="Delivered ÷ orders (COD)"
           />
           <div className="rounded-2xl border border-[#e6d9cc] bg-[#F7F1EC] p-4">
@@ -252,7 +262,7 @@ export default function StoreInsightsPanel({ token }: { token: string }) {
               Traffic
             </p>
             <p className="mt-2 text-sm text-[#6a5648]">
-              {data?.store.traffic?.message || 'Unavailable'}
+              {store?.traffic?.message || 'Unavailable'}
             </p>
             <p className="mt-3 text-xs text-[#6a5648]">
               Visitors / page views / devices · Top pages · Checkout funnel —
@@ -261,14 +271,13 @@ export default function StoreInsightsPanel({ token }: { token: string }) {
           </div>
         </div>
 
-        {data?.store.by_status &&
-        Object.keys(data.store.by_status).length > 0 ? (
+        {store?.by_status && Object.keys(store.by_status).length > 0 ? (
           <div className="rounded-2xl border border-[#e6d9cc] bg-white p-4">
             <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#6a5648] mb-3">
               Orders by status
             </p>
             <div className="flex flex-wrap gap-2">
-              {Object.entries(data.store.by_status)
+              {Object.entries(store.by_status)
                 .sort((a, b) => b[1] - a[1])
                 .map(([status, count]) => (
                   <span

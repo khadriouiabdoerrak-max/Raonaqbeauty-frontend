@@ -301,7 +301,13 @@ function daysLabel(o: AdminOrder) {
 
 function parseMode(tab: string | null): Mode {
   if (tab === 'ship' || tab === 'shipping') return 'ship';
-  if (tab === 'board') return 'board';
+  if (
+    tab === 'board' ||
+    tab === 'overview' ||
+    tab === 'dashboard' ||
+    tab === 'stats'
+  )
+    return 'board';
   // confirm + legacy → طابور التأكيد
   return 'orders';
 }
@@ -323,14 +329,18 @@ function tomorrowLocalInput() {
 
 export default function OpsDesk({
   embedded = false,
+  sessionToken = '',
 }: {
   embedded?: boolean;
+  /** Token من AdminShell — باش ما يبانش لوجين مزدوج */
+  sessionToken?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initial = parseMode(searchParams.get('tab'));
+  const tabParam = searchParams.get('tab');
+  const initial = parseMode(tabParam);
 
-  const [token, setToken] = useState('');
+  const [token, setToken] = useState(sessionToken || '');
   const [pin, setPin] = useState('');
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -442,26 +452,49 @@ export default function OpsDesk({
       sessionStorage.setItem(ADMIN_TOKEN_KEY, secret);
     } catch (err) {
       if (!silent) {
-        setToken('');
-        setOrders([]);
-        setStats(null);
-        sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+        // فـ embedded: AdminShell هو اللي كيدير اللوجين — ما نمسّحوش الجلسة هنا
+        if (!embedded) {
+          setToken('');
+          setOrders([]);
+          setStats(null);
+          sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+        }
       }
       setError(err instanceof Error ? err.message : 'خطأ');
     } finally {
       setLoading(false);
       setBooting(false);
     }
-  }, []);
+  }, [embedded]);
+
+  // مزامنة تاب URL ↔ mode (تأكيد / شحن) — مهم فـ AdminShell
+  useEffect(() => {
+    const next = parseMode(tabParam);
+    setMode((prev) => {
+      if (prev === next) return prev;
+      return next;
+    });
+    if (next === 'ship') {
+      setPipe((p) =>
+        p === 'confirmed' || p === 'shipped' || p === 'stale' || p === 'all'
+          ? p
+          : 'confirmed',
+      );
+    } else if (next === 'orders') {
+      setPipe((p) =>
+        p === 'confirmed' || p === 'shipped' || p === 'stale' ? 'call_today' : p,
+      );
+    }
+  }, [tabParam]);
 
   useEffect(() => {
-    const saved = sessionStorage.getItem(ADMIN_TOKEN_KEY);
+    const saved = sessionToken || sessionStorage.getItem(ADMIN_TOKEN_KEY) || '';
     const pref = localStorage.getItem(COURIER_PREF_KEY);
     if (pref) setCourier(pref);
     else setCourier('ozone');
     if (saved) void load(saved);
     else setBooting(false);
-  }, [load]);
+  }, [load, sessionToken]);
 
   useEffect(() => {
     if (!token) return;
@@ -895,6 +928,13 @@ export default function OpsDesk({
   }
 
   if (!token) {
+    if (embedded) {
+      return (
+        <div className="min-h-[40dvh] flex items-center justify-center text-[#6a5648] text-sm">
+          جاري ربط الجلسة…
+        </div>
+      );
+    }
     return (
       <div className="min-h-[100dvh] bg-[#f5f0ea] flex items-center justify-center px-4">
         <form

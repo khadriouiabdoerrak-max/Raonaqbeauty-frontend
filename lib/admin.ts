@@ -127,8 +127,21 @@ export async function fetchAdminInsights(
     headers: { 'X-Admin-Token': token },
     cache: 'no-store',
   });
-  const data = await res.json();
+  const text = await res.text();
+  let data: StoreInsights & { detail?: string } = {} as StoreInsights;
+  try {
+    data = text ? JSON.parse(text) : ({} as StoreInsights);
+  } catch {
+    throw new Error(
+      res.ok
+        ? 'رد غير صالح من السيرفر'
+        : `خطأ السيرفر (${res.status}) — Deploy للـ backend`,
+    );
+  }
   if (!res.ok) throw new Error(data?.detail || 'فشل تحميل الإحصائيات');
+  if (!data.store || !data.earnings) {
+    throw new Error('بيانات الإحصائيات ناقصة — Deploy للـ backend');
+  }
   return data as StoreInsights;
 }
 

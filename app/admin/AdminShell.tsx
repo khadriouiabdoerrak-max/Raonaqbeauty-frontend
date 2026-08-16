@@ -270,7 +270,7 @@ export default function AdminShell() {
       ) : null}
 
       {(tab === 'confirm' || tab === 'ship') && (
-        <OpsDesk embedded />
+        <OpsDesk key={tab} embedded sessionToken={token} />
       )}
 
       {tab === 'overview' && (

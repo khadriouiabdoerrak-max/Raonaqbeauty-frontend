@@ -1,5 +1,5 @@
 /** WhatsApp depuis l’env — ex. 2126XXXXXXXX sans + ni espaces */
-const FALLBACK_WHATSAPP = "212612345678";
+const FALLBACK_WHATSAPP = "212720467608";
 
 export function getWhatsAppNumber(): string {
   const raw = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || FALLBACK_WHATSAPP;

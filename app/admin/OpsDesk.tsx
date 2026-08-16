@@ -380,6 +380,8 @@ export default function OpsDesk({
     setShowCancel(false);
     setShowReporte(false);
     setShowStatutMenu(false);
+    setShipConfirm(false);
+    setError('');
     const found = orders.find((o) => o.order_number === id);
     setShipCity(found?.city || '');
     setShipAddress(found?.address || '');
@@ -1725,6 +1727,12 @@ export default function OpsDesk({
             </div>
 
             <div className="p-4 sm:p-5 space-y-5">
+              {error ? (
+                <p className="text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl px-3 py-2 font-bold">
+                  {error}
+                </p>
+              ) : null}
+
               {risk?.risky ? (
                 <div className="flex gap-2 text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -2061,11 +2069,53 @@ export default function OpsDesk({
                 active.status === 'READY_TO_SHIP') && (
                 <div className="space-y-3">
                   <p className="text-xs font-bold text-[#6a5648]">Expédition</p>
+                  {!ozoneReady ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowOzoneConfig(true);
+                        closeDetail();
+                      }}
+                      className="w-full text-sm text-left text-[#7a2f3a] bg-[#C45B6A]/10 border border-[#C45B6A]/30 rounded-xl px-3 py-2 font-bold"
+                    >
+                      OzonExpress غير مربوط — كليكة باش تدخل المفاتيح
+                    </button>
+                  ) : null}
                   {!shipAddrOk ? (
-                    <p className="text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
-                      أكمل المدينة (≥ 2) والعنوان (≥ 8) قبل الشحن.
+                    <p className="text-sm text-amber-950 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                      العنوان خاصو يكون كامل (حي / زنقة — على الأقل 8 أحرف).
+                      «Rabat» وحدها ما تكفيش.
                     </p>
                   ) : null}
+                  <label className="block">
+                    <span className="text-[#6a5648] text-xs font-bold">
+                      مدينة الشحن
+                    </span>
+                    <div className="mt-1">
+                      <CitySelect
+                        value={shipCity}
+                        onChange={setShipCity}
+                        allowCustom
+                        className="text-sm"
+                      />
+                    </div>
+                  </label>
+                  <label className="block">
+                    <span className="text-[#6a5648] text-xs font-bold">
+                      عنوان التسليم
+                    </span>
+                    <textarea
+                      value={shipAddress}
+                      onChange={(e) => setShipAddress(e.target.value)}
+                      rows={2}
+                      className={`mt-1 w-full p-2.5 rounded-lg border bg-white resize-none ${
+                        shipAddrOk
+                          ? 'border-[#e6d9cc]'
+                          : 'border-amber-400 ring-2 ring-amber-200'
+                      }`}
+                      placeholder="مثال: Hay Riad, Rue 12 N°5"
+                    />
+                  </label>
                   <div className="flex flex-wrap gap-2">
                     {COURIERS.map((c) => (
                       <button
@@ -2098,14 +2148,15 @@ export default function OpsDesk({
                   ) : (
                     <button
                       type="button"
-                      disabled={busy || !ozoneReady || !shipAddrOk}
+                      disabled={busy || !ozoneReady}
                       onClick={() => {
                         if (!shipAddrOk) {
                           setError(
-                            'المدينة والعنوان ناقصين — المدينة ≥ 2 والعنوان ≥ 8 أحرف',
+                            'كمّل العنوان (حي/زنقة — 8 أحرف على الأقل) قبل إرسال OzonExpress',
                           );
                           return;
                         }
+                        setError('');
                         setShipConfirm(true);
                       }}
                       className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#c45c26] text-white font-bold disabled:opacity-50"

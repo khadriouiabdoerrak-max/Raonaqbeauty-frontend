@@ -1124,7 +1124,7 @@ export default function OpsDesk({
 
       {mode === 'board' && (
         <div className="mx-auto max-w-[1400px] px-3 py-6 space-y-8">
-          {token ? <StoreInsightsPanel token={token} /> : null}
+          <StoreInsightsPanel token={token} />
 
           <div>
             <h2 className="text-xl font-bold">مسار التأكيد</h2>

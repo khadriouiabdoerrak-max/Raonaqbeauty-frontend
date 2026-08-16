@@ -7,14 +7,19 @@ import { useCart } from "../context/CartContext";
 export default function WhatsAppButton() {
   const pathname = usePathname();
   const { isCartOpen, isCheckoutOpen } = useCart();
-  const href = getWhatsAppLink();
+  const onProduct = Boolean(pathname?.startsWith("/products/"));
+  const slug = onProduct ? pathname.split("/")[2] || "" : "";
+  const href = getWhatsAppLink(
+    onProduct && slug
+      ? `Bonjour Raonaq, je suis intéressée par le produit ${slug.replace(/-/g, " ")}. Pouvez-vous m’aider ?`
+      : undefined,
+  );
   const hideForFlow =
     isCartOpen ||
     isCheckoutOpen ||
     pathname === "/thank-you" ||
     pathname === "/upsell" ||
     Boolean(pathname?.startsWith("/admin"));
-  const onProduct = pathname.startsWith("/products/");
 
   if (!href || hideForFlow) return null;
 
@@ -25,7 +30,7 @@ export default function WhatsAppButton() {
       rel="noopener noreferrer"
       className={`fixed z-20 flex h-14 w-14 items-center justify-center rounded-full bg-whatsapp text-white shadow-[0_4px_14px_rgba(37,211,102,0.4)] ${
         onProduct
-          ? "bottom-24 left-4 hidden md:bottom-6 md:left-6 md:flex"
+          ? "bottom-[5.5rem] left-4 md:bottom-6 md:left-6"
           : "bottom-5 left-4 md:bottom-6 md:left-6"
       }`}
       aria-label={`WhatsApp ${getWhatsAppDisplay()}`}

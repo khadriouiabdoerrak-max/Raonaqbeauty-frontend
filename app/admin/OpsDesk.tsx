@@ -49,6 +49,7 @@ import {
   patchAdminOrder,
   purgeAllAdminOrders,
   shipAdminOrder,
+  shipAdminOrdersBatch,
   syncOzonExpress,
   saveOzonExpressConfig,
   createAdminOrder,
@@ -195,6 +196,15 @@ function canPickConfirmStatut(o: AdminOrder) {
   return !['SHIPPED', 'DELIVERED', 'RETURNED'].includes(o.status);
 }
 
+function canSendToOzon(o: AdminOrder) {
+  return (
+    (o.status === 'CONFIRMED' || o.status === 'READY_TO_SHIP') &&
+    !hasRealTracking(o) &&
+    (o.city || '').trim().length >= 2 &&
+    (o.address || '').trim().length >= 8
+  );
+}
+
 function isShipQueue(o: AdminOrder) {
   return (
     o.status === 'CONFIRMED' ||
@@ -339,6 +349,10 @@ export default function OpsDesk({
   const [ozoneKey, setOzoneKey] = useState('');
   const [ozoneSaving, setOzoneSaving] = useState(false);
   const [shipConfirm, setShipConfirm] = useState(false);
+  const [selectedShip, setSelectedShip] = useState<Record<string, boolean>>(
+    {},
+  );
+  const [batchMsg, setBatchMsg] = useState('');
   const [query, setQuery] = useState('');
   const [filterYear, setFilterYear] = useState('');
   const [filterMonth, setFilterMonth] = useState('');
@@ -463,6 +477,13 @@ export default function OpsDesk({
       }
     })();
   }, [token]);
+
+  useEffect(() => {
+    if (mode !== 'ship') {
+      setSelectedShip({});
+      setBatchMsg('');
+    }
+  }, [mode]);
 
   useEffect(() => {
     if (!token) return;
@@ -850,6 +871,57 @@ export default function OpsDesk({
   const activeStage = active ? stageOf(active) : null;
   const shipAddrOk =
     shipCity.trim().length >= 2 && shipAddress.trim().length >= 8;
+
+  const selectedShipIds = useMemo(
+    () => Object.keys(selectedShip).filter((id) => selectedShip[id]),
+    [selectedShip],
+  );
+
+  const shippableInSheet = useMemo(
+    () => sheetRows.filter(canSendToOzon),
+    [sheetRows],
+  );
+
+  const allShippableSelected =
+    shippableInSheet.length > 0 &&
+    shippableInSheet.every((o) => selectedShip[o.order_number]);
+
+  const runBatchOzonShip = async () => {
+    if (!token || !selectedShipIds.length) return;
+    const ok = window.confirm(
+      `إرسال ${selectedShipIds.length} طلب إلى OzonExpress دفعة واحدة؟`,
+    );
+    if (!ok) return;
+    setBusy(true);
+    setError('');
+    setBatchMsg('');
+    try {
+      const results = await shipAdminOrdersBatch(token, selectedShipIds);
+      const okN = results.filter((r) => r.ok).length;
+      const fail = results.filter((r) => !r.ok);
+      setBatchMsg(
+        fail.length
+          ? `تم ${okN} · فشل ${fail.length}: ${fail
+              .map((f) => `${f.order_number} (${f.error})`)
+              .join(' · ')}`
+          : `تم إرسال ${okN} طلب إلى OzonExpress`,
+      );
+      setSelectedShip({});
+      await load(token, true);
+      if (okN > 0) {
+        try {
+          await syncOzonExpress(token);
+          await load(token, true);
+        } catch {
+          /* ignore */
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'فشل الإرسال الجماعي');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const orderFilters: { id: PipeFilter; label: string }[] =
     mode === 'ship'
@@ -1352,14 +1424,28 @@ export default function OpsDesk({
                   </button>
                   <button
                     type="button"
+                    disabled={busy || !ozoneReady || selectedShipIds.length === 0}
+                    onClick={() => void runBatchOzonShip()}
+                    className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#2a1810] text-white text-sm font-bold disabled:opacity-50"
+                  >
+                    <Truck className="w-4 h-4" />
+                    إرسال المحدد ({selectedShipIds.length})
+                  </button>
+                  <button
+                    type="button"
                     disabled={busy || !ozoneReady}
                     onClick={() => {
                       if (!token) return;
                       void (async () => {
                         setBusy(true);
                         setError('');
+                        setBatchMsg('');
                         try {
-                          await syncOzonExpress(token);
+                          const res = await syncOzonExpress(token);
+                          setBatchMsg(
+                            res.message ||
+                              `مزامنة: ${res.checked ?? 0} تتبع · ${res.updated ?? 0} تحديث`,
+                          );
                           void load(token, true);
                         } catch (err) {
                           setError(
@@ -1373,7 +1459,7 @@ export default function OpsDesk({
                     className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#c45c26] text-white text-sm font-bold disabled:opacity-50"
                   >
                     <RefreshCw className="w-4 h-4" />
-                    تحديث Ozone
+                    تحديث حالات Ozone
                   </button>
                   <button
                     type="button"
@@ -1543,6 +1629,24 @@ export default function OpsDesk({
             </div>
           ) : null}
 
+          {mode === 'ship' && (batchMsg || selectedShipIds.length > 0) ? (
+            <div className="rounded-xl border border-[#e6d9cc] bg-white px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+              <p className="text-[#2a1810] font-bold">
+                {batchMsg ||
+                  `${selectedShipIds.length} طلب محدد للإرسال إلى OzonExpress`}
+              </p>
+              {selectedShipIds.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setSelectedShip({})}
+                  className="text-xs font-bold text-[#6a5648] underline"
+                >
+                  مسح التحديد
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+
           <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
             {orderFilters.map((f) => {
               const count =
@@ -1571,6 +1675,27 @@ export default function OpsDesk({
             <table className="w-full text-sm text-right min-w-[1180px] border-collapse">
               <thead>
                 <tr className="bg-[#dfe9d8] text-[#243d22] border-b border-[#b7c9b0]">
+                  {mode === 'ship' ? (
+                    <th className="p-2.5 font-semibold border-l border-[#b7c9b0] w-10">
+                      <input
+                        type="checkbox"
+                        checked={allShippableSelected}
+                        onChange={() => {
+                          if (allShippableSelected) {
+                            setSelectedShip({});
+                            return;
+                          }
+                          const next: Record<string, boolean> = {};
+                          for (const o of shippableInSheet) {
+                            next[o.order_number] = true;
+                          }
+                          setSelectedShip(next);
+                        }}
+                        aria-label="تحديد الكل"
+                        className="h-4 w-4 accent-[#c45c26]"
+                      />
+                    </th>
+                  ) : null}
                   <th className="p-2.5 font-semibold border-l border-[#b7c9b0]">
                     تاريخ
                   </th>
@@ -1599,7 +1724,7 @@ export default function OpsDesk({
                     Statut
                   </th>
                   <th className="p-2.5 font-semibold border-l border-[#b7c9b0]">
-                    Suivi / RDV
+                    État Ozon
                   </th>
                   <th className="p-2.5 font-semibold">تفاصيل</th>
                 </tr>
@@ -1608,7 +1733,7 @@ export default function OpsDesk({
                 {sheetRows.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={11}
+                      colSpan={mode === 'ship' ? 12 : 11}
                       className="p-12 text-center text-[#6a5648]"
                     >
                       Aucune commande dans ce filtre.
@@ -1616,11 +1741,37 @@ export default function OpsDesk({
                   </tr>
                 ) : (
                   sheetRows.map((o) => {
+                    const ozoneOk = canSendToOzon(o);
                     return (
                       <tr
                         key={o.order_number}
                         className={`border-t border-[#dde8d8] ${rowStageClass(o)} hover:brightness-[0.98]`}
                       >
+                        {mode === 'ship' ? (
+                          <td className="p-2.5 border-l border-[#dde8d8] text-center">
+                            <input
+                              type="checkbox"
+                              disabled={!ozoneOk}
+                              checked={Boolean(selectedShip[o.order_number])}
+                              onChange={(e) => {
+                                const on = e.target.checked;
+                                setSelectedShip((prev) => {
+                                  const next = { ...prev };
+                                  if (on) next[o.order_number] = true;
+                                  else delete next[o.order_number];
+                                  return next;
+                                });
+                              }}
+                              aria-label={`تحديد ${o.order_number}`}
+                              className="h-4 w-4 accent-[#c45c26] disabled:opacity-30"
+                              title={
+                                ozoneOk
+                                  ? 'تحديد للإرسال إلى Ozon'
+                                  : 'خاص يكون مؤكد + عنوان كامل (≥8) بدون تتبع'
+                              }
+                            />
+                          </td>
+                        ) : null}
                         <td className="p-2.5 text-xs text-[#6a5648] whitespace-nowrap border-l border-[#dde8d8]">
                           {(() => {
                             const p = orderDateParts(o.created_at);
@@ -1653,7 +1804,7 @@ export default function OpsDesk({
                         <td className="p-2.5 dir-ltr text-left border-l border-[#dde8d8] whitespace-nowrap">
                           {o.phone}
                         </td>
-                        <td className="p-2.5 border-l border-[#dde8d8]">
+                        <td className="p-2.5 border-l border-[#dde8d8] dir-ltr text-left text-xs">
                           {o.city}
                         </td>
                         <td
@@ -1669,13 +1820,26 @@ export default function OpsDesk({
                           {o.status_label}
                         </td>
                         <td className="p-2.5 text-xs border-l border-[#dde8d8]">
-                          {o.courier_status
-                            ? o.courier_status
-                            : o.tracking_number
-                              ? o.tracking_number
-                              : o.follow_up_at
-                                ? formatAdminDate(o.follow_up_at)
-                                : '—'}
+                          {o.courier_status ? (
+                            <div>
+                              <p className="font-bold text-[#c45c26]">
+                                {o.courier_status}
+                              </p>
+                              {o.tracking_number ? (
+                                <p className="font-mono text-[11px] text-[#6a5648] mt-0.5">
+                                  {o.tracking_number}
+                                </p>
+                              ) : null}
+                            </div>
+                          ) : o.tracking_number ? (
+                            <p className="font-mono text-[11px]">
+                              {o.tracking_number}
+                            </p>
+                          ) : o.follow_up_at ? (
+                            formatAdminDate(o.follow_up_at)
+                          ) : (
+                            '—'
+                          )}
                         </td>
                         <td className="p-2">
                           <button

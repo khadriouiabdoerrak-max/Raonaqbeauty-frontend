@@ -295,6 +295,41 @@ export async function saveOzonExpressConfig(
   return data as { ok: boolean; message?: string };
 }
 
+export async function shipAdminOrdersBatch(
+  token: string,
+  orderNumbers: string[],
+  operator?: string,
+) {
+  const results: {
+    order_number: string;
+    ok: boolean;
+    tracking_number?: string;
+    error?: string;
+  }[] = [];
+  for (const orderNumber of orderNumbers) {
+    try {
+      const updated = await shipAdminOrder(
+        token,
+        orderNumber,
+        { courier_name: 'ozone', create_with_provider: true },
+        operator,
+      );
+      results.push({
+        order_number: orderNumber,
+        ok: true,
+        tracking_number: updated.tracking_number || undefined,
+      });
+    } catch (err) {
+      results.push({
+        order_number: orderNumber,
+        ok: false,
+        error: err instanceof Error ? err.message : 'فشل الإرسال',
+      });
+    }
+  }
+  return results;
+}
+
 export async function shipAdminOrder(
   token: string,
   orderNumber: string,

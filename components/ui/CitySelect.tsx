@@ -15,7 +15,7 @@ export function CitySelect({
   value,
   onChange,
   className = '',
-  placeholder = 'اختاري المدينة',
+  placeholder = 'اختاري المدينة (OzonExpress)',
   allowCustom = false,
 }: Props) {
   const [q, setQ] = useState('');
@@ -23,19 +23,37 @@ export function CitySelect({
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    if (!needle) return CHECKOUT_CITIES;
+    if (!needle) {
+      const majors = CHECKOUT_CITIES.filter((c) =>
+        [
+          'casablanca',
+          'rabat',
+          'sale',
+          'temara',
+          'marrakech',
+          'fes',
+          'tanger',
+          'agadir',
+          'meknes',
+          'kenitra',
+          'oujda',
+          'mohammedia',
+        ].some((m) => c.value.toLowerCase().includes(m)),
+      );
+      return majors.length ? majors.slice(0, 80) : CHECKOUT_CITIES.slice(0, 80);
+    }
     return CHECKOUT_CITIES.filter(
       (c) =>
-        c.label.includes(q.trim()) ||
+        c.label.toLowerCase().includes(needle) ||
         c.value.toLowerCase().includes(needle) ||
-        (c.group || '').includes(q.trim()),
-    );
+        (c.group || '').toLowerCase().includes(needle),
+    ).slice(0, 120);
   }, [q]);
 
   const groups = useMemo(() => {
     const map = new Map<string, typeof CHECKOUT_CITIES>();
     for (const c of filtered) {
-      const g = c.group || 'مدن';
+      const g = c.group || 'Maroc';
       if (!map.has(g)) map.set(g, []);
       map.get(g)!.push(c);
     }
@@ -56,15 +74,16 @@ export function CitySelect({
         )}
       </button>
       {open ? (
-        <div className="absolute z-50 mt-1 w-full max-h-64 overflow-hidden rounded-xl border border-champagne/40 bg-white shadow-lg">
+        <div className="absolute z-50 mt-1 w-full max-h-72 overflow-hidden rounded-xl border border-champagne/40 bg-white shadow-lg">
           <input
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="بحث عن مدينة أو حي…"
+            placeholder="بحث — نفس أسماء OzonExpress…"
             className="w-full p-2.5 border-b border-champagne/30 text-right text-sm outline-none"
+            dir="ltr"
           />
-          <div className="max-h-52 overflow-y-auto text-right">
+          <div className="max-h-56 overflow-y-auto text-right">
             {groups.map(([group, cities]) => (
               <div key={group}>
                 <p className="px-3 py-1.5 text-[11px] font-bold text-muted-brown bg-[#faf6f1]">
@@ -72,18 +91,18 @@ export function CitySelect({
                 </p>
                 {cities.map((c) => (
                   <button
-                    key={c.value}
+                    key={`${c.group}-${c.value}`}
                     type="button"
                     onClick={() => {
                       onChange(c.value);
                       setOpen(false);
                       setQ('');
                     }}
-                    className={`w-full px-3 py-2 text-sm text-right hover:bg-[#f5efe8] ${
+                    className={`w-full px-3 py-2 text-sm text-left hover:bg-[#f5efe8] dir-ltr ${
                       value === c.value ? 'font-bold text-[#c45c26]' : ''
                     }`}
                   >
-                    {group === 'الدار البيضاء' ? c.label : c.label}
+                    {c.label}
                   </button>
                 ))}
               </div>
@@ -99,7 +118,7 @@ export function CitySelect({
                   setOpen(false);
                   setQ('');
                 }}
-                className="w-full px-3 py-2 text-sm text-right border-t border-champagne/30 text-[#c45c26] font-bold"
+                className="w-full px-3 py-2 text-sm text-left border-t border-champagne/30 text-[#c45c26] font-bold dir-ltr"
               >
                 استعملي «{q.trim()}»
               </button>

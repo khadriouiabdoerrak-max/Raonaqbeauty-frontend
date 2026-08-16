@@ -819,6 +819,57 @@ export default function OpsDesk({
     return () => window.removeEventListener('keydown', onKey);
   }, [detailOpen, active, showCancel, showReporte, busy, token]);
 
+  const selectedShipIds = useMemo(
+    () => Object.keys(selectedShip).filter((id) => selectedShip[id]),
+    [selectedShip],
+  );
+
+  const shippableInSheet = useMemo(
+    () => sheetRows.filter(canSendToOzon),
+    [sheetRows],
+  );
+
+  const allShippableSelected =
+    shippableInSheet.length > 0 &&
+    shippableInSheet.every((o) => selectedShip[o.order_number]);
+
+  const runBatchOzonShip = async () => {
+    if (!token || !selectedShipIds.length) return;
+    const ok = window.confirm(
+      `إرسال ${selectedShipIds.length} طلب إلى OzonExpress دفعة واحدة؟`,
+    );
+    if (!ok) return;
+    setBusy(true);
+    setError('');
+    setBatchMsg('');
+    try {
+      const results = await shipAdminOrdersBatch(token, selectedShipIds);
+      const okN = results.filter((r) => r.ok).length;
+      const fail = results.filter((r) => !r.ok);
+      setBatchMsg(
+        fail.length
+          ? `تم ${okN} · فشل ${fail.length}: ${fail
+              .map((f) => `${f.order_number} (${f.error})`)
+              .join(' · ')}`
+          : `تم إرسال ${okN} طلب إلى OzonExpress`,
+      );
+      setSelectedShip({});
+      await load(token, true);
+      if (okN > 0) {
+        try {
+          await syncOzonExpress(token);
+          await load(token, true);
+        } catch {
+          /* ignore */
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'فشل الإرسال الجماعي');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (booting) {
     return (
       <div className="min-h-[100dvh] bg-[#f5f0ea] flex items-center justify-center text-[#6a5648]">
@@ -871,57 +922,6 @@ export default function OpsDesk({
   const activeStage = active ? stageOf(active) : null;
   const shipAddrOk =
     shipCity.trim().length >= 2 && shipAddress.trim().length >= 8;
-
-  const selectedShipIds = useMemo(
-    () => Object.keys(selectedShip).filter((id) => selectedShip[id]),
-    [selectedShip],
-  );
-
-  const shippableInSheet = useMemo(
-    () => sheetRows.filter(canSendToOzon),
-    [sheetRows],
-  );
-
-  const allShippableSelected =
-    shippableInSheet.length > 0 &&
-    shippableInSheet.every((o) => selectedShip[o.order_number]);
-
-  const runBatchOzonShip = async () => {
-    if (!token || !selectedShipIds.length) return;
-    const ok = window.confirm(
-      `إرسال ${selectedShipIds.length} طلب إلى OzonExpress دفعة واحدة؟`,
-    );
-    if (!ok) return;
-    setBusy(true);
-    setError('');
-    setBatchMsg('');
-    try {
-      const results = await shipAdminOrdersBatch(token, selectedShipIds);
-      const okN = results.filter((r) => r.ok).length;
-      const fail = results.filter((r) => !r.ok);
-      setBatchMsg(
-        fail.length
-          ? `تم ${okN} · فشل ${fail.length}: ${fail
-              .map((f) => `${f.order_number} (${f.error})`)
-              .join(' · ')}`
-          : `تم إرسال ${okN} طلب إلى OzonExpress`,
-      );
-      setSelectedShip({});
-      await load(token, true);
-      if (okN > 0) {
-        try {
-          await syncOzonExpress(token);
-          await load(token, true);
-        } catch {
-          /* ignore */
-        }
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'فشل الإرسال الجماعي');
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const orderFilters: { id: PipeFilter; label: string }[] =
     mode === 'ship'

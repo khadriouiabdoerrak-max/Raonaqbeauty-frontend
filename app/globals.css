@@ -22,6 +22,14 @@
   --color-champagne: #C4A484;
   --color-warm-black: #1C1412;
   --color-whatsapp: #25D366;
+  /* Admin desk aliases (compat OXIPRIME UI) */
+  --color-ivory: #F7F1EC;
+  --color-cocoa: #1C1412;
+  --color-muted-brown: #6B5E58;
+  --color-gold: #C4A484;
+  --color-espresso: #B84E5C;
+  --color-background: #F7F1EC;
+  --color-secondary: #6B5E58;
 }
 
 @keyframes salon-rise {
@@ -133,8 +141,12 @@
   animation: before-after-sweep 4s ease-in-out infinite;
 }
 
-.font-display {
-  font-family: var(--font-display), ui-serif, Georgia, serif;
+.shadow-card {
+  box-shadow: 0 8px 28px rgba(28, 20, 18, 0.08);
+}
+
+.rounded-btn {
+  border-radius: 0.5rem;
 }
 
 body {

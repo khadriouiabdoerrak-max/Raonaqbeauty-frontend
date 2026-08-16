@@ -9,7 +9,11 @@ export default function WhatsAppButton() {
   const { isCartOpen, isCheckoutOpen } = useCart();
   const href = getWhatsAppLink();
   const hideForFlow =
-    isCartOpen || isCheckoutOpen || pathname === "/thank-you" || pathname === "/upsell";
+    isCartOpen ||
+    isCheckoutOpen ||
+    pathname === "/thank-you" ||
+    pathname === "/upsell" ||
+    Boolean(pathname?.startsWith("/admin"));
   const onProduct = pathname.startsWith("/products/");
 
   if (!href || hideForFlow) return null;

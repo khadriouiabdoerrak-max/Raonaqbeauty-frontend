@@ -44,6 +44,8 @@ export default function Header() {
     };
   }, [mobileOpen]);
 
+  if (pathname?.startsWith("/admin")) return null;
+
   const linkClass = (href: string) => {
     const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
     if (overHero) {

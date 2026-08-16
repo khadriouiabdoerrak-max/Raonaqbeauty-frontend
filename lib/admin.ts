@@ -1,0 +1,376 @@
+export type AdminOrder = {
+  order_number: string;
+  created_at: string;
+  customer_name: string;
+  phone: string;
+  city: string;
+  address: string;
+  products: string;
+  subtotal: number;
+  shipping_fee: number;
+  total_amount: number;
+  status: string;
+  status_label: string;
+  notes?: string;
+  cancel_reason?: string;
+  tracking_number?: string;
+  courier_name?: string;
+  courier_status?: string;
+  courier_synced_at?: string | null;
+  follow_up_at?: string | null;
+  status_changed_at?: string | null;
+  days_open?: number;
+  days_in_status?: number;
+  confirmed_at?: string | null;
+  shipped_at?: string | null;
+  delivered_at?: string | null;
+  returned_at?: string | null;
+  last_contacted_at?: string | null;
+  last_operator?: string | null;
+  sheet_sync_error?: string | null;
+  sheet_synced_at?: string | null;
+};
+
+export type WeeklyStats = {
+  orders: number;
+  confirmed: number;
+  cancelled: number;
+  delivered: number;
+  returned: number;
+  confirm_rate: number;
+  return_rate: number;
+  top_cities: { city: string; count: number }[];
+  cancel_reasons: Record<string, number>;
+};
+
+export type AdminStats = {
+  today: number;
+  today_confirmed?: number;
+  today_shipped?: number;
+  today_delivered?: number;
+  today_returned?: number;
+  today_cancelled?: number;
+  en_attente?: number;
+  appel_1?: number;
+  appel_2?: number;
+  appel_3?: number;
+  reporte?: number;
+  reporte_due?: number;
+  pending: number;
+  confirmed: number;
+  ready_to_ship: number;
+  shipped: number;
+  stale_shipped?: number;
+  delivered: number;
+  returned: number;
+  cancelled: number;
+  cancel_reasons?: Record<string, number>;
+  total: number;
+  sheet_errors?: number;
+  weekly?: WeeklyStats;
+  operators?: string[];
+};
+
+export function hasRealTracking(order?: {
+  tracking_number?: string | null;
+} | null): boolean {
+  const t = (order?.tracking_number || '').trim();
+  return Boolean(t) && !t.toUpperCase().startsWith('MAN-');
+}
+
+export const ADMIN_TOKEN_KEY = 'raonaq-admin-token';
+export const OPS_OPERATOR_KEY = 'raonaq-ops-operator';
+export const COURIER_PREF_KEY = 'raonaq-default-courier';
+
+export const CANCEL_REASONS = [
+  'Client a refusé',
+  'Mauvais numéro',
+  'Prix trop élevé',
+  'Commande en double',
+  'Hors zone de livraison',
+  'Autre',
+] as const;
+
+export function orderDateParts(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) {
+    return { year: 0, month: 0, day: 0, time: '' };
+  }
+  return {
+    year: d.getFullYear(),
+    month: d.getMonth() + 1,
+    day: d.getDate(),
+    time: d.toLocaleTimeString('fr-MA', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
+  };
+}
+
+/** Full chronology: year · day/month · time */
+export function formatAdminDate(iso: string) {
+  try {
+    const p = orderDateParts(iso);
+    if (!p.year) return iso;
+    const mm = String(p.month).padStart(2, '0');
+    const dd = String(p.day).padStart(2, '0');
+    return `${p.year}-${mm}-${dd} · ${p.time}`;
+  } catch {
+    return iso;
+  }
+}
+
+export async function purgeAllAdminOrders(token: string) {
+  const qs = new URLSearchParams({ confirm: 'DELETE_ALL_ORDERS' });
+  const res = await fetch(`/api/admin/orders/purge?${qs}`, {
+    method: 'DELETE',
+    headers: { 'X-Admin-Token': token },
+    cache: 'no-store',
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.detail || 'فشل المسح');
+  return data as {
+    ok: boolean;
+    deleted_orders: number;
+    deleted_items: number;
+    message?: string;
+  };
+}
+
+/** Relative time in Darija-friendly Arabic, e.g. "قبل 12 د" */
+export function timeAgo(iso: string) {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return '';
+  const mins = Math.max(0, Math.floor((Date.now() - then) / 60000));
+  if (mins < 1) return 'دابا';
+  if (mins < 60) return `قبل ${mins} د`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `قبل ${hours} س`;
+  const days = Math.floor(hours / 24);
+  return `قبل ${days} ي`;
+}
+
+export function telHref(phone: string) {
+  return `tel:${phone.replace(/[^\d+]/g, '')}`;
+}
+
+export function copyText(text: string) {
+  return navigator.clipboard.writeText(text);
+}
+
+export function buildCourierCopyLine(o: AdminOrder) {
+  return [
+    o.order_number,
+    o.customer_name,
+    o.phone,
+    o.city,
+    o.address,
+    o.products,
+    `${o.total_amount} DH`,
+    o.notes || '',
+  ].join(' | ');
+}
+
+function opsHeaders(token: string, operator?: string): HeadersInit {
+  const h: Record<string, string> = { 'X-Admin-Token': token };
+  if (operator?.trim()) h['X-Ops-Operator'] = operator.trim();
+  return h;
+}
+
+export async function fetchAdminOrders(token: string, status?: string) {
+  const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+  const res = await fetch(`/api/admin/orders${qs}`, {
+    headers: { 'X-Admin-Token': token },
+    cache: 'no-store',
+  });
+  const text = await res.text();
+  let data: {
+    detail?: string;
+    total?: number;
+    orders?: AdminOrder[];
+    stats?: AdminStats;
+  } = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(
+      res.ok
+        ? 'رد غير صالح من السيرفر'
+        : `خطأ السيرفر (${res.status}) — عاودي Déployer للـ backend`,
+    );
+  }
+  if (!res.ok) throw new Error(data?.detail || 'فشل التحميل');
+  return data as {
+    total: number;
+    orders: AdminOrder[];
+    stats?: AdminStats;
+  };
+}
+
+export async function patchAdminOrder(
+  token: string,
+  orderNumber: string,
+  body: Record<string, unknown>,
+  operator?: string,
+) {
+  const res = await fetch(
+    `/api/admin/orders/${encodeURIComponent(orderNumber)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...opsHeaders(token, operator),
+      },
+      body: JSON.stringify({
+        ...body,
+        ...(operator?.trim() ? { operator: operator.trim() } : {}),
+      }),
+      cache: 'no-store',
+    },
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.detail || 'فشل تحديث الحالة');
+  return data as AdminOrder;
+}
+
+export async function syncOzonExpress(token: string) {
+  const res = await fetch('/api/admin/couriers/ozonexpress/sync', {
+    method: 'POST',
+    headers: { 'X-Admin-Token': token },
+    cache: 'no-store',
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.detail || data?.message || 'فشل المزامنة');
+  return data as {
+    ok: boolean;
+    message?: string;
+    checked?: number;
+    updated?: number;
+  };
+}
+
+export async function shipAdminOrder(
+  token: string,
+  orderNumber: string,
+  body: {
+    courier_name?: string;
+    tracking_number?: string;
+    create_with_provider?: boolean;
+    city?: string;
+    address?: string;
+  },
+  operator?: string,
+) {
+  const res = await fetch(
+    `/api/admin/orders/${encodeURIComponent(orderNumber)}/ship`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...opsHeaders(token, operator),
+      },
+      body: JSON.stringify(body),
+      cache: 'no-store',
+    },
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.detail || 'فشل الشحن');
+  return data as AdminOrder;
+}
+
+export async function fetchOrderAudit(token: string, orderNumber: string) {
+  const res = await fetch(
+    `/api/admin/orders/${encodeURIComponent(orderNumber)}/audit`,
+    {
+      headers: { 'X-Admin-Token': token },
+      cache: 'no-store',
+    },
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.detail || 'فشل السجل');
+  return data as {
+    events: {
+      operator: string;
+      action: string;
+      detail: string;
+      created_at: string;
+    }[];
+  };
+}
+
+export type AdminMetrics = {
+  from: string;
+  to: string;
+  clicks_raw: number;
+  clicks_counted: number;
+  orders: number;
+  conversion_rate: number;
+  revenue: number;
+  by_status: Record<string, number>;
+  by_day: { date: string; clicks: number; orders: number }[];
+  top_cities: { city: string; count: number }[];
+  top_products: { name: string; quantity: number }[];
+};
+
+export type AdminOrderDetail = AdminOrder & {
+  items?: { name: string; quantity: number; unit_price: number }[];
+  audit?: {
+    operator: string;
+    action: string;
+    detail: string;
+    created_at: string;
+  }[];
+};
+
+export async function adminLogin(username: string, password: string) {
+  const res = await fetch('/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+    cache: 'no-store',
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.detail || 'فشل تسجيل الدخول');
+  return data as { token: string; expires_at: string };
+}
+
+export async function adminLogout(token: string) {
+  await fetch('/api/admin/logout', {
+    method: 'POST',
+    headers: { 'X-Admin-Token': token },
+    cache: 'no-store',
+  }).catch(() => undefined);
+}
+
+export async function fetchAdminMetrics(
+  token: string,
+  range?: { from?: string; to?: string },
+) {
+  const qs = new URLSearchParams();
+  if (range?.from) qs.set('from', range.from);
+  if (range?.to) qs.set('to', range.to);
+  const q = qs.toString() ? `?${qs}` : '';
+  const res = await fetch(`/api/admin/metrics${q}`, {
+    headers: { 'X-Admin-Token': token },
+    cache: 'no-store',
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.detail || 'فشل المقاييس');
+  return data as AdminMetrics;
+}
+
+export async function fetchAdminOrderDetail(
+  token: string,
+  orderNumber: string,
+) {
+  const res = await fetch(
+    `/api/admin/orders/${encodeURIComponent(orderNumber)}`,
+    {
+      headers: { 'X-Admin-Token': token },
+      cache: 'no-store',
+    },
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.detail || 'فشل تفاصيل الطلب');
+  return data as AdminOrderDetail;
+}

@@ -76,6 +76,7 @@ import { CitySelect } from '@/components/ui/CitySelect';
 import { STALE_SHIP_DAYS } from '@/lib/cities';
 import { products, UPSELL } from '@/lib/products';
 import { formatStoreProductLine } from '@/lib/productLabels';
+import StoreInsightsPanel from './StoreInsightsPanel';
 
 /** نفس أسماء الستور فالسلة: «Raonaq DUO»، «Raonaq TRIO»… */
 const WA_CATALOG: { name: string; label: string; price: number }[] = [
@@ -1122,7 +1123,9 @@ export default function OpsDesk({
       ) : null}
 
       {mode === 'board' && (
-        <div className="mx-auto max-w-[1400px] px-3 py-6 space-y-6">
+        <div className="mx-auto max-w-[1400px] px-3 py-6 space-y-8">
+          {token ? <StoreInsightsPanel token={token} /> : null}
+
           <div>
             <h2 className="text-xl font-bold">مسار التأكيد</h2>
             <p className="text-sm text-[#6a5648] mt-1">

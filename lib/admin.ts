@@ -71,6 +71,67 @@ export type AdminStats = {
   operators?: string[];
 };
 
+export type InsightPeriod =
+  | 'today'
+  | 'yesterday'
+  | 'week'
+  | 'month'
+  | 'year'
+  | 'all';
+
+export type StoreInsights = {
+  currency: string;
+  timezone: string;
+  period: InsightPeriod | string;
+  period_label: string;
+  earnings: Record<
+    string,
+    {
+      label: string;
+      earnings: number;
+      sales: number;
+      orders: number;
+      delivered: number;
+    }
+  >;
+  store: {
+    orders: number;
+    sales: number;
+    earnings: number;
+    delivered: number;
+    max_order_value: number;
+    avg_order_value: number;
+    min_order_value: number;
+    conversion_rate: number;
+    top_products: { name: string; quantity: number; revenue: number }[];
+    top_cities: { city: string; count: number }[];
+    by_status: Record<string, number>;
+    traffic: {
+      available: boolean;
+      visitors: number | null;
+      page_views: number | null;
+      devices: null;
+      message?: string;
+    };
+    top_pages: { available: boolean; message?: string };
+    checkout_funnel: { available: boolean; message?: string };
+  };
+};
+
+export async function fetchAdminInsights(
+  token: string,
+  period: InsightPeriod | string = 'today',
+) {
+  const qs = new URLSearchParams({ period: String(period) });
+  const res = await fetch(`/api/admin/insights?${qs}`, {
+    headers: { 'X-Admin-Token': token },
+    cache: 'no-store',
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.detail || 'فشل تحميل الإحصائيات');
+  return data as StoreInsights;
+}
+
 export function hasRealTracking(order?: {
   tracking_number?: string | null;
 } | null): boolean {

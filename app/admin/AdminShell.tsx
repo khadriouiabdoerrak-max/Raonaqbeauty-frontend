@@ -10,6 +10,7 @@ import {
   fetchAdminOrders,
   type AdminStats,
 } from '@/lib/admin';
+import StoreInsightsPanel from './StoreInsightsPanel';
 
 const OpsDesk = dynamic(() => import('./OpsDesk'), {
   ssr: false,
@@ -273,11 +274,13 @@ export default function AdminShell() {
       )}
 
       {tab === 'overview' && (
-        <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+        <div className="max-w-6xl mx-auto px-4 py-6 space-y-8">
+          <StoreInsightsPanel token={token} />
+
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-bold text-cocoa">اليوم</h2>
-              <p className="text-sm text-muted-brown">أرقام سريعة — بلا تعقيد</p>
+              <h2 className="text-lg font-bold text-cocoa">اليوم — سريع</h2>
+              <p className="text-sm text-muted-brown">أرقام الطابور الآن</p>
             </div>
             <button
               type="button"

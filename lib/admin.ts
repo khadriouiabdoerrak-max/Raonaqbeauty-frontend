@@ -207,6 +207,34 @@ export async function fetchAdminOrders(token: string, status?: string) {
   };
 }
 
+export async function createAdminOrder(
+  token: string,
+  body: {
+    customer_name: string;
+    phone: string;
+    city: string;
+    address: string;
+    product_name: string;
+    quantity?: number;
+    unit_price: number;
+    notes?: string;
+    operator?: string;
+  },
+) {
+  const res = await fetch('/api/admin/orders', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Admin-Token': token,
+    },
+    body: JSON.stringify(body),
+    cache: 'no-store',
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.detail || 'فشل إنشاء الطلب');
+  return data as AdminOrder;
+}
+
 export async function patchAdminOrder(
   token: string,
   orderNumber: string,

@@ -35,3 +35,33 @@ export async function GET(request: Request) {
     );
   }
 }
+
+export async function POST(request: Request) {
+  const token = adminTokenFrom(request);
+  if (!token) {
+    return NextResponse.json({ detail: 'رمز الدخول مطلوب' }, { status: 401 });
+  }
+
+  try {
+    const body = await request.text();
+    const response = await fetch(`${getBackendUrl()}/api/v1/admin/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Admin-Token': token,
+      },
+      body: body || '{}',
+      cache: 'no-store',
+    });
+    const data = await response.text();
+    return new NextResponse(data, {
+      status: response.status,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch {
+    return NextResponse.json(
+      { detail: 'تعذر الاتصال بالخادم.' },
+      { status: 502 },
+    );
+  }
+}

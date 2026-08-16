@@ -49,6 +49,7 @@ import {
   purgeAllAdminOrders,
   shipAdminOrder,
   syncOzonExpress,
+  createAdminOrder,
   telHref,
   timeAgo,
 } from '@/lib/admin';
@@ -62,6 +63,16 @@ import {
 } from '@/lib/opsQueue';
 import { CitySelect } from '@/components/ui/CitySelect';
 import { STALE_SHIP_DAYS } from '@/lib/cities';
+
+const WA_CATALOG: { name: string; price: number }[] = [
+  { name: 'DUO', price: 599 },
+  { name: 'TRIO', price: 199 },
+  { name: 'SOFT', price: 199 },
+  { name: 'JOUR', price: 199 },
+  { name: 'VOLUME', price: 199 },
+  { name: 'GO', price: 199 },
+  { name: 'LUMA', price: 99 },
+];
 
 type Mode = 'board' | 'orders' | 'ship';
 
@@ -197,6 +208,31 @@ function stageOf(o: AdminOrder): PipeFilter {
   }
 }
 
+/** لون الصف حسب مرحلة التأكيد (3 أيام) */
+function rowStageClass(o: AdminOrder): string {
+  switch (stageOf(o)) {
+    case 'en_attente':
+      return 'bg-[#F7F1EC] border-s-4 border-s-[#C4A484]';
+    case 'appel_1':
+      return 'bg-amber-50 border-s-4 border-s-amber-400';
+    case 'appel_2':
+      return 'bg-[#F8E8EB] border-s-4 border-s-[#C45B6A]/70';
+    case 'appel_3':
+      return 'bg-[#F3D5DB] border-s-4 border-s-[#C45B6A]';
+    case 'reporte':
+      return 'bg-sky-50 border-s-4 border-s-sky-500';
+    case 'confirmed':
+      return 'bg-emerald-50/80 border-s-4 border-s-emerald-600';
+    case 'cancelled':
+    case 'returned':
+      return 'bg-stone-100 border-s-4 border-s-stone-400';
+    case 'shipped':
+      return 'bg-white border-s-4 border-s-[#2a1810]/40';
+    default:
+      return 'bg-white';
+  }
+}
+
 function daysLabel(o: AdminOrder) {
   const open =
     typeof o.days_open === 'number'
@@ -256,7 +292,7 @@ export default function OpsDesk({
   const [booting, setBooting] = useState(true);
   const [mode, setMode] = useState<Mode>(initial);
   const [pipe, setPipe] = useState<PipeFilter>(
-    initial === 'ship' ? 'confirmed' : 'all',
+    initial === 'ship' ? 'confirmed' : 'call_today',
   );
   const [activeId, setActiveId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -278,6 +314,17 @@ export default function OpsDesk({
   const [filterDay, setFilterDay] = useState('');
   const [newOrderCount, setNewOrderCount] = useState(0);
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
+  const [showWaIntake, setShowWaIntake] = useState(false);
+  const [waSaving, setWaSaving] = useState(false);
+  const [waForm, setWaForm] = useState({
+    customer_name: '',
+    phone: '',
+    city: '',
+    address: '',
+    product_name: 'DUO',
+    unit_price: '599',
+    notes: '',
+  });
 
   const knownNew = useRef<Set<string>>(new Set());
   const primed = useRef(false);
@@ -289,7 +336,7 @@ export default function OpsDesk({
     setDetailOpen(false);
     if (m === 'ship') setPipe('confirmed');
     else if (m === 'orders') {
-      setPipe('all');
+      setPipe('call_today');
       setNewOrderCount(0);
     }
     router.replace(`/admin?tab=${modeQuery(m)}`, { scroll: false });
@@ -607,6 +654,46 @@ export default function OpsDesk({
       append_note: `ما جاوبش · ${stamp}`,
       mark_contacted: true,
     });
+    openCustomerWhatsApp(o.phone, buildCallCenterConfirmMessage(o));
+  };
+
+  const submitWaIntake = async () => {
+    if (!token) return;
+    setWaSaving(true);
+    setError('');
+    try {
+      const created = await createAdminOrder(token, {
+        customer_name: waForm.customer_name.trim(),
+        phone: waForm.phone.trim(),
+        city: waForm.city.trim(),
+        address: waForm.address.trim(),
+        product_name: waForm.product_name.trim(),
+        quantity: 1,
+        unit_price: Number(waForm.unit_price) || 0,
+        notes: waForm.notes.trim() || undefined,
+      });
+      setShowWaIntake(false);
+      setWaForm({
+        customer_name: '',
+        phone: '',
+        city: '',
+        address: '',
+        product_name: 'DUO',
+        unit_price: '599',
+        notes: '',
+      });
+      await load(token, true);
+      setPipe('call_today');
+      openDetail(created.order_number);
+      openCustomerWhatsApp(
+        created.phone,
+        buildCallCenterConfirmMessage(created),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'فشل إنشاء الطلب');
+    } finally {
+      setWaSaving(false);
+    }
   };
 
   const doShip = async (id: string, withProvider = false) => {
@@ -1270,6 +1357,40 @@ export default function OpsDesk({
             </div>
           </div>
 
+          {mode === 'orders' ? (
+            <div className="rounded-xl border border-[#C4A484]/50 bg-[#F7F1EC] px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-sm font-bold text-[#2a1810]">
+                  طابور اليوم: {pipeCounts.call_today}
+                </p>
+                <p className="text-[11px] text-[#6a5648] mt-0.5">
+                  واتساب أولاً · من بعد اتصال · حتى 3 أيام (مكالمة 1→2→3) · هدف تقريبي ~7
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-1.5 text-[10px] font-bold">
+                <span className="rounded-full bg-[#F7F1EC] border border-[#C4A484] px-2 py-1">
+                  جديد
+                </span>
+                <span className="rounded-full bg-amber-50 border border-amber-400 px-2 py-1">
+                  يوم 1
+                </span>
+                <span className="rounded-full bg-[#F8E8EB] border border-[#C45B6A]/70 px-2 py-1">
+                  يوم 2
+                </span>
+                <span className="rounded-full bg-[#F3D5DB] border border-[#C45B6A] px-2 py-1">
+                  يوم 3
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowWaIntake(true)}
+                className="px-3.5 py-2 rounded-xl bg-[#25D366] text-white text-sm font-bold"
+              >
+                + طلب واتساب
+              </button>
+            </div>
+          ) : null}
+
           <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
             {orderFilters.map((f) => {
               const count =
@@ -1342,27 +1463,11 @@ export default function OpsDesk({
                     </td>
                   </tr>
                 ) : (
-                  sheetRows.map((o, i) => {
-                    const st = stageOf(o);
-                    const hot =
-                      st === 'en_attente' ||
-                      st === 'appel_1' ||
-                      st === 'appel_2' ||
-                      st === 'appel_3' ||
-                      st === 'reporte';
-                    const old = (o.days_open ?? 0) >= 2;
+                  sheetRows.map((o) => {
                     return (
                       <tr
                         key={o.order_number}
-                        className={`border-t border-[#dde8d8] ${
-                          old
-                            ? 'bg-red-50/60'
-                            : hot && st !== 'en_attente'
-                              ? 'bg-amber-50/70'
-                              : i % 2 === 0
-                                ? 'bg-white'
-                                : 'bg-[#f4f8f1]'
-                        } hover:bg-[#eaf2e4]`}
+                        className={`border-t border-[#dde8d8] ${rowStageClass(o)} hover:brightness-[0.98]`}
                       >
                         <td className="p-2.5 text-xs text-[#6a5648] whitespace-nowrap border-l border-[#dde8d8]">
                           {(() => {
@@ -2083,6 +2188,129 @@ export default function OpsDesk({
                 </div>
               ) : null}
             </div>
+          </div>
+        </div>
+      ) : null}
+
+      {showWaIntake ? (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-3">
+          <div
+            dir="rtl"
+            className="w-full max-w-md rounded-2xl bg-white border border-[#e6d9cc] shadow-2xl p-5 space-y-3 max-h-[90dvh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-lg font-bold text-[#2a1810]">طلب من واتساب</h2>
+              <button
+                type="button"
+                onClick={() => setShowWaIntake(false)}
+                className="p-2 rounded-lg border border-[#e6d9cc]"
+                aria-label="إغلاق"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-xs text-[#6a5648]">
+              دخل الاسم والهاتف والعنوان — كيتسجل فنفس السيستام بحال طلب الموقع.
+            </p>
+            <input
+              value={waForm.customer_name}
+              onChange={(e) =>
+                setWaForm((f) => ({ ...f, customer_name: e.target.value }))
+              }
+              placeholder="الاسم"
+              className="w-full p-3 rounded-xl border border-[#e6d9cc] bg-[#faf6f1]"
+            />
+            <input
+              value={waForm.phone}
+              onChange={(e) =>
+                setWaForm((f) => ({ ...f, phone: e.target.value }))
+              }
+              placeholder="الهاتف"
+              dir="ltr"
+              className="w-full p-3 rounded-xl border border-[#e6d9cc] bg-[#faf6f1] text-left"
+            />
+            <div>
+              <CitySelect
+                value={waForm.city}
+                onChange={(city) => setWaForm((f) => ({ ...f, city }))}
+                allowCustom
+                className="text-sm"
+              />
+            </div>
+            <textarea
+              value={waForm.address}
+              onChange={(e) =>
+                setWaForm((f) => ({ ...f, address: e.target.value }))
+              }
+              placeholder="العنوان (الحي، الشارع…)"
+              rows={2}
+              className="w-full p-3 rounded-xl border border-[#e6d9cc] bg-[#faf6f1] resize-none"
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                value={waForm.product_name}
+                onChange={(e) => {
+                  const name = e.target.value;
+                  const hit = WA_CATALOG.find((p) => p.name === name);
+                  setWaForm((f) => ({
+                    ...f,
+                    product_name: name,
+                    unit_price: String(hit?.price ?? f.unit_price),
+                  }));
+                }}
+                className="p-3 rounded-xl border border-[#e6d9cc] bg-[#faf6f1]"
+              >
+                {WA_CATALOG.map((p) => (
+                  <option key={p.name} value={p.name}>
+                    {p.name} — {p.price} DH
+                  </option>
+                ))}
+                <option value="Autre">Autre / حر</option>
+              </select>
+              <input
+                value={waForm.unit_price}
+                onChange={(e) =>
+                  setWaForm((f) => ({ ...f, unit_price: e.target.value }))
+                }
+                placeholder="الثمن"
+                dir="ltr"
+                className="p-3 rounded-xl border border-[#e6d9cc] bg-[#faf6f1] text-left"
+              />
+            </div>
+            {waForm.product_name === 'Autre' ||
+            !WA_CATALOG.some((p) => p.name === waForm.product_name) ? (
+              <input
+                value={
+                  WA_CATALOG.some((p) => p.name === waForm.product_name)
+                    ? ''
+                    : waForm.product_name
+                }
+                onChange={(e) =>
+                  setWaForm((f) => ({
+                    ...f,
+                    product_name: e.target.value || 'Autre',
+                  }))
+                }
+                placeholder="اسم المنتج الحر"
+                className="w-full p-3 rounded-xl border border-[#e6d9cc] bg-[#faf6f1]"
+              />
+            ) : null}
+            <input
+              value={waForm.notes}
+              onChange={(e) =>
+                setWaForm((f) => ({ ...f, notes: e.target.value }))
+              }
+              placeholder="ملاحظة (اختياري)"
+              className="w-full p-3 rounded-xl border border-[#e6d9cc] bg-[#faf6f1]"
+            />
+            <button
+              type="button"
+              disabled={waSaving}
+              onClick={() => void submitWaIntake()}
+              className="w-full py-3.5 rounded-xl bg-[#2a1810] text-white font-bold disabled:opacity-50"
+            >
+              {waSaving ? 'جاري الحفظ…' : 'حفظ + واتساب تأكيد'}
+            </button>
           </div>
         </div>
       ) : null}

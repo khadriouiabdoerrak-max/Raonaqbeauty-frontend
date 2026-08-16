@@ -537,31 +537,6 @@ export default function OpsDesk({
     });
   }, [orders]);
 
-  const dateOptions = useMemo(() => {
-    const years = new Set<number>();
-    const months = new Set<number>();
-    const days = new Set<number>();
-    for (const o of orders) {
-      const p = orderDateParts(o.created_at);
-      if (!p.year) continue;
-      years.add(p.year);
-      if (!filterYear || p.year === Number(filterYear)) {
-        months.add(p.month);
-        if (
-          (!filterYear || p.year === Number(filterYear)) &&
-          (!filterMonth || p.month === Number(filterMonth))
-        ) {
-          days.add(p.day);
-        }
-      }
-    }
-    return {
-      years: [...years].sort((a, b) => b - a),
-      months: [...months].sort((a, b) => a - b),
-      days: [...days].sort((a, b) => a - b),
-    };
-  }, [orders, filterYear, filterMonth]);
-
   const sheetRows = useMemo(() => {
     let list = sortedOrders;
     if (mode === 'ship') {

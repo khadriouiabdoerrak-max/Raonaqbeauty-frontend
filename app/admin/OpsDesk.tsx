@@ -29,9 +29,14 @@ import {
   buildCallCenterConfirmMessage,
   buildConfirmedWhatsAppMessage,
   buildDeliveredWhatsAppMessage,
+  buildNoResponseWhatsAppMessage,
   buildShippedWhatsAppMessage,
+  buildWhatsAppForOrder,
   customerWhatsAppHref,
+  isOzonNoResponseStatus,
   openCustomerWhatsApp,
+  resolveWhatsAppStage,
+  whatsAppButtonLabel,
 } from '@/lib/whatsapp';
 import {
   ADMIN_TOKEN_KEY,
@@ -693,6 +698,17 @@ export default function OpsDesk({
       setOrders((prev) =>
         prev.map((o) => (o.order_number === id ? { ...o, ...updated } : o)),
       );
+      if (body.status === 'CONFIRMED') {
+        openCustomerWhatsApp(
+          updated.phone,
+          buildConfirmedWhatsAppMessage(updated),
+        );
+      } else if (body.status === 'DELIVERED') {
+        openCustomerWhatsApp(
+          updated.phone,
+          buildDeliveredWhatsAppMessage(updated),
+        );
+      }
       if (closeAfter) closeDetail();
       void load(token, true);
     } catch (err) {
@@ -1442,11 +1458,31 @@ export default function OpsDesk({
                         setBatchMsg('');
                         try {
                           const res = await syncOzonExpress(token);
-                          setBatchMsg(
+                          const details = res.details || [];
+                          const noResp = details.filter((d) =>
+                            isOzonNoResponseStatus(d.courier_status),
+                          );
+                          const delivered = details.filter(
+                            (d) => d.status === 'DELIVERED',
+                          );
+                          const parts = [
                             res.message ||
                               `مزامنة: ${res.checked ?? 0} تتبع · ${res.updated ?? 0} تحديث`,
-                          );
-                          void load(token, true);
+                          ];
+                          if (delivered.length) {
+                            parts.push(
+                              `${delivered.length} livré — صيفطي ميساج الشكر من التفاصيل`,
+                            );
+                          }
+                          if (noResp.length) {
+                            parts.push(
+                              `⚠ ${noResp.length} pas de réponse: ${noResp
+                                .map((d) => d.order_number)
+                                .join(', ')}`,
+                            );
+                          }
+                          setBatchMsg(parts.join(' · '));
+                          await load(token, true);
                         } catch (err) {
                           setError(
                             err instanceof Error ? err.message : 'فشل المزامنة',
@@ -1822,13 +1858,33 @@ export default function OpsDesk({
                         <td className="p-2.5 text-xs border-l border-[#dde8d8]">
                           {o.courier_status ? (
                             <div>
-                              <p className="font-bold text-[#c45c26]">
+                              <p
+                                className={`font-bold ${
+                                  isOzonNoResponseStatus(o.courier_status)
+                                    ? 'text-amber-800'
+                                    : 'text-[#c45c26]'
+                                }`}
+                              >
                                 {o.courier_status}
                               </p>
                               {o.tracking_number ? (
                                 <p className="font-mono text-[11px] text-[#6a5648] mt-0.5">
                                   {o.tracking_number}
                                 </p>
+                              ) : null}
+                              {isOzonNoResponseStatus(o.courier_status) ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    openCustomerWhatsApp(
+                                      o.phone,
+                                      buildNoResponseWhatsAppMessage(o),
+                                    )
+                                  }
+                                  className="mt-1 text-[11px] font-bold text-[#25D366] underline"
+                                >
+                                  تذكير واتساب
+                                </button>
                               ) : null}
                             </div>
                           ) : o.tracking_number ? (
@@ -2027,23 +2083,32 @@ export default function OpsDesk({
                 <a
                   href={customerWhatsAppHref(
                     active.phone,
-                    isConfirmQueue(active)
-                      ? buildCallCenterConfirmMessage(active)
-                      : active.status === 'DELIVERED'
-                        ? buildDeliveredWhatsAppMessage(active)
-                        : active.status === 'SHIPPED' ||
-                            hasRealTracking(active)
-                          ? buildShippedWhatsAppMessage(active)
-                          : buildConfirmedWhatsAppMessage(active),
+                    buildWhatsAppForOrder(active),
                   )}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#25D366] text-white font-bold text-sm"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  واتساب
+                  {whatsAppButtonLabel(resolveWhatsAppStage(active))}
                 </a>
               </div>
+
+              {isOzonNoResponseStatus(active.courier_status) ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    openCustomerWhatsApp(
+                      active.phone,
+                      buildNoResponseWhatsAppMessage(active),
+                    )
+                  }
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-amber-500 bg-amber-50 text-amber-950 font-bold text-sm"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  تذكير — livreur ما لقاش الزبون
+                </button>
+              ) : null}
 
               {hasRealTracking(active) ? (
                 <button
@@ -2115,12 +2180,6 @@ export default function OpsDesk({
                                           status: s.id,
                                         });
                                         setShowStatutMenu(false);
-                                        if (s.id === 'CONFIRMED') {
-                                          openCustomerWhatsApp(
-                                            active.phone,
-                                            buildConfirmedWhatsAppMessage(active),
-                                          );
-                                        }
                                         if (s.id === 'APPEL_WHATSAPP') {
                                           openCustomerWhatsApp(
                                             active.phone,

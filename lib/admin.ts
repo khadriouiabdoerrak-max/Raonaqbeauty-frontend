@@ -274,6 +274,12 @@ export async function syncOzonExpress(token: string) {
     message?: string;
     checked?: number;
     updated?: number;
+    details?: {
+      order_number: string;
+      tracking_number?: string;
+      courier_status?: string;
+      status?: string;
+    }[];
   };
 }
 

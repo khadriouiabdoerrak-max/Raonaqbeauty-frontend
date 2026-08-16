@@ -1719,69 +1719,8 @@ export default function OpsDesk({
                   className="flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#25D366] text-white font-bold text-sm"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  WhatsApp
+                  واتساب
                 </a>
-              </div>
-
-              <div className="space-y-2 rounded-xl border border-[#c8e6c9] bg-[#f3faf3] p-3">
-                <p className="text-xs font-bold text-[#2e5a32]">
-                  رسائل واتساب حسب الحالة
-                </p>
-                <div className="grid grid-cols-1 gap-1.5">
-                  {isConfirmQueue(active) ? (
-                    <a
-                      href={customerWhatsAppHref(
-                        active.phone,
-                        buildCallCenterConfirmMessage(active),
-                      )}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-2.5 rounded-lg bg-[#25D366] text-white text-sm font-bold text-center"
-                    >
-                      1) طلب التأكيد من الزبونة
-                    </a>
-                  ) : null}
-                  {active.status === 'CONFIRMED' ||
-                  active.status === 'READY_TO_SHIP' ? (
-                    <a
-                      href={customerWhatsAppHref(
-                        active.phone,
-                        buildConfirmedWhatsAppMessage(active),
-                      )}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-2.5 rounded-lg bg-[#25D366] text-white text-sm font-bold text-center"
-                    >
-                      2) طلبك تأكّد — غادي يتصيفط
-                    </a>
-                  ) : null}
-                  {active.status === 'SHIPPED' || hasRealTracking(active) ? (
-                    <a
-                      href={customerWhatsAppHref(
-                        active.phone,
-                        buildShippedWhatsAppMessage(active),
-                      )}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-2.5 rounded-lg bg-[#25D366] text-white text-sm font-bold text-center"
-                    >
-                      3) طلبك تصيفط + رقم التتبع
-                    </a>
-                  ) : null}
-                  {active.status === 'DELIVERED' ? (
-                    <a
-                      href={customerWhatsAppHref(
-                        active.phone,
-                        buildDeliveredWhatsAppMessage(active),
-                      )}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-2.5 rounded-lg bg-[#25D366] text-white text-sm font-bold text-center"
-                    >
-                      4) بعد التسليم — شكراً
-                    </a>
-                  ) : null}
-                </div>
               </div>
 
               {hasRealTracking(active) ? (
@@ -1800,94 +1739,100 @@ export default function OpsDesk({
               ) : null}
 
               {isConfirmQueue(active) && !showCancel && !showReporte ? (
-                <div className="space-y-2">
-                  <p className="text-xs font-bold text-[#6a5648]">
-                    تأكيد
-                  </p>
-                  <p className="text-[11px] text-[#6a5648]">
-                    اختصارات: 1 = ما جاوبش · C = تأكيد · R = تأجيل · X = إلغاء · Esc = إغلاق
-                  </p>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => markNoAnswer(active)}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-amber-700 text-amber-900 font-bold disabled:opacity-40"
-                  >
-                    <PhoneMissed className="w-4 h-4" />
-                    ما جاوبش
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => {
-                      void (async () => {
-                        await patch(
-                          active.order_number,
-                          { status: 'CONFIRMED' },
-                          false,
-                        );
-                        openCustomerWhatsApp(
-                          active.phone,
-                          buildConfirmedWhatsAppMessage(active),
-                        );
-                      })();
-                    }}
-                    className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-emerald-700 text-white font-bold disabled:opacity-40"
-                  >
-                    <Check className="w-5 h-5" />
-                    تأكيد + واتساب
-                  </button>
-                  <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-3 rounded-2xl border border-[#e6d9cc] bg-[#faf6f1] p-3">
+                  <div>
+                    <p className="text-sm font-bold text-[#2a1810]">اختر الحالة</p>
+                    <p className="text-[11px] text-[#6a5648] mt-0.5">
+                      واحد تحت واحد · 1 ما جاوبش · C تأكيد · R مؤجل · X ملغى
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-[#6a5648]">
+                      النتيجة
+                    </p>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => {
+                        void (async () => {
+                          await patch(
+                            active.order_number,
+                            { status: 'CONFIRMED' },
+                            false,
+                          );
+                          openCustomerWhatsApp(
+                            active.phone,
+                            buildConfirmedWhatsAppMessage(active),
+                          );
+                        })();
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-emerald-700 text-white font-bold disabled:opacity-40"
+                    >
+                      <Check className="w-5 h-5" />
+                      تأكيد + واتساب
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => setShowReporte(true)}
+                      className="w-full py-3 rounded-xl border-2 border-sky-700 text-sky-900 font-bold text-sm"
+                    >
+                      مؤجل — عاودي نتصل نهار آخر
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => setShowCancel(true)}
+                      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-red-600 text-red-700 font-bold text-sm"
+                    >
+                      <X className="w-4 h-4" />
+                      ملغى
+                    </button>
+                  </div>
+
+                  <div className="space-y-2 pt-1 border-t border-[#e6d9cc]">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-[#6a5648]">
+                      ما جاوبتش — 3 أيام
+                    </p>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => markNoAnswer(active)}
+                      className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-amber-700 text-amber-950 bg-amber-50 font-bold disabled:opacity-40"
+                    >
+                      <PhoneMissed className="w-4 h-4" />
+                      ما جاوبش → اليوم التالي + واتساب
+                    </button>
                     {(
                       [
-                        ['APPEL_1', 'مكالمة 1'],
-                        ['APPEL_2', 'مكالمة 2'],
-                        ['APPEL_3', 'مكالمة 3'],
+                        ['PENDING_CONFIRMATION', 'جديد — يوم 0'],
+                        ['APPEL_1', 'مكالمة 1 — يوم 1'],
+                        ['APPEL_2', 'مكالمة 2 — يوم 2'],
+                        ['APPEL_3', 'مكالمة 3 — يوم 3'],
                       ] as const
-                    ).map(([st, label]) => (
-                      <button
-                        key={st}
-                        type="button"
-                        disabled={busy || active.status === st}
-                        onClick={() =>
-                          void patch(active.order_number, { status: st })
-                        }
-                        className="flex items-center justify-center gap-1 py-3 rounded-xl border-2 border-amber-600 font-bold text-xs disabled:opacity-40"
-                      >
-                        <PhoneMissed className="w-3.5 h-3.5" />
-                        {label}
-                      </button>
-                    ))}
+                    ).map(([st, label]) => {
+                      const on = active.status === st || (st === 'APPEL_1' && active.status === 'NO_ANSWER');
+                      return (
+                        <button
+                          key={st}
+                          type="button"
+                          disabled={busy || on}
+                          onClick={() =>
+                            void patch(active.order_number, { status: st })
+                          }
+                          className={`w-full py-3 rounded-xl border-2 text-sm font-bold text-right px-4 disabled:opacity-50 ${
+                            on
+                              ? 'border-[#2a1810] bg-[#2a1810] text-white'
+                              : 'border-[#e6d9cc] bg-white text-[#2a1810]'
+                          }`}
+                        >
+                          {on ? '● ' : '○ '}
+                          {label}
+                        </button>
+                      );
+                    })}
                   </div>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() =>
-                      void patch(active.order_number, {
-                        status: 'PENDING_CONFIRMATION',
-                      })
-                    }
-                    className="w-full py-3 rounded-xl border border-[#e6d9cc] font-bold text-sm"
-                  >
-                    جديد
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => setShowReporte(true)}
-                    className="w-full py-3 rounded-xl border-2 border-sky-700 text-sky-900 font-bold text-sm"
-                  >
-                    مؤجل
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => setShowCancel(true)}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-red-600 text-red-700 font-bold"
-                  >
-                    <X className="w-5 h-5" />
-                    ملغى
-                  </button>
                 </div>
               ) : null}
 

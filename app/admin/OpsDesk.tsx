@@ -77,6 +77,10 @@ import { STALE_SHIP_DAYS } from '@/lib/cities';
 import { products, UPSELL } from '@/lib/products';
 import { formatStoreProductLine } from '@/lib/productLabels';
 import StoreInsightsPanel from './StoreInsightsPanel';
+import AdminDateCalendar, {
+  datePartsToIso,
+  isoToDateParts,
+} from './AdminDateCalendar';
 
 /** نفس أسماء الستور فالسلة: «Raonaq DUO»، «Raonaq TRIO»… */
 const WA_CATALOG: { name: string; label: string; price: number }[] = [
@@ -887,6 +891,26 @@ export default function OpsDesk({
     }
   };
 
+  const dayOrderCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const o of orders) {
+      const p = orderDateParts(o.created_at);
+      if (!p.year) continue;
+      const iso = `${p.year}-${String(p.month).padStart(2, '0')}-${String(p.day).padStart(2, '0')}`;
+      map[iso] = (map[iso] || 0) + 1;
+    }
+    return map;
+  }, [orders]);
+
+  const filterDateIso = datePartsToIso(filterYear, filterMonth, filterDay);
+
+  const setFilterFromIso = (iso: string) => {
+    const parts = isoToDateParts(iso);
+    setFilterYear(parts.year);
+    setFilterMonth(parts.month);
+    setFilterDay(parts.day);
+  };
+
   if (booting) {
     return (
       <div className="min-h-[100dvh] bg-[#f5f0ea] flex items-center justify-center text-[#6a5648]">
@@ -1299,65 +1323,11 @@ export default function OpsDesk({
               </p>
             </div>
             <div className="flex flex-wrap gap-2 items-center">
-              <select
-                value={filterYear}
-                onChange={(e) => {
-                  setFilterYear(e.target.value);
-                  setFilterMonth('');
-                  setFilterDay('');
-                }}
-                className="p-2.5 rounded-xl border border-[#e6d9cc] bg-white text-sm"
-                aria-label="السنة"
-              >
-                <option value="">سنة</option>
-                {dateOptions.years.map((y) => (
-                  <option key={y} value={String(y)}>
-                    {y}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={filterMonth}
-                onChange={(e) => {
-                  setFilterMonth(e.target.value);
-                  setFilterDay('');
-                }}
-                className="p-2.5 rounded-xl border border-[#e6d9cc] bg-white text-sm"
-                aria-label="الشهر"
-              >
-                <option value="">شهر</option>
-                {dateOptions.months.map((m) => (
-                  <option key={m} value={String(m)}>
-                    {String(m).padStart(2, '0')}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={filterDay}
-                onChange={(e) => setFilterDay(e.target.value)}
-                className="p-2.5 rounded-xl border border-[#e6d9cc] bg-white text-sm"
-                aria-label="اليوم"
-              >
-                <option value="">يوم</option>
-                {dateOptions.days.map((d) => (
-                  <option key={d} value={String(d)}>
-                    {String(d).padStart(2, '0')}
-                  </option>
-                ))}
-              </select>
-              {(filterYear || filterMonth || filterDay) && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFilterYear('');
-                    setFilterMonth('');
-                    setFilterDay('');
-                  }}
-                  className="px-2.5 py-2.5 rounded-xl border border-[#e6d9cc] bg-white text-xs font-bold"
-                >
-                  مسح التاريخ
-                </button>
-              )}
+              <AdminDateCalendar
+                value={filterDateIso}
+                onChange={setFilterFromIso}
+                dayCounts={dayOrderCounts}
+              />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}

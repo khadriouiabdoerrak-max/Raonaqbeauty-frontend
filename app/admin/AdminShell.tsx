@@ -147,7 +147,7 @@ export default function AdminShell() {
     setLoading(true);
     setError('');
     try {
-      const res = await adminLogin(username.trim(), password.trim());
+      const res = await adminLogin(username.trim().toLowerCase(), password.trim());
       sessionStorage.setItem(ADMIN_TOKEN_KEY, res.token);
       setToken(res.token);
       setPassword('');

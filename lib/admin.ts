@@ -277,6 +277,24 @@ export async function syncOzonExpress(token: string) {
   };
 }
 
+export async function saveOzonExpressConfig(
+  token: string,
+  body: { customer_id: string; api_key: string },
+) {
+  const res = await fetch('/api/admin/couriers/ozonexpress/config', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Admin-Token': token,
+    },
+    body: JSON.stringify(body),
+    cache: 'no-store',
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.detail || data?.message || 'فشل حفظ إعدادات OzonExpress');
+  return data as { ok: boolean; message?: string };
+}
+
 export async function shipAdminOrder(
   token: string,
   orderNumber: string,

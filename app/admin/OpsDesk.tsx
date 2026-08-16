@@ -15,6 +15,7 @@ import {
   Download,
   Eye,
   Lock,
+  Link2,
   LogOut,
   MessageCircle,
   Phone,
@@ -49,12 +50,16 @@ import {
   purgeAllAdminOrders,
   shipAdminOrder,
   syncOzonExpress,
+  saveOzonExpressConfig,
   createAdminOrder,
   telHref,
   timeAgo,
 } from '@/lib/admin';
 import {
   buildCourierBatchText,
+  CONFIRM_STATUSES,
+  CONFIRM_STATUS_GROUPS,
+  confirmStatusStyle,
   isCallTodayQueue,
   nextAppelStatus,
   phoneRiskInfo,
@@ -63,15 +68,27 @@ import {
 } from '@/lib/opsQueue';
 import { CitySelect } from '@/components/ui/CitySelect';
 import { STALE_SHIP_DAYS } from '@/lib/cities';
+import { products, UPSELL } from '@/lib/products';
+import { formatStoreProductLine } from '@/lib/productLabels';
 
-const WA_CATALOG: { name: string; price: number }[] = [
-  { name: 'DUO', price: 599 },
-  { name: 'TRIO', price: 199 },
-  { name: 'SOFT', price: 199 },
-  { name: 'JOUR', price: 199 },
-  { name: 'VOLUME', price: 199 },
-  { name: 'GO', price: 199 },
-  { name: 'LUMA', price: 99 },
+/** نفس أسماء الستور فالسلة: «Raonaq DUO»، «Raonaq TRIO»… */
+const WA_CATALOG: { name: string; label: string; price: number }[] = [
+  ...[...products]
+    .sort((a, b) => {
+      if (a.name === 'DUO') return -1;
+      if (b.name === 'DUO') return 1;
+      return 0;
+    })
+    .map((p) => ({
+      name: `Raonaq ${p.name}`,
+      label: `Raonaq ${p.name} — ${p.nameFr}`,
+      price: p.price1,
+    })),
+  {
+    name: `Raonaq ${UPSELL.name}`,
+    label: UPSELL.nameFr,
+    price: UPSELL.price,
+  },
 ];
 
 type Mode = 'board' | 'orders' | 'ship';
@@ -159,9 +176,23 @@ function isConfirmQueue(o: AdminOrder) {
     'APPEL_1',
     'APPEL_2',
     'APPEL_3',
+    'APPEL_4',
+    'APPEL_5',
+    'APPEL_6',
+    'APPEL_7',
+    'APPEL_WHATSAPP',
+    'FAUX_NM',
+    'DOUBLE',
+    'BOITE_VOCALE',
+    'INJOIGNABLE',
     'REPORTE',
     'NO_ANSWER',
+    'CANCELLED',
   ].includes(o.status);
+}
+
+function canPickConfirmStatut(o: AdminOrder) {
+  return !['SHIPPED', 'DELIVERED', 'RETURNED'].includes(o.status);
 }
 
 function isShipQueue(o: AdminOrder) {
@@ -208,29 +239,25 @@ function stageOf(o: AdminOrder): PipeFilter {
   }
 }
 
-/** لون الصف حسب مرحلة التأكيد (3 أيام) */
 function rowStageClass(o: AdminOrder): string {
-  switch (stageOf(o)) {
-    case 'en_attente':
-      return 'bg-[#F7F1EC] border-s-4 border-s-[#C4A484]';
-    case 'appel_1':
-      return 'bg-amber-50 border-s-4 border-s-amber-400';
-    case 'appel_2':
-      return 'bg-[#F8E8EB] border-s-4 border-s-[#C45B6A]/70';
-    case 'appel_3':
-      return 'bg-[#F3D5DB] border-s-4 border-s-[#C45B6A]';
-    case 'reporte':
-      return 'bg-sky-50 border-s-4 border-s-sky-500';
-    case 'confirmed':
-      return 'bg-emerald-50/80 border-s-4 border-s-emerald-600';
-    case 'cancelled':
-    case 'returned':
-      return 'bg-stone-100 border-s-4 border-s-stone-400';
-    case 'shipped':
-      return 'bg-white border-s-4 border-s-[#2a1810]/40';
-    default:
-      return 'bg-white';
-  }
+  const s = o.status;
+  if (s === 'CONFIRMED' || s === 'READY_TO_SHIP')
+    return 'bg-emerald-50/80 border-s-4 border-s-emerald-600';
+  if (s === 'CANCELLED' || s === 'FAUX_NM' || s === 'DOUBLE' || s === 'INJOIGNABLE')
+    return 'bg-stone-100 border-s-4 border-s-stone-400';
+  if (s === 'BOITE_VOCALE' || s === 'APPEL_WHATSAPP')
+    return 'bg-violet-50 border-s-4 border-s-violet-500';
+  if (s === 'REPORTE') return 'bg-sky-50 border-s-4 border-s-sky-500';
+  if (s === 'APPEL_7' || s === 'APPEL_6')
+    return 'bg-[#F3D5DB] border-s-4 border-s-[#C45B6A]';
+  if (s === 'APPEL_5' || s === 'APPEL_4' || s === 'APPEL_3')
+    return 'bg-[#F8E8EB] border-s-4 border-s-[#C45B6A]/70';
+  if (s === 'APPEL_2' || s === 'APPEL_1' || s === 'NO_ANSWER')
+    return 'bg-amber-50 border-s-4 border-s-amber-400';
+  if (s === 'SHIPPED') return 'bg-white border-s-4 border-s-[#2a1810]/40';
+  if (s === 'PENDING_CONFIRMATION')
+    return 'bg-[#F7F1EC] border-s-4 border-s-[#C4A484]';
+  return 'bg-white';
 }
 
 function daysLabel(o: AdminOrder) {
@@ -307,6 +334,10 @@ export default function OpsDesk({
   const [shipAddress, setShipAddress] = useState('');
   const [copied, setCopied] = useState(false);
   const [ozoneReady, setOzoneReady] = useState(false);
+  const [showOzoneConfig, setShowOzoneConfig] = useState(false);
+  const [ozoneId, setOzoneId] = useState('');
+  const [ozoneKey, setOzoneKey] = useState('');
+  const [ozoneSaving, setOzoneSaving] = useState(false);
   const [shipConfirm, setShipConfirm] = useState(false);
   const [query, setQuery] = useState('');
   const [filterYear, setFilterYear] = useState('');
@@ -315,13 +346,14 @@ export default function OpsDesk({
   const [newOrderCount, setNewOrderCount] = useState(0);
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
   const [showWaIntake, setShowWaIntake] = useState(false);
+  const [showStatutMenu, setShowStatutMenu] = useState(false);
   const [waSaving, setWaSaving] = useState(false);
   const [waForm, setWaForm] = useState({
     customer_name: '',
     phone: '',
     city: '',
     address: '',
-    product_name: 'DUO',
+    product_name: 'Raonaq DUO',
     unit_price: '599',
     notes: '',
   });
@@ -347,6 +379,7 @@ export default function OpsDesk({
     setDetailOpen(true);
     setShowCancel(false);
     setShowReporte(false);
+    setShowStatutMenu(false);
     const found = orders.find((o) => o.order_number === id);
     setShipCity(found?.city || '');
     setShipAddress(found?.address || '');
@@ -415,9 +448,11 @@ export default function OpsDesk({
         if (!res.ok) return;
         const data = (await res.json()) as {
           ozonexpress_configured?: boolean;
+          ozonexpress_id?: string;
           default?: string;
         };
         setOzoneReady(Boolean(data.ozonexpress_configured));
+        if (data.ozonexpress_id) setOzoneId(data.ozonexpress_id);
         if (!localStorage.getItem(COURIER_PREF_KEY) && data.default) {
           setCourier(data.default);
         }
@@ -678,7 +713,7 @@ export default function OpsDesk({
         phone: '',
         city: '',
         address: '',
-        product_name: 'DUO',
+        product_name: 'Raonaq DUO',
         unit_price: '599',
         notes: '',
       });
@@ -1281,6 +1316,18 @@ export default function OpsDesk({
                 <>
                   <button
                     type="button"
+                    onClick={() => setShowOzoneConfig((v) => !v)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border text-sm font-bold ${
+                      ozoneReady
+                        ? 'border-emerald-300 bg-emerald-50 text-emerald-900'
+                        : 'border-[#C45B6A]/40 bg-[#C45B6A]/10 text-[#7a2f3a]'
+                    }`}
+                  >
+                    <Link2 className="w-4 h-4" />
+                    {ozoneReady ? 'OzonExpress مربوط' : 'ربط OzonExpress'}
+                  </button>
+                  <button
+                    type="button"
                     onClick={async () => {
                       const batch = todayConfirmedForCourier(orders);
                       await copyText(buildCourierBatchText(batch));
@@ -1388,6 +1435,109 @@ export default function OpsDesk({
               >
                 + طلب واتساب
               </button>
+            </div>
+          ) : null}
+
+          {mode === 'ship' && showOzoneConfig ? (
+            <div className="rounded-xl border border-[#e6d9cc] bg-white px-4 py-4 space-y-3">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="font-bold text-[#2a1810]">ربط OzonExpress</p>
+                  <p className="text-xs text-[#6a5648] mt-0.5">
+                    Customer ID + API Key من لوحة OzonExpress · كيتخزّنو فالسيرفر
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowOzoneConfig(false)}
+                  className="p-1.5 rounded-lg border border-[#e6d9cc] text-[#6a5648]"
+                  aria-label="إغلاق"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block text-sm">
+                  <span className="font-bold text-[#2a1810]">Customer ID</span>
+                  <input
+                    value={ozoneId}
+                    onChange={(e) => setOzoneId(e.target.value)}
+                    placeholder="مثلاً 12345"
+                    autoComplete="off"
+                    className="mt-1 w-full p-3 rounded-xl border border-[#e6d9cc] bg-[#faf6f1]"
+                    dir="ltr"
+                  />
+                </label>
+                <label className="block text-sm">
+                  <span className="font-bold text-[#2a1810]">API Key</span>
+                  <input
+                    type="password"
+                    value={ozoneKey}
+                    onChange={(e) => setOzoneKey(e.target.value)}
+                    placeholder="مفتاح API"
+                    autoComplete="off"
+                    className="mt-1 w-full p-3 rounded-xl border border-[#e6d9cc] bg-[#faf6f1]"
+                    dir="ltr"
+                  />
+                </label>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={
+                    ozoneSaving || !token || !ozoneId.trim() || !ozoneKey.trim()
+                  }
+                  onClick={() => {
+                    if (!token) return;
+                    void (async () => {
+                      setOzoneSaving(true);
+                      setError('');
+                      try {
+                        const res = await saveOzonExpressConfig(token, {
+                          customer_id: ozoneId.trim(),
+                          api_key: ozoneKey.trim(),
+                        });
+                        setOzoneReady(Boolean(res.ok));
+                        setOzoneKey('');
+                        if (res.ok) {
+                          setShowOzoneConfig(false);
+                          window.alert(
+                            res.message || 'تم الربط مع OzonExpress بنجاح',
+                          );
+                        } else {
+                          setError(
+                            res.message ||
+                              'تم الحفظ لكن الاختبار فشل — تحقق من المفاتيح',
+                          );
+                        }
+                      } catch (err) {
+                        setError(
+                          err instanceof Error
+                            ? err.message
+                            : 'فشل حفظ إعدادات OzonExpress',
+                        );
+                      } finally {
+                        setOzoneSaving(false);
+                      }
+                    })();
+                  }}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#2a1810] text-white text-sm font-bold disabled:opacity-50"
+                >
+                  <Link2 className="w-4 h-4" />
+                  {ozoneSaving ? 'جاري الحفظ…' : 'حفظ واختبار'}
+                </button>
+                {ozoneReady ? (
+                  <span className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-800">
+                    <CheckCircle2 className="w-4 h-4" />
+                    مربوط حالياً
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 text-sm text-[#7a2f3a]">
+                    <AlertTriangle className="w-4 h-4" />
+                    غير مربوط
+                  </span>
+                )}
+              </div>
             </div>
           ) : null}
 
@@ -1505,10 +1655,10 @@ export default function OpsDesk({
                           {o.city}
                         </td>
                         <td
-                          className="p-2.5 text-xs max-w-[160px] truncate border-l border-[#dde8d8]"
+                          className="p-2.5 text-xs max-w-[200px] border-l border-[#dde8d8]"
                           title={o.products}
                         >
-                          {o.products}
+                          {formatStoreProductLine(o.products)}
                         </td>
                         <td className="p-2.5 font-bold tabular-nums border-l border-[#dde8d8]">
                           {o.total_amount}
@@ -1627,7 +1777,7 @@ export default function OpsDesk({
               <div className="text-sm space-y-2 rounded-xl bg-[#faf6f1] border border-[#e6d9cc] p-3">
                 <p>
                   <span className="text-[#6a5648]">المنتجات: </span>
-                  {active.products}
+                  {formatStoreProductLine(active.products)}
                 </p>
                 {active.follow_up_at ? (
                   <p>
@@ -1738,101 +1888,99 @@ export default function OpsDesk({
                 </button>
               ) : null}
 
-              {isConfirmQueue(active) && !showCancel && !showReporte ? (
-                <div className="space-y-3 rounded-2xl border border-[#e6d9cc] bg-[#faf6f1] p-3">
-                  <div>
-                    <p className="text-sm font-bold text-[#2a1810]">اختر الحالة</p>
-                    <p className="text-[11px] text-[#6a5648] mt-0.5">
-                      واحد تحت واحد · 1 ما جاوبش · C تأكيد · R مؤجل · X ملغى
-                    </p>
-                  </div>
+              {canPickConfirmStatut(active) && !showCancel && !showReporte ? (
+                <div className="rounded-2xl border border-[#e6d9cc]/80 bg-white shadow-sm overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowStatutMenu((v) => !v)}
+                    className="w-full flex items-center gap-3 px-3 py-3 text-left hover:bg-[#faf6f1] transition-colors"
+                  >
+                    <span
+                      className={`h-10 w-1.5 shrink-0 rounded-full ${
+                        confirmStatusStyle(active.status).bar
+                      }`}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#6a5648]">
+                        Statut
+                      </p>
+                      <p
+                        className={`mt-1 inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${
+                          confirmStatusStyle(active.status).soft
+                        }`}
+                      >
+                        {active.status_label ||
+                          confirmStatusStyle(active.status).label}
+                      </p>
+                    </div>
+                    <span className="text-[#6a5648] text-sm font-bold shrink-0">
+                      {showStatutMenu ? 'Fermer' : 'Changer'}
+                    </span>
+                  </button>
 
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-bold uppercase tracking-wide text-[#6a5648]">
-                      النتيجة
-                    </p>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => {
-                        void (async () => {
-                          await patch(
-                            active.order_number,
-                            { status: 'CONFIRMED' },
-                            false,
-                          );
-                          openCustomerWhatsApp(
-                            active.phone,
-                            buildConfirmedWhatsAppMessage(active),
-                          );
-                        })();
-                      }}
-                      className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-emerald-700 text-white font-bold disabled:opacity-40"
-                    >
-                      <Check className="w-5 h-5" />
-                      تأكيد + واتساب
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => setShowReporte(true)}
-                      className="w-full py-3 rounded-xl border-2 border-sky-700 text-sky-900 font-bold text-sm"
-                    >
-                      مؤجل — عاودي نتصل نهار آخر
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => setShowCancel(true)}
-                      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-red-600 text-red-700 font-bold text-sm"
-                    >
-                      <X className="w-4 h-4" />
-                      ملغى
-                    </button>
-                  </div>
-
-                  <div className="space-y-2 pt-1 border-t border-[#e6d9cc]">
-                    <p className="text-[10px] font-bold uppercase tracking-wide text-[#6a5648]">
-                      ما جاوبتش — 3 أيام
-                    </p>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => markNoAnswer(active)}
-                      className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-amber-700 text-amber-950 bg-amber-50 font-bold disabled:opacity-40"
-                    >
-                      <PhoneMissed className="w-4 h-4" />
-                      ما جاوبش → اليوم التالي + واتساب
-                    </button>
-                    {(
-                      [
-                        ['PENDING_CONFIRMATION', 'جديد — يوم 0'],
-                        ['APPEL_1', 'مكالمة 1 — يوم 1'],
-                        ['APPEL_2', 'مكالمة 2 — يوم 2'],
-                        ['APPEL_3', 'مكالمة 3 — يوم 3'],
-                      ] as const
-                    ).map(([st, label]) => {
-                      const on = active.status === st || (st === 'APPEL_1' && active.status === 'NO_ANSWER');
-                      return (
-                        <button
-                          key={st}
-                          type="button"
-                          disabled={busy || on}
-                          onClick={() =>
-                            void patch(active.order_number, { status: st })
-                          }
-                          className={`w-full py-3 rounded-xl border-2 text-sm font-bold text-right px-4 disabled:opacity-50 ${
-                            on
-                              ? 'border-[#2a1810] bg-[#2a1810] text-white'
-                              : 'border-[#e6d9cc] bg-white text-[#2a1810]'
-                          }`}
-                        >
-                          {on ? '● ' : '○ '}
-                          {label}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  {showStatutMenu ? (
+                    <div className="border-t border-[#e6d9cc] bg-[#F7F1EC]/50 px-3 py-3 space-y-4 max-h-[55dvh] overflow-y-auto">
+                      {CONFIRM_STATUS_GROUPS.map((group) => (
+                        <div key={group.id} className="space-y-1.5">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#6a5648] px-1">
+                            {group.title}
+                          </p>
+                          <div className="space-y-1.5">
+                            {CONFIRM_STATUSES.filter((s) => s.group === group.id).map(
+                              (s) => {
+                                const on =
+                                  active.status === s.id ||
+                                  (s.id === 'APPEL_1' &&
+                                    active.status === 'NO_ANSWER');
+                                return (
+                                  <button
+                                    key={s.id}
+                                    type="button"
+                                    disabled={busy || on}
+                                    onClick={() => {
+                                      void (async () => {
+                                        await patch(active.order_number, {
+                                          status: s.id,
+                                        });
+                                        setShowStatutMenu(false);
+                                        if (s.id === 'CONFIRMED') {
+                                          openCustomerWhatsApp(
+                                            active.phone,
+                                            buildConfirmedWhatsAppMessage(active),
+                                          );
+                                        }
+                                        if (s.id === 'APPEL_WHATSAPP') {
+                                          openCustomerWhatsApp(
+                                            active.phone,
+                                            buildCallCenterConfirmMessage(active),
+                                          );
+                                        }
+                                      })();
+                                    }}
+                                    className={`w-full flex items-center gap-3 rounded-xl border px-2.5 py-2.5 text-left transition-all disabled:opacity-100 ${
+                                      on
+                                        ? `${s.soft} border-transparent shadow-sm ring-2 ring-[#1C1412]/15`
+                                        : `${s.soft} hover:brightness-[0.98]`
+                                    }`}
+                                  >
+                                    <span
+                                      className={`h-8 w-1.5 shrink-0 rounded-full ${s.bar}`}
+                                    />
+                                    <span className="flex-1 text-sm font-bold leading-tight">
+                                      {s.label}
+                                    </span>
+                                    {on ? (
+                                      <Check className="w-4 h-4 shrink-0 opacity-80" />
+                                    ) : null}
+                                  </button>
+                                );
+                              },
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
 
@@ -2207,10 +2355,10 @@ export default function OpsDesk({
               >
                 {WA_CATALOG.map((p) => (
                   <option key={p.name} value={p.name}>
-                    {p.name} — {p.price} DH
+                    {p.label} · {p.price} DH
                   </option>
                 ))}
-                <option value="Autre">Autre / حر</option>
+                <option value="Autre">Autre / منتج حر</option>
               </select>
               <input
                 value={waForm.unit_price}

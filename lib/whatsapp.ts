@@ -40,10 +40,12 @@ function firstName(full: string) {
 
 /** Ozon / livreur: client ما جاوبش */
 export function isOzonNoResponseStatus(label?: string | null): boolean {
-  const s = (label || '')
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/\p{M}/gu, '');
+  const strip = (v: string) =>
+    v
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  const s = strip(label || '');
   if (!s) return false;
   const keys = [
     'pas de reponse',
@@ -66,7 +68,7 @@ export function isOzonNoResponseStatus(label?: string | null): boolean {
     'ما جاوب',
     'ما رد',
   ];
-  return keys.some((k) => s.includes(k.normalize('NFD').replace(/\p{M}/gu, '')));
+  return keys.some((k) => s.includes(strip(k)));
 }
 
 /** أول اتصال / تأكيد العنوان */

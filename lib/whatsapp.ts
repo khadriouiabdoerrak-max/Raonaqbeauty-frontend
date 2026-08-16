@@ -27,10 +27,11 @@ export function buildCallCenterConfirmMessage(order: {
 }): string {
   return [
     `Bonjour ${order.customer_name},`,
-    `Raonaq — confirmation commande ${order.order_number}.`,
+    `Raonaq — confirmation de votre commande ${order.order_number}.`,
     `Produits: ${order.products}`,
     `Total: ${order.total_amount} Dhs — paiement à la livraison.`,
-    `On peut confirmer ?`,
+    `On peut confirmer l’adresse ?`,
+    `نتيجة صالون فدارك — Raonaq.`,
   ].join("\n");
 }
 
@@ -43,7 +44,8 @@ export function buildConfirmedWhatsAppMessage(order: {
     `Bonjour ${order.customer_name},`,
     `Votre commande ${order.order_number} est confirmée.`,
     `Total: ${order.total_amount} Dhs — paiement à la livraison.`,
-    `Expédition sous peu. Merci — Raonaq.`,
+    `Expédition sous peu. Merci.`,
+    `Raonaq — نتيجة صالون فدارك.`,
   ].join("\n");
 }
 
@@ -61,6 +63,7 @@ export function buildShippedWhatsAppMessage(order: {
     lines.push(`Suivi: ${track}`);
   }
   lines.push("Livraison gratuite · ouvrez, inspectez, puis payez.");
+  lines.push("Raonaq — نتيجة صالون فدارك.");
   return lines.join("\n");
 }
 

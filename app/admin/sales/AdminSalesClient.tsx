@@ -117,7 +117,7 @@ export default function AdminSalesClient() {
         >
           <div className="flex items-center gap-2 text-cocoa justify-center">
             <Lock className="w-5 h-5" />
-            <h1 className="text-lg font-bold">مبيعات تاجكِ</h1>
+            <h1 className="text-lg font-bold">مبيعات رونق</h1>
           </div>
           <p className="text-sm text-muted-brown text-center">
             أدخلي رمز الدخول باش تشوفي الطلبات وتحمّلي Excel.

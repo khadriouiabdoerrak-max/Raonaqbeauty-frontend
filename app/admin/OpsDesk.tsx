@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 
 /**
- * Tajouki Ops — OMS confirmation + shipping
- * En Attente · Appel 1/2/3 · Reporté · Confirmé · Annulé + jours
+ * Raonaq Ops — confirmation + shipping (COD Maroc)
+ * جديد · مكالمة 1/2/3 · مؤجل · مؤكد · ملغى
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -88,9 +88,8 @@ type AuditEvent = {
 };
 
 const MODES: { id: Mode; label: string }[] = [
-  { id: 'board', label: 'لوحة' },
-  { id: 'orders', label: 'الطلبات' },
-  { id: 'ship', label: 'الشحن' },
+  { id: 'orders', label: 'تأكيد' },
+  { id: 'ship', label: 'شحن' },
 ];
 
 const COURIERS = [
@@ -219,21 +218,15 @@ function daysLabel(o: AdminOrder) {
 
 function parseMode(tab: string | null): Mode {
   if (tab === 'ship' || tab === 'shipping') return 'ship';
-  if (
-    tab === 'orders' ||
-    tab === 'confirm' ||
-    tab === 'all' ||
-    tab === 'sales' ||
-    tab === 'monitor'
-  )
-    return 'orders';
-  return 'board';
+  if (tab === 'board') return 'board';
+  // confirm + legacy → طابور التأكيد
+  return 'orders';
 }
 
 function modeQuery(m: Mode) {
   if (m === 'ship') return 'ship';
-  if (m === 'orders') return 'orders';
-  return 'board';
+  if (m === 'board') return 'overview';
+  return 'confirm';
 }
 
 function tomorrowLocalInput() {
@@ -245,7 +238,11 @@ function tomorrowLocalInput() {
   return `${y}-${m}-${day}`;
 }
 
-export default function OpsDesk() {
+export default function OpsDesk({
+  embedded = false,
+}: {
+  embedded?: boolean;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initial = parseMode(searchParams.get('tab'));
@@ -697,8 +694,8 @@ export default function OpsDesk() {
         >
           <div className="text-center space-y-1">
             <Lock className="w-6 h-6 mx-auto text-[#2a1810]" />
-            <h1 className="text-xl font-bold text-[#2a1810]">تاجكِ تشغيل</h1>
-            <p className="text-sm text-[#6a5648]">Confirmation · Suivi</p>
+            <h1 className="text-xl font-bold text-[#2a1810]">تشغيل رونق</h1>
+            <p className="text-sm text-[#6a5648]">تأكيد · شحن</p>
           </div>
           <input
             type="password"
@@ -733,25 +730,25 @@ export default function OpsDesk() {
   const orderFilters: { id: PipeFilter; label: string }[] =
     mode === 'ship'
       ? [
-          { id: 'confirmed', label: 'Confirmé' },
-          { id: 'shipped', label: 'En cours' },
+          { id: 'confirmed', label: 'مؤكد' },
+          { id: 'shipped', label: 'مرسل' },
           { id: 'stale', label: `متأخر +${STALE_SHIP_DAYS}j` },
-          { id: 'all', label: 'Tout envoi' },
+          { id: 'all', label: 'كل الشحن' },
         ]
       : [
           { id: 'call_today', label: 'طابور اليوم' },
           { id: 'all', label: 'الكل' },
-          { id: 'en_attente', label: 'En Attente' },
-          { id: 'appel_1', label: 'Appel 1' },
-          { id: 'appel_2', label: 'Appel 2' },
-          { id: 'appel_3', label: 'Appel 3' },
-          { id: 'reporte', label: 'Reporté' },
-          { id: 'confirmed', label: 'Confirmé' },
-          { id: 'shipped', label: 'En cours' },
+          { id: 'en_attente', label: 'جديد' },
+          { id: 'appel_1', label: 'مكالمة 1' },
+          { id: 'appel_2', label: 'مكالمة 2' },
+          { id: 'appel_3', label: 'مكالمة 3' },
+          { id: 'reporte', label: 'مؤجل' },
+          { id: 'confirmed', label: 'مؤكد' },
+          { id: 'shipped', label: 'مرسل' },
           { id: 'stale', label: 'متأخر' },
-          { id: 'delivered', label: 'Livré' },
-          { id: 'returned', label: 'Retourné' },
-          { id: 'cancelled', label: 'Annulé' },
+          { id: 'delivered', label: 'مسلم' },
+          { id: 'returned', label: 'مرتجع' },
+          { id: 'cancelled', label: 'ملغى' },
         ];
 
   const boardCards: {
@@ -761,31 +758,31 @@ export default function OpsDesk() {
     desk: Mode;
   }[] = [
     {
-      label: 'En Attente',
+      label: 'جديد',
       value: pipeCounts.en_attente,
       filter: 'en_attente',
       desk: 'orders',
     },
     {
-      label: 'Appel 1',
+      label: 'مكالمة 1',
       value: pipeCounts.appel_1,
       filter: 'appel_1',
       desk: 'orders',
     },
     {
-      label: 'Reporté اليوم',
+      label: 'مؤجل اليوم',
       value: stats?.reporte_due ?? pipeCounts.reporte,
       filter: 'reporte',
       desk: 'orders',
     },
     {
-      label: 'Confirmé',
+      label: 'مؤكد',
       value: pipeCounts.confirmed,
       filter: 'confirmed',
       desk: 'ship',
     },
     {
-      label: 'En cours',
+      label: 'مرسل',
       value: pipeCounts.shipped,
       filter: 'shipped',
       desk: 'ship',
@@ -797,13 +794,13 @@ export default function OpsDesk() {
       desk: 'ship',
     },
     {
-      label: 'Livré',
+      label: 'مسلم',
       value: pipeCounts.delivered,
       filter: 'delivered',
       desk: 'orders',
     },
     {
-      label: 'Annulé',
+      label: 'ملغى',
       value: pipeCounts.cancelled,
       filter: 'cancelled',
       desk: 'orders',
@@ -811,11 +808,20 @@ export default function OpsDesk() {
   ];
 
   return (
-    <div className="min-h-[100dvh] bg-[#f5f0ea] text-[#2a1810]">
+    <div
+      dir="rtl"
+      className={`${embedded ? 'min-h-[70dvh]' : 'min-h-[100dvh]'} bg-[#f5f0ea] text-[#2a1810]`}
+    >
       <header className="sticky top-0 z-20 border-b border-[#e6d9cc] bg-[#f5f0ea]/95 backdrop-blur">
         <div className="mx-auto max-w-[1400px] px-3 py-3 flex flex-wrap items-center gap-3 justify-between">
           <div className="flex items-center gap-3 min-w-0 flex-wrap">
-            <h1 className="font-bold text-lg shrink-0">تاجكِ تشغيل</h1>
+            <h1 className="font-bold text-lg shrink-0">
+              {embedded
+                ? mode === 'ship'
+                  ? 'مكتب الشحن'
+                  : 'طابور التأكيد'
+                : 'تشغيل رونق'}
+            </h1>
             {newOrderCount > 0 ? (
               <button
                 type="button"
@@ -824,7 +830,7 @@ export default function OpsDesk() {
                   setPipe('call_today');
                   setMode('orders');
                   setDetailOpen(false);
-                  router.replace('/admin?tab=orders', { scroll: false });
+                  router.replace('/admin?tab=confirm', { scroll: false });
                 }}
                 className="text-sm bg-red-600 text-white rounded-full px-3 py-1 tabular-nums font-bold animate-pulse"
               >
@@ -835,10 +841,10 @@ export default function OpsDesk() {
               {stats?.today ?? 0} اليوم
             </span>
             <span className="text-sm bg-white border border-[#e6d9cc] rounded-full px-3 py-1 tabular-nums">
-              {confirmWaiting} confirmation
+              {confirmWaiting} تأكيد
             </span>
             <span className="text-sm bg-white border border-[#e6d9cc] rounded-full px-3 py-1 tabular-nums">
-              {shipReady} à expédier
+              {shipReady} جاهز للشحن
             </span>
             {(stats?.sheet_errors ?? 0) > 0 ? (
               <span className="text-sm bg-amber-100 border border-amber-300 text-amber-900 rounded-full px-3 py-1 tabular-nums font-bold">
@@ -855,42 +861,46 @@ export default function OpsDesk() {
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                sessionStorage.removeItem(ADMIN_TOKEN_KEY);
-                setToken('');
-                setOrders([]);
-                setStats(null);
-              }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#e6d9cc] text-sm text-[#6a5648]"
-            >
-              <LogOut className="w-4 h-4" />
-              خروج
-            </button>
+            {!embedded ? (
+              <button
+                type="button"
+                onClick={() => {
+                  sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+                  setToken('');
+                  setOrders([]);
+                  setStats(null);
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#e6d9cc] text-sm text-[#6a5648]"
+              >
+                <LogOut className="w-4 h-4" />
+                خروج
+              </button>
+            ) : null}
           </div>
         </div>
 
-        <div className="mx-auto max-w-[1400px] px-3 pb-3">
-          <div className="flex gap-1 p-1 rounded-xl bg-[#e8dfd5]">
-            {MODES.map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => goMode(m.id)}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-bold ${
-                  mode === m.id
-                    ? 'bg-[#2a1810] text-white'
-                    : 'text-[#5c4a3c]'
-                }`}
-              >
-                {m.label}
-                {m.id === 'orders' ? ` (${orders.length})` : ''}
-                {m.id === 'ship' ? ` (${shipReady + pipeCounts.shipped})` : ''}
-              </button>
-            ))}
+        {!embedded ? (
+          <div className="mx-auto max-w-[1400px] px-3 pb-3">
+            <div className="flex gap-1 p-1 rounded-xl bg-[#e8dfd5]">
+              {MODES.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => goMode(m.id)}
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-bold ${
+                    mode === m.id
+                      ? 'bg-[#2a1810] text-white'
+                      : 'text-[#5c4a3c]'
+                  }`}
+                >
+                  {m.label}
+                  {m.id === 'orders' ? ` (${orders.length})` : ''}
+                  {m.id === 'ship' ? ` (${shipReady + pipeCounts.shipped})` : ''}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : null}
       </header>
 
       {error ? (
@@ -902,9 +912,9 @@ export default function OpsDesk() {
       {mode === 'board' && (
         <div className="mx-auto max-w-[1400px] px-3 py-6 space-y-6">
           <div>
-            <h2 className="text-xl font-bold">Pipeline confirmation</h2>
+            <h2 className="text-xl font-bold">مسار التأكيد</h2>
             <p className="text-sm text-[#6a5648] mt-1">
-              En Attente → Appel 1/2/3 → Reporté / Confirmé / Annulé — من بعد
+              جديد → مكالمة 1/2/3 → مؤجل / مؤكد / ملغى — من بعد
               الشحن والتتبع.
             </p>
           </div>
@@ -915,7 +925,7 @@ export default function OpsDesk() {
               setNewOrderCount(0);
               setPipe('call_today');
               setMode('orders');
-              router.replace('/admin?tab=orders', { scroll: false });
+                  router.replace('/admin?tab=confirm', { scroll: false });
             }}
             className="w-full text-right rounded-2xl border-2 border-[#2a1810] bg-[#2a1810] text-white p-5 hover:opacity-95"
           >
@@ -938,25 +948,25 @@ export default function OpsDesk() {
               <p className="text-sm font-bold">إحصائيات الأسبوع</p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
-                  <p className="text-xs text-[#6a5648]">Confirm rate</p>
+                  <p className="text-xs text-[#6a5648]">نسبة التأكيد</p>
                   <p className="text-2xl font-bold tabular-nums">
                     {stats.weekly.confirm_rate}%
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#6a5648]">Return rate</p>
+                  <p className="text-xs text-[#6a5648]">نسبة الإرجاع</p>
                   <p className="text-2xl font-bold tabular-nums">
                     {stats.weekly.return_rate}%
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#6a5648]">Confirmé</p>
+                  <p className="text-xs text-[#6a5648]">مؤكد</p>
                   <p className="text-2xl font-bold tabular-nums">
                     {stats.weekly.confirmed}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#6a5648]">Commandes</p>
+                  <p className="text-xs text-[#6a5648]">طلبات</p>
                   <p className="text-2xl font-bold tabular-nums">
                     {stats.weekly.orders}
                   </p>
@@ -985,19 +995,19 @@ export default function OpsDesk() {
               </p>
             </div>
             <div className="rounded-2xl border border-[#e6d9cc] bg-white p-4">
-              <p className="text-xs text-[#6a5648]">Livré اليوم</p>
+              <p className="text-xs text-[#6a5648]">مسلم اليوم</p>
               <p className="text-3xl font-bold tabular-nums mt-1 text-emerald-700">
                 {stats?.today_delivered ?? 0}
               </p>
             </div>
             <div className="rounded-2xl border border-[#e6d9cc] bg-white p-4">
-              <p className="text-xs text-[#6a5648]">Retourné اليوم</p>
+              <p className="text-xs text-[#6a5648]">مرتجع اليوم</p>
               <p className="text-3xl font-bold tabular-nums mt-1 text-red-700">
                 {stats?.today_returned ?? 0}
               </p>
             </div>
             <div className="rounded-2xl border border-[#e6d9cc] bg-white p-4">
-              <p className="text-xs text-[#6a5648]">Annulé اليوم</p>
+              <p className="text-xs text-[#6a5648]">ملغى اليوم</p>
               <p className="text-3xl font-bold tabular-nums mt-1">
                 {stats?.today_cancelled ?? 0}
               </p>
@@ -1066,7 +1076,7 @@ export default function OpsDesk() {
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="font-bold text-lg">
-                {mode === 'ship' ? 'Expédition & suivi' : 'Commandes'}
+                {mode === 'ship' ? 'Expédition & suivi' : 'طلبات'}
               </h2>
               <p className="text-sm text-[#6a5648]">
                 فلتر الحالة · عمود الأيام ·{' '}
@@ -1511,12 +1521,12 @@ export default function OpsDesk() {
 
               <div className="text-sm space-y-2 rounded-xl bg-[#faf6f1] border border-[#e6d9cc] p-3">
                 <p>
-                  <span className="text-[#6a5648]">Produits: </span>
+                  <span className="text-[#6a5648]">المنتجات: </span>
                   {active.products}
                 </p>
                 {active.follow_up_at ? (
                   <p>
-                    <span className="text-[#6a5648]">RDV Reporté: </span>
+                    <span className="text-[#6a5648]">موعد مؤجل: </span>
                     {formatAdminDate(active.follow_up_at)}
                   </p>
                 ) : null}
@@ -1528,7 +1538,7 @@ export default function OpsDesk() {
                 ) : null}
                 {active.courier_status ? (
                   <p>
-                    <span className="text-[#6a5648]">Statut Ozone: </span>
+                    <span className="text-[#6a5648]">حالة Ozone: </span>
                     <span className="font-bold text-[#c45c26]">
                       {active.courier_status}
                     </span>
@@ -1585,7 +1595,7 @@ export default function OpsDesk() {
                   className="flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#2a1810] text-white font-bold text-sm"
                 >
                   <Phone className="w-4 h-4" />
-                  Appeler
+                  اتصال
                 </a>
                 <a
                   href={customerWhatsAppHref(
@@ -1687,10 +1697,10 @@ export default function OpsDesk() {
               {isConfirmQueue(active) && !showCancel && !showReporte ? (
                 <div className="space-y-2">
                   <p className="text-xs font-bold text-[#6a5648]">
-                    Confirmation
+                    تأكيد
                   </p>
                   <p className="text-[11px] text-[#6a5648]">
-                    اختصارات: 1 ما جاوبش · C تأكيد · R تأجيل · X إلغاء · Esc
+                    اختصارات: 1 = ما جاوبش · C = تأكيد · R = تأجيل · X = إلغاء · Esc = إغلاق
                   </p>
                   <button
                     type="button"
@@ -1720,14 +1730,14 @@ export default function OpsDesk() {
                     className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-emerald-700 text-white font-bold disabled:opacity-40"
                   >
                     <Check className="w-5 h-5" />
-                    Confirmé + واتساب
+                    تأكيد + واتساب
                   </button>
                   <div className="grid grid-cols-3 gap-2">
                     {(
                       [
-                        ['APPEL_1', 'Appel 1'],
-                        ['APPEL_2', 'Appel 2'],
-                        ['APPEL_3', 'Appel 3'],
+                        ['APPEL_1', 'مكالمة 1'],
+                        ['APPEL_2', 'مكالمة 2'],
+                        ['APPEL_3', 'مكالمة 3'],
                       ] as const
                     ).map(([st, label]) => (
                       <button
@@ -1754,7 +1764,7 @@ export default function OpsDesk() {
                     }
                     className="w-full py-3 rounded-xl border border-[#e6d9cc] font-bold text-sm"
                   >
-                    En Attente
+                    جديد
                   </button>
                   <button
                     type="button"
@@ -1762,7 +1772,7 @@ export default function OpsDesk() {
                     onClick={() => setShowReporte(true)}
                     className="w-full py-3 rounded-xl border-2 border-sky-700 text-sky-900 font-bold text-sm"
                   >
-                    Reporté
+                    مؤجل
                   </button>
                   <button
                     type="button"
@@ -1771,14 +1781,14 @@ export default function OpsDesk() {
                     className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-red-600 text-red-700 font-bold"
                   >
                     <X className="w-5 h-5" />
-                    Annulé
+                    ملغى
                   </button>
                 </div>
               ) : null}
 
               {isConfirmQueue(active) && showReporte ? (
                 <div className="space-y-3">
-                  <p className="font-bold">Reporté — jour du rappel</p>
+                  <p className="font-bold">مؤجل — يوم الاتصال</p>
                   <input
                     type="date"
                     value={followUpDate}
@@ -1794,14 +1804,14 @@ export default function OpsDesk() {
                         {
                           status: 'REPORTE',
                           follow_up_at: `${followUpDate}T09:00:00`,
-                          notes: notes || `Reporté au ${followUpDate}`,
+                          notes: notes || `مؤجل إلى ${followUpDate}`,
                         },
                         true,
                       )
                     }
                     className="w-full py-3.5 rounded-xl bg-sky-800 text-white font-bold"
                   >
-                    Enregistrer Reporté
+                    حفظ التأجيل
                   </button>
                   <button
                     type="button"
@@ -1815,7 +1825,7 @@ export default function OpsDesk() {
 
               {isConfirmQueue(active) && showCancel ? (
                 <div className="space-y-3">
-                  <p className="font-bold">Motif Annulé</p>
+                  <p className="font-bold">سبب الإلغاء</p>
                   <div className="flex flex-wrap gap-2">
                     {CANCEL_REASONS.map((r) => (
                       <button
@@ -1997,7 +2007,7 @@ export default function OpsDesk() {
                     className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-emerald-700 text-white font-bold"
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    Livré
+                    مسلم
                   </button>
                   <button
                     type="button"
@@ -2012,7 +2022,7 @@ export default function OpsDesk() {
                     className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-red-600 text-red-700 font-bold"
                   >
                     <RotateCcw className="w-4 h-4" />
-                    Retourné
+                    مرتجع
                   </button>
                 </div>
               )}
@@ -2021,13 +2031,13 @@ export default function OpsDesk() {
                 activeStage === 'returned' ||
                 activeStage === 'cancelled') && (
                 <p className="text-sm text-[#6a5648] bg-[#faf6f1] border border-[#e6d9cc] rounded-xl px-3 py-3">
-                  Commande clôturée:{' '}
+                  الطلب مغلق:{' '}
                   <span className="font-bold">{active.status_label}</span>
                 </p>
               )}
 
               <div>
-                <label className="text-xs text-[#6a5648]">Note</label>
+                <label className="text-xs text-[#6a5648]">ملاحظة</label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
@@ -2045,7 +2055,7 @@ export default function OpsDesk() {
                   }
                   className="mt-1 text-sm text-[#6a5648] underline"
                 >
-                  Sauver note
+                  حفظ الملاحظة
                 </button>
               </div>
 

@@ -94,7 +94,7 @@ export default function ConfirmDeskClient() {
         const fresh = pendingIds.filter((id) => !knownPending.current.has(id));
         if (fresh.length > 0) {
           playChime();
-          document.title = `(${fresh.length}+) تأكيد الطلبات | تاجكِ`;
+          document.title = `(${fresh.length}+) تأكيد رونق`;
         }
       } else {
         primed.current = true;
@@ -173,7 +173,7 @@ export default function ConfirmDeskClient() {
       setOrders((prev) =>
         prev.map((o) => (o.order_number === orderNumber ? { ...o, ...data } : o)),
       );
-      if (pendingCount <= 1) document.title = 'تأكيد الطلبات | تاجكِ';
+      if (pendingCount <= 1) document.title = 'تأكيد رونق';
     } catch (err) {
       setError(err instanceof Error ? err.message : 'خطأ غير متوقع');
     } finally {
@@ -186,7 +186,7 @@ export default function ConfirmDeskClient() {
     setToken('');
     setOrders([]);
     setInput('');
-    document.title = 'تأكيد الطلبات | تاجكِ';
+    document.title = 'تأكيد رونق';
   };
 
   if (booting) {

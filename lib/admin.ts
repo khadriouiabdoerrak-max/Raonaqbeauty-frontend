@@ -83,12 +83,12 @@ export const OPS_OPERATOR_KEY = 'raonaq-ops-operator';
 export const COURIER_PREF_KEY = 'raonaq-default-courier';
 
 export const CANCEL_REASONS = [
-  'Client a refusé',
-  'Mauvais numéro',
-  'Prix trop élevé',
-  'Commande en double',
-  'Hors zone de livraison',
-  'Autre',
+  'الزبونة رفضات',
+  'رقم غلط',
+  'الثمن غالي',
+  'طلب مكرر',
+  'خارج منطقة التوصيل',
+  'سبب آخر',
 ] as const;
 
 export function orderDateParts(iso: string) {

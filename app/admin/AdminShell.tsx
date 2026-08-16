@@ -247,50 +247,58 @@ export default function AdminShell() {
 
   if (booting) {
     return (
-      <div className="min-h-[100dvh] bg-background flex items-center justify-center text-muted-brown">
-        Ouverture…
+      <div
+        dir="rtl"
+        className="min-h-[100dvh] bg-background flex items-center justify-center text-muted-brown"
+      >
+        جاري الفتح…
       </div>
     );
   }
 
   if (!token) {
     return (
-      <div className="min-h-[100dvh] bg-background flex items-center justify-center px-4">
+      <div
+        dir="rtl"
+        className="min-h-[100dvh] bg-background flex items-center justify-center px-4"
+      >
         <form
           onSubmit={onLogin}
-          className="w-full max-w-sm bg-ivory border border-champagne/40 rounded-2xl p-7 space-y-4 shadow-card"
+          className="w-full max-w-sm bg-ivory border border-champagne/40 rounded-2xl p-7 space-y-4 shadow-card text-right"
         >
-          <div className="text-center space-y-1">
+          <div className="space-y-1">
             <p className="text-xs font-bold tracking-wide text-gold">رونق · RAONAQ</p>
-            <h1 className="text-xl font-bold text-cocoa">Admin Raonaq</h1>
-            <p className="text-sm text-muted-brown">Confirmations · commandes · expédition</p>
+            <h1 className="text-xl font-bold text-cocoa">إدارة رونق</h1>
+            <p className="text-sm text-muted-brown">تأكيد · طلبات · شحن</p>
           </div>
           <input
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="Nom d’utilisateur"
+            placeholder="اسم المستخدم"
             autoComplete="username"
-            className="w-full p-3.5 rounded-xl border border-champagne/50 bg-background text-cocoa"
+            dir="ltr"
+            className="w-full p-3.5 rounded-xl border border-champagne/50 bg-background text-cocoa text-left"
             autoFocus
           />
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Mot de passe"
+            placeholder="كلمة المرور"
             autoComplete="current-password"
-            className="w-full p-3.5 rounded-xl border border-champagne/50 bg-background text-cocoa"
+            dir="ltr"
+            className="w-full p-3.5 rounded-xl border border-champagne/50 bg-background text-cocoa text-left"
           />
           {error ? (
-            <p className="text-sm text-error text-center">{error}</p>
+            <p className="text-sm text-error">{error}</p>
           ) : null}
           <button
             type="submit"
             disabled={loading || !username.trim() || !password}
             className="w-full py-3.5 rounded-xl bg-cocoa text-ivory font-bold disabled:opacity-50"
           >
-            Connexion
+            دخول
           </button>
         </form>
       </div>
@@ -305,12 +313,12 @@ export default function AdminShell() {
   ];
 
   return (
-    <div className="min-h-[100dvh] bg-background">
+    <div dir="rtl" className="min-h-[100dvh] bg-background">
       <header className="sticky top-0 z-30 border-b border-champagne/40 bg-ivory/95 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-bold text-gold">تاجكِ</p>
-            <h1 className="text-lg font-bold text-cocoa">Admin Raonaq</h1>
+            <p className="text-xs font-bold text-gold">رونق</p>
+            <h1 className="text-lg font-bold text-cocoa">إدارة رونق</h1>
           </div>
           <nav className="flex flex-wrap gap-1.5">
             {tabs.map((t) => (

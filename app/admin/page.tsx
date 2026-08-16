@@ -11,8 +11,11 @@ export default function AdminPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-[100dvh] items-center justify-center bg-[#F7F1EC] text-[#6B5E58]">
-          Ouverture…
+        <div
+          dir="rtl"
+          className="flex min-h-[100dvh] items-center justify-center bg-[#F7F1EC] text-[#6B5E58]"
+        >
+          جاري الفتح…
         </div>
       }
     >

@@ -338,6 +338,7 @@ export default function OpsDesk({
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
+  const pipeParam = searchParams.get('pipe');
   const initial = parseMode(tabParam);
 
   const [token, setToken] = useState(sessionToken || '');
@@ -348,9 +349,30 @@ export default function OpsDesk({
   const [loading, setLoading] = useState(false);
   const [booting, setBooting] = useState(true);
   const [mode, setMode] = useState<Mode>(initial);
-  const [pipe, setPipe] = useState<PipeFilter>(
-    initial === 'ship' ? 'confirmed' : 'call_today',
-  );
+  const [pipe, setPipe] = useState<PipeFilter>(() => {
+    const fromUrl = pipeParam as PipeFilter | null;
+    if (
+      fromUrl &&
+      [
+        'all',
+        'call_today',
+        'en_attente',
+        'appel_1',
+        'appel_2',
+        'appel_3',
+        'reporte',
+        'confirmed',
+        'shipped',
+        'stale',
+        'delivered',
+        'returned',
+        'cancelled',
+      ].includes(fromUrl)
+    ) {
+      return fromUrl;
+    }
+    return initial === 'ship' ? 'confirmed' : 'call_today';
+  });
   const [activeId, setActiveId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -395,17 +417,32 @@ export default function OpsDesk({
   const knownNew = useRef<Set<string>>(new Set());
   const primed = useRef(false);
 
-  const goMode = (m: Mode) => {
-    setMode(m);
+  const goPipe = (next: PipeFilter, desk: Mode = 'orders') => {
     setShowCancel(false);
     setShowReporte(false);
     setDetailOpen(false);
-    if (m === 'ship') setPipe('confirmed');
-    else if (m === 'orders') {
-      setPipe('call_today');
-      setNewOrderCount(0);
+    setMode(desk);
+    setPipe(next);
+    if (desk === 'orders') setNewOrderCount(0);
+    router.replace(`/admin?tab=${modeQuery(desk)}&pipe=${next}`, {
+      scroll: false,
+    });
+  };
+
+  const goMode = (m: Mode) => {
+    if (m === 'ship') {
+      goPipe('confirmed', 'ship');
+      return;
     }
-    router.replace(`/admin?tab=${modeQuery(m)}`, { scroll: false });
+    if (m === 'orders') {
+      goPipe('call_today', 'orders');
+      return;
+    }
+    setShowCancel(false);
+    setShowReporte(false);
+    setDetailOpen(false);
+    setMode('board');
+    router.replace('/admin?tab=overview', { scroll: false });
   };
 
   const openDetail = (id: string) => {
@@ -467,25 +504,33 @@ export default function OpsDesk({
     }
   }, [embedded]);
 
-  // مزامنة تاب URL ↔ mode (تأكيد / شحن) — مهم فـ AdminShell
+  // مزامنة تاب URL ↔ mode + pipe
   useEffect(() => {
-    const next = parseMode(tabParam);
-    setMode((prev) => {
-      if (prev === next) return prev;
-      return next;
-    });
-    if (next === 'ship') {
-      setPipe((p) =>
-        p === 'confirmed' || p === 'shipped' || p === 'stale' || p === 'all'
-          ? p
-          : 'confirmed',
-      );
-    } else if (next === 'orders') {
-      setPipe((p) =>
-        p === 'confirmed' || p === 'shipped' || p === 'stale' ? 'call_today' : p,
-      );
+    const nextMode = parseMode(tabParam);
+    setMode(nextMode);
+
+    const allowed: PipeFilter[] = [
+      'all',
+      'call_today',
+      'en_attente',
+      'appel_1',
+      'appel_2',
+      'appel_3',
+      'reporte',
+      'confirmed',
+      'shipped',
+      'stale',
+      'delivered',
+      'returned',
+      'cancelled',
+    ];
+    if (pipeParam && allowed.includes(pipeParam as PipeFilter)) {
+      setPipe(pipeParam as PipeFilter);
+      return;
     }
-  }, [tabParam]);
+    // بلا pipe فـ URL → الافتراضي حسب المكتب
+    setPipe(nextMode === 'ship' ? 'confirmed' : 'call_today');
+  }, [tabParam, pipeParam]);
 
   useEffect(() => {
     const saved = sessionToken || sessionStorage.getItem(ADMIN_TOKEN_KEY) || '';
@@ -770,7 +815,7 @@ export default function OpsDesk({
         notes: '',
       });
       await load(token, true);
-      setPipe('call_today');
+      goPipe('call_today', 'orders');
       openDetail(created.order_number);
       openCustomerWhatsApp(
         created.phone,
@@ -1077,13 +1122,7 @@ export default function OpsDesk({
             {newOrderCount > 0 ? (
               <button
                 type="button"
-                onClick={() => {
-                  setNewOrderCount(0);
-                  setPipe('call_today');
-                  setMode('orders');
-                  setDetailOpen(false);
-                  router.replace('/admin?tab=confirm', { scroll: false });
-                }}
+                onClick={() => goPipe('call_today', 'orders')}
                 className="text-sm bg-red-600 text-white rounded-full px-3 py-1 tabular-nums font-bold animate-pulse"
               >
                 +{newOrderCount} جديد
@@ -1175,12 +1214,7 @@ export default function OpsDesk({
 
           <button
             type="button"
-            onClick={() => {
-              setNewOrderCount(0);
-              setPipe('call_today');
-              setMode('orders');
-                  router.replace('/admin?tab=confirm', { scroll: false });
-            }}
+            onClick={() => goPipe('call_today', 'orders')}
             className="w-full text-right rounded-2xl border-2 border-[#2a1810] bg-[#2a1810] text-white p-5 hover:opacity-95"
           >
             <p className="text-sm opacity-80">ابدأ من هنا</p>
@@ -1298,13 +1332,7 @@ export default function OpsDesk({
               <button
                 key={c.label}
                 type="button"
-                onClick={() => {
-                  setPipe(c.filter);
-                  setMode(c.desk);
-                  router.replace(`/admin?tab=${modeQuery(c.desk)}`, {
-                    scroll: false,
-                  });
-                }}
+                onClick={() => goPipe(c.filter, c.desk)}
                 className="text-right rounded-xl border border-[#e6d9cc] bg-white p-3 hover:border-[#2a1810]"
               >
                 <p className="text-[11px] text-[#6a5648] leading-tight">
@@ -1527,18 +1555,63 @@ export default function OpsDesk({
                 </p>
               </div>
               <div className="flex flex-wrap gap-1.5 text-[10px] font-bold">
-                <span className="rounded-full bg-[#F7F1EC] border border-[#C4A484] px-2 py-1">
-                  جديد
-                </span>
-                <span className="rounded-full bg-amber-50 border border-amber-400 px-2 py-1">
-                  يوم 1
-                </span>
-                <span className="rounded-full bg-[#F8E8EB] border border-[#C45B6A]/70 px-2 py-1">
-                  يوم 2
-                </span>
-                <span className="rounded-full bg-[#F3D5DB] border border-[#C45B6A] px-2 py-1">
-                  يوم 3
-                </span>
+                {(
+                  [
+                    {
+                      id: 'en_attente' as PipeFilter,
+                      label: 'جديد',
+                      className:
+                        'bg-[#F7F1EC] border-[#C4A484] text-[#2a1810]',
+                    },
+                    {
+                      id: 'appel_1' as PipeFilter,
+                      label: 'يوم 1',
+                      className: 'bg-amber-50 border-amber-400 text-amber-950',
+                    },
+                    {
+                      id: 'appel_2' as PipeFilter,
+                      label: 'يوم 2',
+                      className:
+                        'bg-[#F8E8EB] border-[#C45B6A]/70 text-[#6B2A35]',
+                    },
+                    {
+                      id: 'appel_3' as PipeFilter,
+                      label: 'يوم 3',
+                      className:
+                        'bg-[#F3D5DB] border-[#C45B6A] text-[#4A1820]',
+                    },
+                  ] as const
+                ).map((chip) => {
+                  const on = pipe === chip.id;
+                  return (
+                    <button
+                      key={chip.id}
+                      type="button"
+                      onClick={() => goPipe(chip.id, 'orders')}
+                      className={`rounded-full border px-2.5 py-1 transition-all ${chip.className} ${
+                        on
+                          ? 'ring-2 ring-[#1C1412]/25 scale-[1.03]'
+                          : 'hover:brightness-[0.97] opacity-90 hover:opacity-100'
+                      }`}
+                    >
+                      {chip.label}
+                      <span className="ms-1 tabular-nums opacity-70">
+                        ({pipeCounts[chip.id]})
+                      </span>
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => goPipe('call_today', 'orders')}
+                  className={`rounded-full border px-2.5 py-1 ${
+                    pipe === 'call_today'
+                      ? 'bg-[#2a1810] text-white border-[#2a1810]'
+                      : 'bg-white border-[#e6d9cc] text-[#5c4a3c]'
+                  }`}
+                >
+                  طابور اليوم
+                </button>
               </div>
               <button
                 type="button"
@@ -1682,7 +1755,7 @@ export default function OpsDesk({
                 <button
                   key={f.id}
                   type="button"
-                  onClick={() => setPipe(f.id)}
+                  onClick={() => goPipe(f.id, mode === 'ship' ? 'ship' : 'orders')}
                   className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold border tabular-nums ${
                     on
                       ? 'bg-[#2a1810] text-white border-[#2a1810]'

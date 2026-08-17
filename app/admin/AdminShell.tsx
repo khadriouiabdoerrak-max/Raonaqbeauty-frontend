@@ -53,23 +53,21 @@ function parseTab(raw: string | null): Tab {
   return 'confirm';
 }
 
-function tabQuery(tab: Tab) {
-  if (tab === 'ship') return 'ship';
-  if (tab === 'overview') return 'overview';
-  return 'confirm';
-}
-
 function MetricCard({
   label,
   value,
   hint,
+  onClick,
 }: {
   label: string;
   value: string;
   hint?: string;
+  onClick?: () => void;
 }) {
-  return (
-    <div className="rounded-2xl border border-champagne/40 bg-ivory p-5 shadow-card">
+  const className =
+    'rounded-2xl border border-champagne/40 bg-ivory p-5 shadow-card text-right w-full';
+  const body = (
+    <>
       <p className="text-xs font-medium text-muted-brown mb-2">{label}</p>
       <p className="text-2xl sm:text-3xl font-bold text-cocoa tracking-tight tabular-nums">
         {value}
@@ -77,8 +75,20 @@ function MetricCard({
       {hint ? (
         <p className="text-[11px] text-muted-brown mt-2 leading-relaxed">{hint}</p>
       ) : null}
-    </div>
+    </>
   );
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={`${className} hover:border-cocoa/40 transition-colors`}
+      >
+        {body}
+      </button>
+    );
+  }
+  return <div className={className}>{body}</div>;
 }
 
 export default function AdminShell() {
@@ -95,7 +105,19 @@ export default function AdminShell() {
   const [stats, setStats] = useState<AdminStats | null>(null);
 
   const setTab = (next: Tab) => {
-    router.replace(`/admin?tab=${tabQuery(next)}`, { scroll: false });
+    if (next === 'ship') {
+      router.replace('/admin?tab=ship&pipe=confirmed', { scroll: false });
+      return;
+    }
+    if (next === 'overview') {
+      router.replace('/admin?tab=overview', { scroll: false });
+      return;
+    }
+    router.replace('/admin?tab=confirm&pipe=call_today', { scroll: false });
+  };
+
+  const goDesk = (desk: 'confirm' | 'ship', pipe: string) => {
+    router.replace(`/admin?tab=${desk}&pipe=${pipe}`, { scroll: false });
   };
 
   const bootstrap = useCallback(async (secret: string) => {
@@ -152,7 +174,7 @@ export default function AdminShell() {
       sessionStorage.setItem(ADMIN_TOKEN_KEY, res.token);
       setToken(res.token);
       setPassword('');
-      router.replace('/admin?tab=confirm', { scroll: false });
+      router.replace('/admin?tab=confirm&pipe=call_today', { scroll: false });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'فشل الدخول');
     } finally {
@@ -295,51 +317,59 @@ export default function AdminShell() {
             <MetricCard
               label="طلبات اليوم"
               value={String(stats?.today ?? '—')}
+              onClick={() => goDesk('confirm', 'call_today')}
             />
             <MetricCard
               label="قيد التأكيد"
               value={String(stats?.pending ?? '—')}
               hint="جديد + مكالمات"
+              onClick={() => goDesk('confirm', 'call_today')}
             />
             <MetricCard
               label="مؤكد / جاهز للشحن"
               value={String(
                 (stats?.confirmed ?? 0) + (stats?.ready_to_ship ?? 0),
               )}
+              onClick={() => goDesk('ship', 'confirmed')}
             />
             <MetricCard
               label="مرسل"
               value={String(stats?.shipped ?? '—')}
+              onClick={() => goDesk('ship', 'shipped')}
             />
             <MetricCard
               label="مسلم اليوم"
               value={String(stats?.today_delivered ?? stats?.delivered ?? '—')}
+              onClick={() => goDesk('confirm', 'delivered')}
             />
             <MetricCard
               label="مرتجع"
               value={String(stats?.returned ?? '—')}
+              onClick={() => goDesk('confirm', 'returned')}
             />
             <MetricCard
               label="ملغى"
               value={String(stats?.cancelled ?? '—')}
+              onClick={() => goDesk('confirm', 'cancelled')}
             />
             <MetricCard
               label="متأخر شحن"
               value={String(stats?.stale_shipped ?? '—')}
+              onClick={() => goDesk('ship', 'stale')}
             />
           </div>
 
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => setTab('confirm')}
+              onClick={() => goDesk('confirm', 'call_today')}
               className="px-4 py-2.5 rounded-xl border border-champagne/50 bg-ivory text-sm font-bold text-cocoa"
             >
               فتح طابور التأكيد
             </button>
             <button
               type="button"
-              onClick={() => setTab('ship')}
+              onClick={() => goDesk('ship', 'confirmed')}
               className="px-4 py-2.5 rounded-xl border border-champagne/50 bg-ivory text-sm font-bold text-cocoa"
             >
               فتح مكتب الشحن

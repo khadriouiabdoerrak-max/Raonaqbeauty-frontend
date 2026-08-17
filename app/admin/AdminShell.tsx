@@ -7,7 +7,7 @@ import {
   ADMIN_TOKEN_KEY,
   adminLogin,
   adminLogout,
-  fetchAdminOrders,
+  fetchAdminStats,
   type AdminStats,
 } from '@/lib/admin';
 import StoreInsightsPanel from './StoreInsightsPanel';
@@ -124,7 +124,8 @@ export default function AdminShell() {
     setLoading(true);
     setError('');
     try {
-      await fetchAdminOrders(secret);
+      const statsData = await fetchAdminStats(secret);
+      setStats(statsData);
       setToken(secret);
       sessionStorage.setItem(ADMIN_TOKEN_KEY, secret);
     } catch (err) {
@@ -153,8 +154,8 @@ export default function AdminShell() {
   const loadOverview = useCallback(async () => {
     if (!token) return;
     try {
-      const data = await fetchAdminOrders(token);
-      setStats(data.stats || null);
+      const statsData = await fetchAdminStats(token);
+      setStats(statsData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'فشل التحميل');
     }

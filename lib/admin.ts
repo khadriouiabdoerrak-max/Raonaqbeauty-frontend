@@ -281,6 +281,54 @@ export async function fetchAdminOrders(token: string, status?: string) {
   };
 }
 
+/** Lightweight poll / overview — no order rows */
+export async function fetchAdminStats(token: string) {
+  const res = await fetch('/api/admin/stats', {
+    headers: { 'X-Admin-Token': token },
+    cache: 'no-store',
+  });
+  const text = await res.text();
+  let data: AdminStats & { detail?: string } = {
+    today: 0,
+    pending: 0,
+    confirmed: 0,
+    ready_to_ship: 0,
+    shipped: 0,
+    delivered: 0,
+    returned: 0,
+    cancelled: 0,
+    total: 0,
+  };
+  try {
+    data = text ? JSON.parse(text) : data;
+  } catch {
+    throw new Error(
+      res.ok
+        ? 'رد غير صالح من السيرفر'
+        : `خطأ السيرفر (${res.status}) — عاودي Déployer للـ backend`,
+    );
+  }
+  if (!res.ok) throw new Error(data?.detail || 'فشل التحميل');
+  return data as AdminStats;
+}
+
+export function statsFingerprint(s: AdminStats | null | undefined): string {
+  if (!s) return '';
+  return [
+    s.today,
+    s.pending,
+    s.confirmed,
+    s.ready_to_ship,
+    s.shipped,
+    s.delivered,
+    s.returned,
+    s.cancelled,
+    s.total,
+    s.stale_shipped ?? 0,
+    s.reporte_due ?? 0,
+  ].join('|');
+}
+
 export async function createAdminOrder(
   token: string,
   body: {

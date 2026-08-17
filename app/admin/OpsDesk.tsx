@@ -47,6 +47,8 @@ import {
   buildCourierCopyLine,
   copyText,
   fetchAdminOrders,
+  fetchAdminStats,
+  statsFingerprint,
   fetchOrderAudit,
   formatAdminDate,
   hasRealTracking,
@@ -416,6 +418,8 @@ export default function OpsDesk({
 
   const knownNew = useRef<Set<string>>(new Set());
   const primed = useRef(false);
+  const statsFp = useRef('');
+  const pollTick = useRef(0);
 
   const goPipe = (next: PipeFilter, desk: Mode = 'orders') => {
     setShowCancel(false);
@@ -484,7 +488,10 @@ export default function OpsDesk({
       } else primed.current = true;
       knownNew.current = new Set(freshIds);
       setOrders(next);
-      if (data.stats) setStats(data.stats);
+      if (data.stats) {
+        setStats(data.stats);
+        statsFp.current = statsFingerprint(data.stats);
+      }
       setToken(secret);
       sessionStorage.setItem(ADMIN_TOKEN_KEY, secret);
     } catch (err) {
@@ -503,6 +510,16 @@ export default function OpsDesk({
       setBooting(false);
     }
   }, [embedded]);
+
+  const refreshStats = useCallback(async (secret: string) => {
+    try {
+      const next = await fetchAdminStats(secret);
+      setStats(next);
+      return next;
+    } catch {
+      return null;
+    }
+  }, []);
 
   // مزامنة تاب URL ↔ mode + pipe
   useEffect(() => {
@@ -573,11 +590,23 @@ export default function OpsDesk({
     }
   }, [mode]);
 
+  // Poll: stats every 20s; full list only when fingerprint changes or every ~60s
   useEffect(() => {
     if (!token) return;
-    const id = window.setInterval(() => void load(token, true), 20000);
+    const id = window.setInterval(() => {
+      void (async () => {
+        pollTick.current += 1;
+        const next = await refreshStats(token);
+        const fp = statsFingerprint(next);
+        const changed = Boolean(fp && fp !== statsFp.current);
+        if (changed) statsFp.current = fp;
+        if (changed || pollTick.current % 3 === 0) {
+          await load(token, true);
+        }
+      })();
+    }, 20000);
     return () => window.clearInterval(id);
-  }, [token, load]);
+  }, [token, load, refreshStats]);
 
   const pipeCounts = useMemo(() => {
     const c: Record<PipeFilter, number> = {
@@ -768,7 +797,7 @@ export default function OpsDesk({
         );
       }
       if (closeAfter) closeDetail();
-      void load(token, true);
+      void refreshStats(token);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'خطأ');
     } finally {
@@ -814,7 +843,8 @@ export default function OpsDesk({
         unit_price: '599',
         notes: '',
       });
-      await load(token, true);
+      setOrders((prev) => [created, ...prev]);
+      void refreshStats(token);
       goPipe('call_today', 'orders');
       openDetail(created.order_number);
       openCustomerWhatsApp(
@@ -848,7 +878,7 @@ export default function OpsDesk({
         prev.map((o) => (o.order_number === id ? { ...o, ...updated } : o)),
       );
       // Keep detail open so ops can send WhatsApp tracking message
-      void load(token, true);
+      void refreshStats(token);
       if (withProvider && updated.tracking_number) {
         openCustomerWhatsApp(
           updated.phone,

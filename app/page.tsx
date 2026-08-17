@@ -44,10 +44,10 @@ function BeforeAfterResultVisual() {
   );
 }
 
-const heroImage = "/images/raonaq-hero-branded.png";
-const heroMobileImage = "/images/raonaq-hero-mobile.png";
-const lifestyleImage = "/images/raonaq-lifestyle-home.png";
-const toolsImage = "/images/raonaq-tools-editorial.png";
+const heroImage = "/images/raonaq-hero-branded.webp";
+const heroMobileImage = "/images/raonaq-hero-mobile.webp";
+const lifestyleImage = "/images/raonaq-lifestyle-home.webp";
+const toolsImage = "/images/raonaq-tools-editorial.webp";
 
 const featured = products.find((p) => p.slug === "raonaq-duo") ?? products[0];
 const homeReviews = products.flatMap((p) => p.reviews ?? []).slice(0, 6);
@@ -56,7 +56,7 @@ const looks = [
   {
     title: "Volume",
     en: "VOLUME",
-    image: "/images/raonaq-hair-blowout.png",
+    image: "/images/raonaq-hair-blowout.webp",
     href: "/products/raonaq-volume",
     product: "VOLUME",
     line: "Du lift dès les racines",
@@ -64,7 +64,7 @@ const looks = [
   {
     title: "Lisse",
     en: "SMOOTH",
-    image: "/images/raonaq-hair-straight.png",
+    image: "/images/raonaq-hair-straight.webp",
     href: "/products/raonaq-trio",
     product: "TRIO",
     line: "Fluide et brillant, chez vous",
@@ -72,7 +72,7 @@ const looks = [
   {
     title: "Épais",
     en: "SOFT",
-    image: "/images/raonaq-hair-curls.png",
+    image: "/images/raonaq-hair-curls.webp",
     href: "/products/raonaq-air-soft",
     product: "SOFT",
     line: "Pour cheveux denses et bouclés",
@@ -80,7 +80,7 @@ const looks = [
   {
     title: "Quotidien",
     en: "JOUR",
-    image: "/images/raonaq-hair-waves.png",
+    image: "/images/raonaq-hair-waves.webp",
     href: "/products/raonaq-air-pink",
     product: "JOUR",
     line: "Un look net avant de sortir",

@@ -4,7 +4,7 @@ type BrandLogoProps = {
 };
 
 export default function BrandLogo({ variant = "color", className = "" }: BrandLogoProps) {
-  const src = variant === "white" ? "/images/raonaq-logo-white.png" : "/images/raonaq-logo.png";
+  const src = variant === "white" ? "/images/raonaq-logo-white.webp" : "/images/raonaq-logo.webp";
 
   return (
     <img

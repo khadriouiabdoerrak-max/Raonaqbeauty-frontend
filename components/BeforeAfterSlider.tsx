@@ -9,8 +9,8 @@ type Props = {
 };
 
 export default function BeforeAfterSlider({
-  afterSrc = "/images/raonaq-result-after.png",
-  beforeSrc = "/images/raonaq-result-before.png",
+  afterSrc = "/images/raonaq-result-after.webp",
+  beforeSrc = "/images/raonaq-result-before.webp",
   className = "",
 }: Props) {
   const [pos, setPos] = useState(84);

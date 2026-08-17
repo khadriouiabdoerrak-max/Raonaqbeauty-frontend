@@ -56,7 +56,7 @@ export default function AboutPage() {
       <section className="container mx-auto px-4 pb-16 md:pb-24">
         <div className="overflow-hidden bg-[#E8DFD6]">
           <img
-            src="/images/raonaq-salon-results.png"
+            src="/images/raonaq-salon-results.webp"
             alt="Résultat Raonaq — volume et lisse, à la maison"
             className="aspect-[16/10] w-full object-cover object-[center_18%] md:aspect-[21/9]"
           />
@@ -81,7 +81,7 @@ export default function AboutPage() {
           </div>
           <div className="overflow-hidden bg-[#F7F1EC]">
             <img
-              src="/images/raonaq-lifestyle-home.png"
+              src="/images/raonaq-lifestyle-home.webp"
               alt="Coiffer chez soi avec Raonaq"
               className="aspect-[4/5] w-full object-cover object-[center_22%] lg:aspect-[5/6]"
             />

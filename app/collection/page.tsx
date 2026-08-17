@@ -38,7 +38,7 @@ export default function CollectionPage() {
             <div className="relative">
               <div className="relative aspect-[16/10] overflow-hidden bg-[#F7F1EC] lg:aspect-[5/6]">
                 <img
-                  src="/images/raonaq-lifestyle-home.png"
+                  src="/images/raonaq-lifestyle-home.webp"
                   alt="Raonaq — le salon, chez vous"
                   className="absolute inset-0 h-full w-full object-cover"
                   loading="eager"

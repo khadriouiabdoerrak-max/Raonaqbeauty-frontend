@@ -126,8 +126,8 @@ export function productGalleryBanner(p: Product) {
 
 export function productBeforeAfter(_p?: Product) {
   return {
-    after: "/images/raonaq-result-after.png",
-    before: "/images/raonaq-result-before.png",
+    after: "/images/raonaq-result-after.webp",
+    before: "/images/raonaq-result-before.webp",
   };
 }
 
@@ -224,11 +224,11 @@ export const products: Product[] = [
       ...COMMON_PDP_FAQS,
     ],
     gallery: [
-      { src: "/images/raonaq-trio-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-trio-catalog.png", label: "L’écrin" },
-      { src: "/images/raonaq-trio-showcase.png", label: "3 looks dans un coffret" },
-      { src: "/images/raonaq-trio-love.png", label: "Ce qu’on aime" },
-      { src: "/images/raonaq-trio-before-after.png", label: "Avant / après" },
+      { src: "/images/raonaq-trio-woman.webp", label: "Le résultat" },
+      { src: "/images/raonaq-trio-catalog.webp", label: "L’écrin" },
+      { src: "/images/raonaq-trio-showcase.webp", label: "3 looks dans un coffret" },
+      { src: "/images/raonaq-trio-love.webp", label: "Ce qu’on aime" },
+      { src: "/images/raonaq-trio-before-after.webp", label: "Avant / après" },
     ],
     forWho: [
       "Pour changer de look sans multiplier les outils",
@@ -248,7 +248,7 @@ export const products: Product[] = [
     reviews: [],
     price1: 199,
     price2: 279,
-    heroImage: "/images/raonaq-trio-woman.png",
+    heroImage: "/images/raonaq-trio-woman.webp",
   },
   {
     id: "p2",
@@ -334,11 +334,11 @@ export const products: Product[] = [
     reviews: [],
     price1: 199,
     price2: 279,
-    heroImage: "/images/raonaq-air-soft-woman.png",
+    heroImage: "/images/raonaq-air-soft-woman.webp",
     gallery: [
-      { src: "/images/raonaq-air-soft-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-soft-showcase.png", label: "Lisse sans frisottis" },
-      { src: "/images/raonaq-soft-love.png", label: "Ce qu’on aime" },
+      { src: "/images/raonaq-air-soft-woman.webp", label: "Le résultat" },
+      { src: "/images/raonaq-soft-showcase.webp", label: "Lisse sans frisottis" },
+      { src: "/images/raonaq-soft-love.webp", label: "Ce qu’on aime" },
     ],
   },
   {
@@ -421,12 +421,12 @@ export const products: Product[] = [
     reviews: [],
     price1: 199,
     price2: 279,
-    heroImage: "/images/raonaq-air-pink-woman.png",
+    heroImage: "/images/raonaq-air-pink-woman.webp",
     gallery: [
-      { src: "/images/raonaq-air-pink-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-jour-catalog.png", label: "L’outil" },
-      { src: "/images/raonaq-jour-showcase.png", label: "Rituel du matin" },
-      { src: "/images/raonaq-jour-love.png", label: "Ce qu’on aime" },
+      { src: "/images/raonaq-air-pink-woman.webp", label: "Le résultat" },
+      { src: "/images/raonaq-jour-catalog.webp", label: "L’outil" },
+      { src: "/images/raonaq-jour-showcase.webp", label: "Rituel du matin" },
+      { src: "/images/raonaq-jour-love.webp", label: "Ce qu’on aime" },
     ],
   },
   {
@@ -513,11 +513,11 @@ export const products: Product[] = [
     reviews: [],
     price1: 199,
     price2: 279,
-    heroImage: "/images/raonaq-volume-woman.png",
+    heroImage: "/images/raonaq-volume-woman.webp",
     gallery: [
-      { src: "/images/raonaq-volume-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-volume-showcase.png", label: "Volume des racines" },
-      { src: "/images/raonaq-volume-love.png", label: "Ce qu’on aime" },
+      { src: "/images/raonaq-volume-woman.webp", label: "Le résultat" },
+      { src: "/images/raonaq-volume-showcase.webp", label: "Volume des racines" },
+      { src: "/images/raonaq-volume-love.webp", label: "Ce qu’on aime" },
     ],
   },
   {
@@ -600,13 +600,13 @@ export const products: Product[] = [
     reviews: [],
     price1: 199,
     price2: 279,
-    heroImage: "/images/raonaq-go-woman.png",
+    heroImage: "/images/raonaq-go-woman.webp",
     gallery: [
-      { src: "/images/raonaq-go-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-go-catalog.png", label: "L’outil" },
-      { src: "/images/raonaq-go-inside.png", label: "La tech" },
-      { src: "/images/raonaq-go-battery.png", label: "USB-C" },
-      { src: "/images/raonaq-go-kit.png", label: "L’écrin" },
+      { src: "/images/raonaq-go-woman.webp", label: "Le résultat" },
+      { src: "/images/raonaq-go-catalog.webp", label: "L’outil" },
+      { src: "/images/raonaq-go-inside.webp", label: "La tech" },
+      { src: "/images/raonaq-go-battery.webp", label: "USB-C" },
+      { src: "/images/raonaq-go-kit.webp", label: "L’écrin" },
     ],
   },
   {
@@ -690,15 +690,15 @@ export const products: Product[] = [
     price1: 599,
     price2: 999,
     priceWas: 1000,
-    heroImage: "/images/raonaq-duo-woman.png",
+    heroImage: "/images/raonaq-duo-woman.webp",
     gallery: [
-      { src: "/images/raonaq-duo-woman.png", label: "Le résultat" },
-      { src: "/images/raonaq-duo-catalog.png", label: "L’outil" },
-      { src: "/images/raonaq-duo-showcase.png", label: "Lisser et onduler" },
-      { src: "/images/raonaq-duo-love.png", label: "Ce qu’on aime" },
-      { src: "/images/raonaq-duo-ba.png", label: "Avant / après" },
-      { src: "/images/raonaq-duo-steps.png", label: "Comment faire" },
-      { src: "/images/raonaq-duo-looks.png", label: "Les looks" },
+      { src: "/images/raonaq-duo-woman.webp", label: "Le résultat" },
+      { src: "/images/raonaq-duo-catalog.webp", label: "L’outil" },
+      { src: "/images/raonaq-duo-showcase.webp", label: "Lisser et onduler" },
+      { src: "/images/raonaq-duo-love.webp", label: "Ce qu’on aime" },
+      { src: "/images/raonaq-duo-ba.webp", label: "Avant / après" },
+      { src: "/images/raonaq-duo-steps.webp", label: "Comment faire" },
+      { src: "/images/raonaq-duo-looks.webp", label: "Les looks" },
     ],
   },
 ];
@@ -714,5 +714,5 @@ export const UPSELL = {
     "Un sérum léger pour fixer le coiffage et ajouter de la brillance — sans alourdir.",
   price: 99,
   compareAt: 149,
-  image: "/images/raonaq-salon-results.png",
+  image: "/images/raonaq-salon-results.webp",
 };

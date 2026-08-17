@@ -35,7 +35,7 @@ export default function ContactPage() {
     <div className="bg-[#F7F1EC]">
       <section className="relative overflow-hidden bg-[#1C1412] text-white">
         <img
-          src="/images/raonaq-tools-editorial.png"
+          src="/images/raonaq-tools-editorial.webp"
           alt=""
           className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-20"
         />

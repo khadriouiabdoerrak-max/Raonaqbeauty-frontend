@@ -45,11 +45,11 @@ export const metadata: Metadata = {
     siteName: SITE.fullName,
     locale: "fr_MA",
     type: "website",
-    images: [{ url: "/images/raonaq-logo.png", alt: "Raonaq Beauty" }],
+    images: [{ url: "/images/raonaq-logo.webp", alt: "Raonaq Beauty" }],
   },
   icons: {
-    icon: "/images/raonaq-logo.png",
-    apple: "/images/raonaq-logo.png",
+    icon: "/images/raonaq-logo.webp",
+    apple: "/images/raonaq-logo.webp",
   },
 };
 

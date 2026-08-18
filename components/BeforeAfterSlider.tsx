@@ -8,6 +8,8 @@ type Props = {
   className?: string;
 };
 
+type Gesture = "idle" | "pending" | "drag" | "scroll";
+
 export default function BeforeAfterSlider({
   afterSrc = "/images/raonaq-result-after.webp",
   beforeSrc = "/images/raonaq-result-before.webp",
@@ -16,8 +18,11 @@ export default function BeforeAfterSlider({
   const [pos, setPos] = useState(84);
   const [held, setHeld] = useState(false);
   const box = useRef<HTMLDivElement>(null);
-  const dragging = useRef(false);
-  const resumeTimer = useRef<number | null>(null);
+  const gesture = useRef<Gesture>("idle");
+  const startX = useRef(0);
+  const startY = useRef(0);
+  const pointerId = useRef<number | null>(null);
+  const resumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const setFromX = useCallback((clientX: number) => {
     const el = box.current;
@@ -26,19 +31,67 @@ export default function BeforeAfterSlider({
     setPos(Math.min(88, Math.max(12, ((clientX - r.left) / r.width) * 100)));
   }, []);
 
+  const clearResume = () => {
+    if (resumeTimer.current != null) {
+      clearTimeout(resumeTimer.current);
+      resumeTimer.current = null;
+    }
+  };
+
   const endDrag = useCallback(() => {
-    if (!dragging.current) return;
-    dragging.current = false;
-    if (resumeTimer.current != null) window.clearTimeout(resumeTimer.current);
-    resumeTimer.current = window.setTimeout(() => setHeld(false), 2500);
+    if (gesture.current !== "drag" && gesture.current !== "pending") {
+      gesture.current = "idle";
+      pointerId.current = null;
+      return;
+    }
+    const wasDrag = gesture.current === "drag";
+    gesture.current = "idle";
+    pointerId.current = null;
+    if (!wasDrag) return;
+    clearResume();
+    resumeTimer.current = setTimeout(() => setHeld(false), 2500);
   }, []);
 
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
-      if (!dragging.current) return;
-      setFromX(e.clientX);
+      if (pointerId.current != null && e.pointerId !== pointerId.current) return;
+
+      if (gesture.current === "pending") {
+        const dx = e.clientX - startX.current;
+        const dy = e.clientY - startY.current;
+        const ax = Math.abs(dx);
+        const ay = Math.abs(dy);
+        if (ax < 8 && ay < 8) return;
+        // Vertical intent → leave the page scroll alone
+        if (ay >= ax) {
+          gesture.current = "scroll";
+          return;
+        }
+        gesture.current = "drag";
+        clearResume();
+        setHeld(true);
+        const el = box.current;
+        if (el && pointerId.current != null) {
+          try {
+            el.setPointerCapture(pointerId.current);
+          } catch {
+            /* ignore */
+          }
+        }
+        setFromX(e.clientX);
+        return;
+      }
+
+      if (gesture.current === "drag") {
+        setFromX(e.clientX);
+      }
     };
-    const onUp = () => endDrag();
+
+    const onUp = (e: PointerEvent) => {
+      if (pointerId.current != null && e.pointerId !== pointerId.current) return;
+      endDrag();
+    };
+
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
     window.addEventListener("pointercancel", onUp);
@@ -46,7 +99,7 @@ export default function BeforeAfterSlider({
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onUp);
-      if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
+      clearResume();
     };
   }, [endDrag, setFromX]);
 
@@ -59,27 +112,29 @@ export default function BeforeAfterSlider({
       aria-valuemin={12}
       aria-valuemax={88}
       aria-valuenow={Math.round(pos)}
-      className={`relative aspect-[4/5] cursor-ew-resize touch-none select-none overflow-hidden bg-[#F7F1EC] outline-none ${className}`}
+      className={`relative aspect-[4/5] cursor-ew-resize select-none overflow-hidden bg-[#F7F1EC] outline-none touch-pan-y ${className}`}
       onPointerDown={(e) => {
-        dragging.current = true;
-        if (resumeTimer.current != null) window.clearTimeout(resumeTimer.current);
-        setHeld(true);
-        e.currentTarget.setPointerCapture(e.pointerId);
-        setFromX(e.clientX);
+        if (e.button !== 0 && e.pointerType === "mouse") return;
+        gesture.current = "pending";
+        pointerId.current = e.pointerId;
+        startX.current = e.clientX;
+        startY.current = e.clientY;
       }}
       onKeyDown={(e) => {
         if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-        if (resumeTimer.current != null) window.clearTimeout(resumeTimer.current);
+        clearResume();
         setHeld(true);
         setPos((current) => Math.min(88, Math.max(12, current + (e.key === "ArrowRight" ? 5 : -5))));
-        resumeTimer.current = window.setTimeout(() => setHeld(false), 2500);
+        resumeTimer.current = setTimeout(() => setHeld(false), 2500);
       }}
     >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={beforeSrc} alt="" draggable={false} className="pointer-events-none absolute inset-0 h-full w-full max-w-none object-cover" />
       <div
         className={`pointer-events-none absolute inset-0 ${held ? "" : "raonaq-ba-reveal"}`}
         style={held ? { clipPath: `inset(0 ${100 - pos}% 0 0)` } : undefined}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={afterSrc} alt="" draggable={false} className="h-full w-full max-w-none object-cover" />
       </div>
 

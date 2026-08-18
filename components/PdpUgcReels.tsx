@@ -6,9 +6,11 @@ import { PDP_UGC_REELS, type UgcReel } from "../lib/ugcReels";
 function LocalVideo({
   reel,
   active,
+  sectionLive,
 }: {
   reel: UgcReel;
   active: boolean;
+  sectionLive: boolean;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
@@ -17,110 +19,102 @@ function LocalVideo({
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (active && sectionLive) return;
     const el = ref.current;
-    if (!el) return;
-    if (!active) {
-      el.pause();
-      setPlaying(false);
-      setShowPauseHint(false);
-    }
-  }, [active]);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const onPlay = () => setPlaying(true);
-    const onPause = () => {
-      setPlaying(false);
-      setShowPauseHint(false);
-    };
-    el.addEventListener("play", onPlay);
-    el.addEventListener("pause", onPause);
-    return () => {
-      el.removeEventListener("play", onPlay);
-      el.removeEventListener("pause", onPause);
-    };
-  }, []);
+    if (el && !el.paused) el.pause();
+    setPlaying(false);
+    setShowPauseHint(false);
+  }, [active, sectionLive]);
 
   useEffect(() => {
     return () => {
       if (hintTimer.current) clearTimeout(hintTimer.current);
     };
   }, []);
-
-  const ensureSrc = () => {
-    const v = ref.current;
-    if (!v) return null;
-    if (!v.getAttribute("src")) {
-      v.src = reel.videoSrc;
-      v.load();
-    }
-    return v;
-  };
 
   const togglePlay = () => {
-    const v = ensureSrc();
+    const v = ref.current;
     if (!v) return;
-    if (v.paused) {
-      v.muted = muted;
-      void v.play();
-      setShowPauseHint(true);
-      if (hintTimer.current) clearTimeout(hintTimer.current);
-      hintTimer.current = setTimeout(() => setShowPauseHint(false), 1400);
-    } else {
+
+    if (!v.paused && playing) {
       v.pause();
+      setPlaying(false);
+      setShowPauseHint(false);
+      return;
+    }
+
+    // Must call play() in the same user-gesture turn (no await before it).
+    if (!v.getAttribute("src")) {
+      v.src = reel.videoSrc;
+    }
+    v.muted = muted;
+    const playPromise = v.play();
+    if (playPromise !== undefined) {
+      void playPromise
+        .then(() => {
+          setPlaying(true);
+          setShowPauseHint(true);
+          if (hintTimer.current) clearTimeout(hintTimer.current);
+          hintTimer.current = setTimeout(() => setShowPauseHint(false), 1400);
+        })
+        .catch(() => {
+          setPlaying(false);
+        });
     }
   };
 
   const toggleMute = (e: { stopPropagation: () => void }) => {
     e.stopPropagation();
-    const v = ref.current;
     const next = !muted;
     setMuted(next);
+    const v = ref.current;
     if (v) v.muted = next;
   };
 
   return (
     <div className="relative h-full w-full bg-[#F7F1EC]">
       {!playing ? (
-        // Poster = frame réelle du MP4 (pas une image générique)
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={reel.posterSrc}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 z-[1] h-full w-full object-cover"
           draggable={false}
+          loading="lazy"
+          decoding="async"
         />
       ) : null}
 
       <video
         ref={ref}
-        src={active ? reel.videoSrc : undefined}
-        className={`h-full w-full object-cover ${playing ? "opacity-100" : "opacity-0"}`}
+        className={`relative z-0 h-full w-full object-cover ${playing ? "opacity-100" : "opacity-0"}`}
         playsInline
         muted={muted}
         loop
         preload="none"
         controls={false}
+        onPlay={() => setPlaying(true)}
+        onPause={() => {
+          setPlaying(false);
+          setShowPauseHint(false);
+        }}
       />
 
-      {/* Play — jamais d’autoplay */}
       {!playing ? (
         <button
           type="button"
-          className="absolute inset-0 z-[2] flex items-center justify-center bg-[#1C1412]/15"
+          className="absolute inset-0 z-[2] flex items-center justify-center bg-[#1C1412]/12"
           aria-label="Lire la vidéo"
           onClick={togglePlay}
         >
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#C45B6A] text-white shadow-[0_8px_24px_rgba(196,91,106,0.4)]">
-            <svg viewBox="0 0 24 24" className="h-6 w-6 translate-x-0.5" fill="currentColor" aria-hidden>
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#C45B6A] text-white md:h-14 md:w-14">
+            <svg viewBox="0 0 24 24" className="h-5 w-5 translate-x-0.5 md:h-6 md:w-6" fill="currentColor" aria-hidden>
               <path d="M8 5.14v13.72L19 12 8 5.14z" />
             </svg>
           </span>
         </button>
       ) : (
         <>
-          {/* Tap n’importe où = pause */}
           <button
             type="button"
             className="absolute inset-0 z-[2]"
@@ -128,7 +122,7 @@ function LocalVideo({
             onClick={togglePlay}
           />
           <span
-            className={`pointer-events-none absolute left-1/2 top-1/2 z-[2] flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#C45B6A] text-white shadow-[0_8px_24px_rgba(196,91,106,0.35)] transition-opacity duration-300 ${
+            className={`pointer-events-none absolute left-1/2 top-1/2 z-[2] flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#C45B6A] text-white transition-opacity duration-300 ${
               showPauseHint ? "opacity-100" : "opacity-0"
             }`}
             aria-hidden
@@ -140,7 +134,6 @@ function LocalVideo({
         </>
       )}
 
-      {/* Pause toujours visible + son */}
       {playing ? (
         <button
           type="button"
@@ -181,27 +174,29 @@ function ReelSlide({
   index,
   total,
   near,
+  sectionLive,
 }: {
   reel: UgcReel;
   index: number;
   total: number;
   near: boolean;
+  sectionLive: boolean;
 }) {
   return (
     <div
       data-reel="1"
-      className="w-[58vw] max-w-[260px] shrink-0 snap-start sm:w-[230px] md:w-[250px]"
+      className="w-[52vw] max-w-[220px] shrink-0 snap-start sm:w-[210px] md:w-[228px]"
     >
-      <div className="border border-[#1C1412]/10 bg-white shadow-[0_8px_28px_rgba(28,20,18,0.06)]">
-        <div className="group relative aspect-[9/16] overflow-hidden bg-[#F7F1EC]">
-          <LocalVideo reel={reel} active={near} />
+      <div className="overflow-hidden border border-[#C4A484]/35 bg-[#F7F1EC]">
+        <div className="relative aspect-[9/16] overflow-hidden bg-[#F7F1EC]">
+          <LocalVideo reel={reel} active={near} sectionLive={sectionLive} />
           <div className="pointer-events-none absolute left-3 top-3 z-[1]">
-            <p className="font-display text-[12px] font-semibold tracking-[0.18em] text-[#C4A484] drop-shadow-sm">
+            <p className="font-display text-[11px] font-semibold tracking-[0.2em] text-white drop-shadow-[0_1px_8px_rgba(28,20,18,0.45)]">
               رونق
             </p>
           </div>
           <div className="pointer-events-none absolute bottom-3 right-3 z-[1]">
-            <p className="text-[10px] font-medium tabular-nums tracking-[0.16em] text-white/85 drop-shadow">
+            <p className="text-[10px] font-medium tabular-nums tracking-[0.14em] text-white/90 drop-shadow">
               {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
             </p>
           </div>
@@ -226,7 +221,7 @@ function NavBtn({
       onClick={onClick}
       disabled={disabled}
       aria-label={dir === "prev" ? "Vidéo précédente" : "Vidéo suivante"}
-      className="flex h-11 w-11 items-center justify-center border border-[#1C1412]/15 bg-white text-[#1C1412] transition hover:border-[#C45B6A] hover:text-[#C45B6A] disabled:pointer-events-none disabled:opacity-25 md:h-12 md:w-12"
+      className="flex h-10 w-10 items-center justify-center border border-[#C4A484]/50 bg-white text-[#1C1412] transition hover:border-[#C45B6A] hover:text-[#C45B6A] disabled:pointer-events-none disabled:opacity-25 md:h-11 md:w-11"
     >
       <svg
         viewBox="0 0 24 24"
@@ -247,8 +242,23 @@ function NavBtn({
 }
 
 export default function PdpUgcReels() {
+  const sectionRef = useRef<HTMLElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
+  const [sectionLive, setSectionLive] = useState(true);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        setSectionLive(entry.isIntersecting);
+      },
+      { rootMargin: "160px 0px", threshold: 0.01 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const syncActive = useCallback(() => {
     const el = scrollerRef.current;
@@ -298,19 +308,23 @@ export default function PdpUgcReels() {
   const last = PDP_UGC_REELS.length - 1;
 
   return (
-    <section className="border-b border-[#1C1412]/8 bg-white" aria-label="Vidéos Raonaq">
+    <section
+      ref={sectionRef}
+      className="border-b border-[#1C1412]/8 bg-[#F7F1EC]"
+      aria-label="Vidéos Raonaq"
+    >
       <div className="pt-12 pb-10 md:pt-14 md:pb-12">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-[11px] font-medium tracking-[0.28em] text-[#C45B6A]">
-                EN VIDÉO
+                رونق · EN VIDÉO
               </p>
               <h2 className="font-display mt-2 text-3xl font-semibold leading-tight text-[#1C1412] md:text-4xl">
                 Résultat salon, filmé
               </h2>
               <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-[#1C1412]/50">
-                Appuie pour lire — pause et son à ta guise.
+                Lecture manuelle — pause et son à ta guise.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -331,6 +345,7 @@ export default function PdpUgcReels() {
               index={i}
               total={PDP_UGC_REELS.length}
               near={Math.abs(i - active) <= 1}
+              sectionLive={sectionLive}
             />
           ))}
         </div>

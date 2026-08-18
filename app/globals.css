@@ -116,7 +116,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .raonaq-review-track,
-  .raonaq-trust-track {
+  .raonaq-trust-track,
+  .raonaq-ba-reveal,
+  .raonaq-ba-line,
+  .before-after-sweep {
     animation: none;
   }
 }

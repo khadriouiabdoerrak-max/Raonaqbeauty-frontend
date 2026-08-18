@@ -4,13 +4,13 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCart } from "../../../context/CartContext";
 import { trackViewContent } from "../../../lib/pixels";
-import { getWhatsAppLink } from "../../../lib/contact";
 import BeforeAfterSlider from "../../../components/BeforeAfterSlider";
 import ErrorBoundary from "../../../components/ErrorBoundary";
 import Price from "../../../components/Price";
 import ProductShot from "../../../components/ProductShot";
 import PdpGalleryBanner from "../../../components/PdpGalleryBanner";
 import PdpTrustStrip from "../../../components/PdpTrustStrip";
+import PdpUgcReels from "../../../components/PdpUgcReels";
 import ReviewMarquee from "../../../components/ReviewMarquee";
 import { products, productThumb, type Product, type ProductReview } from "../../../lib/products";
 
@@ -79,14 +79,6 @@ function IconCheck({ className = "mt-0.5 h-4 w-4 shrink-0 text-[#C45B6A]" }: { c
   );
 }
 
-function IconWhatsApp({ className = "h-5 w-5" }: { className?: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-    </svg>
-  );
-}
-
 function Fold({
   title,
   open,
@@ -125,9 +117,6 @@ function BuyPanel({
 }) {
   const [fold, setFold] = useState<string | null>("ship");
   const [qty, setQty] = useState(1);
-  const whatsapp = getWhatsAppLink(
-    `Bonjour Raonaq, je suis intéressée par ${product.name}. Pouvez-vous m’aider ?`,
-  );
   const toggle = (id: string) => setFold((cur) => (cur === id ? null : id));
 
   return (
@@ -192,17 +181,6 @@ function BuyPanel({
         >
           Deux pièces — {product.price2} Dhs
         </button>
-        {whatsapp ? (
-          <a
-            href={whatsapp}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-none bg-[#25D366] px-4 text-[13px] font-semibold tracking-wide text-white transition hover:brightness-95"
-          >
-            <IconWhatsApp className="h-5 w-5" />
-            Commander / question sur WhatsApp
-          </a>
-        ) : null}
       </div>
       <p className="mt-2 text-center text-[11px] text-[#1C1412]/45">
         Confirmation par téléphone · livraison gratuite 24–48 h
@@ -248,18 +226,6 @@ function BuyPanel({
         ))}
       </ul>
 
-      {whatsapp ? (
-        <a
-          href={whatsapp}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 inline-flex w-full items-center justify-center gap-2 border border-[#25D366]/40 bg-[#25D366]/10 py-3 text-[12px] font-semibold text-[#128C7E] transition hover:bg-[#25D366]/15"
-        >
-          <IconWhatsApp className="h-4 w-4" />
-          Une question avant ? WhatsApp
-        </a>
-      ) : null}
-
       <ReviewMarquee items={proofItems} />
 
       <div className="mt-6">
@@ -298,9 +264,6 @@ export default function ProductClient({ product }: { product: Product }) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const others = products.filter((p) => p.id !== product.id).slice(0, 4);
-  const whatsapp = getWhatsAppLink(
-    `Bonjour Raonaq, je suis intéressée par ${product.name}. Pouvez-vous m’aider ?`,
-  );
 
   const faqs = [
     ...COLD_FAQS,
@@ -404,6 +367,9 @@ export default function ProductClient({ product }: { product: Product }) {
       {/* Trust marquee — livraison, COD, retour, support */}
       <PdpTrustStrip />
 
+      {/* UGC Instagram / reels locaux */}
+      <PdpUgcReels />
+
       {/* 3. Résultat / émotion */}
       <section className="bg-[#F7F1EC] py-12 md:py-16">
         <div className="container mx-auto px-4">
@@ -490,17 +456,6 @@ export default function ProductClient({ product }: { product: Product }) {
               );
             })}
           </div>
-          {whatsapp ? (
-            <a
-              href={whatsapp}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 bg-[#25D366] px-4 text-sm font-semibold text-white transition hover:brightness-95 sm:w-auto sm:px-6"
-            >
-              <IconWhatsApp className="h-5 w-5" />
-              Écrire sur WhatsApp
-            </a>
-          ) : null}
         </div>
       </section>
 
@@ -552,6 +507,54 @@ export default function ProductClient({ product }: { product: Product }) {
         </div>
       </section>
 
+      {/* Avis empilés — sous parcours; photo optionnelle (pas de placeholder) */}
+      {product.reviews.length > 0 ? (
+        <section className="border-t border-[#1C1412]/8 bg-[#F7F1EC]">
+          <div className="mx-auto max-w-2xl px-5 py-12 md:py-16">
+            <p className="text-[11px] font-medium tracking-[0.28em] text-[#C45B6A]">
+              AVIS CLIENTS
+            </p>
+            <h2 className="font-display mt-2 text-3xl font-semibold text-[#1C1412] md:text-4xl">
+              Ce qu’elles disent
+            </h2>
+            <ul className="mt-8 divide-y divide-[#1C1412]/10 border-y border-[#1C1412]/10">
+              {product.reviews.map((item) => (
+                <li key={`${item.name}-${item.city}-${item.text.slice(0, 24)}`} className="py-6">
+                  {item.photo ? (
+                    <img
+                      src={item.photo}
+                      alt=""
+                      className="mb-4 aspect-[4/5] w-full max-w-xs object-cover"
+                    />
+                  ) : null}
+                  <div className="flex items-center gap-1.5" aria-hidden>
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <svg key={i} viewBox="0 0 20 20" className="h-3.5 w-3.5 shrink-0">
+                        <path
+                          fill={
+                            i < Math.min(5, Math.max(1, Math.round(item.rating ?? 5)))
+                              ? "#E8C547"
+                              : "#E8C54733"
+                          }
+                          d="M10 1.6 12.2 7l5.8.5-4.4 3.8 1.4 5.7L10 14.2 4.99 17l1.4-5.7L2 7.5 7.8 7 10 1.6Z"
+                        />
+                      </svg>
+                    ))}
+                  </div>
+                  <p className="mt-3 text-[15px] leading-7 text-[#1C1412]/80">
+                    « {item.text} »
+                  </p>
+                  <p className="mt-3 text-[13px] font-semibold text-[#1C1412]">
+                    {item.name}
+                    <span className="font-normal text-[#C45B6A]"> · {item.city}</span>
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ) : null}
+
       {/* 9. Cross-sell léger */}
       {others.length > 0 && (
         <section className="border-t border-[#1C1412]/8 bg-[#F7F1EC] py-12 md:py-16">
@@ -574,7 +577,7 @@ export default function ProductClient({ product }: { product: Product }) {
         </section>
       )}
 
-      {/* Sticky mobile — cold CTA + WhatsApp */}
+      {/* Sticky mobile — Commander */}
       {showSticky && (
         <div className="fixed inset-x-0 bottom-0 z-[45] border-t border-[#1C1412]/10 bg-white/95 px-3 pt-2.5 backdrop-blur md:hidden pb-[max(0.65rem,env(safe-area-inset-bottom))]">
           <div className="flex items-center gap-2">
@@ -582,17 +585,6 @@ export default function ProductClient({ product }: { product: Product }) {
               <p className="truncate font-display text-lg font-semibold text-[#1C1412]">{product.name}</p>
               <p className="text-[11px] font-medium text-[#C45B6A]">À la porte · sans avance</p>
             </div>
-            {whatsapp ? (
-              <a
-                href={whatsapp}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-12 w-12 shrink-0 items-center justify-center bg-[#25D366] text-white"
-                aria-label="WhatsApp"
-              >
-                <IconWhatsApp className="h-6 w-6" />
-              </a>
-            ) : null}
             <button
               type="button"
               onClick={() => add(product.price1, 1)}

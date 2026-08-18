@@ -104,10 +104,10 @@ export function getObjectPosition(src: string): string {
     return "center center";
   }
   if (width > height) {
-    // صور عريضة (DUO / GO): الشخص + الأداة غالباً فاليمين
-    if (src.includes("duo-woman") || src.includes("go-woman")) return "72% 42%";
-    if (src.includes("closeup")) return "60% 45%";
-    return "55% 40%";
+    // صور عريضة (DUO / GO): الوجه + الأداة فوسط الإطار الطولي
+    if (src.includes("duo-woman") || src.includes("go-woman")) return "62% 36%";
+    if (src.includes("closeup")) return "58% 42%";
+    return "55% 38%";
   }
   // صور طول (TRIO / AIR / VOLUME): من فوق باش الوجه + الأداة
   return "center top";

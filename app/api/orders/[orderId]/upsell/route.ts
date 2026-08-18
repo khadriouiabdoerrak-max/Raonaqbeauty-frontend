@@ -4,13 +4,33 @@ import {
   getServerApiBases,
   shouldTryNextEndpoint,
 } from "../../../../../lib/apiBase";
+import { rateLimit } from "../../../../../lib/rateLimit";
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ orderId: string }> }
 ) {
+  const limited = rateLimit(request, "upsell", 20, 60_000);
+  if (!limited.ok) {
+    return NextResponse.json(
+      { detail: "Trop de requêtes. Réessaie dans un instant." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limited.retryAfter) },
+      }
+    );
+  }
+
   const { orderId } = await params;
+  if (!/^\d{1,12}$/.test(orderId)) {
+    return NextResponse.json({ detail: "Invalid order id" }, { status: 400 });
+  }
+
   const payload = await request.text();
+  if (payload.length > 8_000) {
+    return NextResponse.json({ detail: "Payload trop grand" }, { status: 413 });
+  }
+
   const headers = { "Content-Type": "application/json" };
   let lastError = "Failed to attach upsell";
 

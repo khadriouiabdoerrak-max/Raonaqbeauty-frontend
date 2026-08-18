@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getObjectPosition } from "../lib/imageSizes";
+import { getImageSize, getObjectPosition } from "../lib/imageSizes";
 
 type ProductShotProps = {
   src: string;
@@ -23,6 +23,10 @@ export default function ProductShot({
   className = "",
   sizes,
 }: ProductShotProps) {
+  const quality = priority ? 88 : 82;
+  const dims = getImageSize(src);
+  const landscape = dims.width > dims.height;
+
   if (variant === "native") {
     return (
       <div className={`relative min-w-0 w-full max-w-full overflow-hidden bg-white ${className}`}>
@@ -30,10 +34,10 @@ export default function ProductShot({
           key={src}
           src={src}
           alt={alt}
-          width={1200}
-          height={1500}
+          width={dims.width}
+          height={dims.height}
           sizes={sizes ?? "(max-width: 768px) 100vw, 50vw"}
-          quality={72}
+          quality={quality}
           priority={priority}
           className="h-auto w-full max-w-full"
           style={{ objectPosition: getObjectPosition(src) }}
@@ -42,18 +46,23 @@ export default function ProductShot({
     );
   }
 
+  // Lifestyle عريض (DUO / GO): إطار أقرب للصورة باش ما يتقطّعش الوجه ويبان باهت
+  const frameStyle = landscape
+    ? { aspectRatio: "3 / 4" as const }
+    : { aspectRatio: "4 / 5" as const };
+
   return (
     <div
       className={`relative min-w-0 w-full max-w-full overflow-hidden bg-[#F7F1EC] ${className}`}
-      style={{ aspectRatio: "4 / 5" }}
+      style={frameStyle}
     >
       <Image
-        key={src}
+        key={`${src}-q${quality}`}
         src={src}
         alt={alt}
         fill
-        sizes={sizes ?? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 420px"}
-        quality={72}
+        sizes={sizes ?? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 520px"}
+        quality={quality}
         priority={priority}
         className="object-cover"
         style={{ objectPosition: getObjectPosition(src) }}

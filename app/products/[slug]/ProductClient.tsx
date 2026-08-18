@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCart } from "../../../context/CartContext";
 import { trackViewContent } from "../../../lib/pixels";
@@ -10,9 +11,13 @@ import Price from "../../../components/Price";
 import ProductShot from "../../../components/ProductShot";
 import PdpGalleryBanner from "../../../components/PdpGalleryBanner";
 import PdpTrustStrip from "../../../components/PdpTrustStrip";
-import PdpUgcReels from "../../../components/PdpUgcReels";
 import ReviewMarquee from "../../../components/ReviewMarquee";
 import { products, productThumb, type Product, type ProductReview } from "../../../lib/products";
+
+const PdpUgcReels = dynamic(() => import("../../../components/PdpUgcReels"), {
+  ssr: false,
+  loading: () => <div className="min-h-[12rem] border-b border-[#1C1412]/8 bg-white" aria-hidden />,
+});
 
 /** Preuve COD — langage froid TikTok / Snap (Maroc) */
 const COLD_PROOF: ProductReview[] = [

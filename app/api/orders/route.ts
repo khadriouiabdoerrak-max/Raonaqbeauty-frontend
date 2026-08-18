@@ -4,13 +4,29 @@ import {
   getServerApiBases,
   shouldTryNextEndpoint,
 } from "../../../lib/apiBase";
+import { rateLimit } from "../../../lib/rateLimit";
 
 export async function GET() {
   return NextResponse.json({ ok: true, proxy: "orders" });
 }
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request, "orders", 12, 60_000);
+  if (!limited.ok) {
+    return NextResponse.json(
+      { detail: "Trop de commandes. Réessaie dans un instant." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limited.retryAfter) },
+      }
+    );
+  }
+
   const payload = await request.text();
+  if (payload.length > 32_000) {
+    return NextResponse.json({ detail: "Payload trop grand" }, { status: 413 });
+  }
+
   const headers = { "Content-Type": "application/json" };
   let lastError = "Failed to submit order";
 

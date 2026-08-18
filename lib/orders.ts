@@ -30,7 +30,8 @@ export type PendingOrder = OrderCustomer & {
 };
 
 const PENDING_KEY = "raonaq_pending_order";
-const API_HOST = "https://api.raonaqbeauty.com";
+/** Same-origin BFF — rate-limit + cache headers côté Next, pas d’appel CORS direct. */
+const ORDERS_API = "/api/orders";
 
 function makeEventId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -165,10 +166,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
     })),
   };
 
-  const order = await postDirect<{ id: number }>(
-    `${API_HOST}/api/v1/orders/webhook`,
-    payload
-  );
+  const order = await postDirect<{ id: number }>(ORDERS_API, payload);
 
   if (!order?.id) {
     throw new Error("no_order_id");
@@ -190,7 +188,7 @@ export async function attachUpsell(
     price: number;
   }
 ): Promise<void> {
-  await postDirect(`${API_HOST}/api/v1/orders/${orderId}/upsell`, {
+  await postDirect(`${ORDERS_API}/${orderId}/upsell`, {
     product_name: upsell.name,
     quantity: 1,
     price: upsell.price,
@@ -206,7 +204,6 @@ async function postDirect<T>(url: string, payload: unknown): Promise<T> {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify(payload),
-        mode: "cors",
       });
       const text = await res.text();
       if (!res.ok) {

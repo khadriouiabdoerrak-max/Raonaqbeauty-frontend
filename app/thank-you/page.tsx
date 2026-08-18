@@ -1,12 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "../../context/CartContext";
 import { trackPurchase, type LastPurchase, type PixelContent } from "../../lib/pixels";
 import { getWhatsAppLink } from "../../lib/contact";
 import { clearPendingOrder, consumePurchaseForTracking, readLastOrder } from "../../lib/orders";
-import { products, productThumb, type Product } from "../../lib/products";
+import { products, productThumb } from "../../lib/products";
 import { SITE, getSocialLinks } from "../../lib/site";
 import { getCallWindow, type CallWindow } from "../../lib/callWindow";
 
@@ -48,23 +47,6 @@ function IconWhatsApp({ className = "h-5 w-5" }: { className?: string }) {
 function firstName(full?: string) {
   if (!full) return "";
   return full.trim().split(/\s+/)[0] || "";
-}
-
-function suggestProducts(boughtIds: string[], limit = 3): Product[] {
-  const set = new Set(boughtIds);
-  const preferred = ["p6", "p5", "p4", "p2", "p3", "p1"];
-  const ranked = [
-    ...preferred.map((id) => products.find((p) => p.id === id)).filter(Boolean),
-    ...products,
-  ] as Product[];
-  const out: Product[] = [];
-  for (const p of ranked) {
-    if (set.has(p.id)) continue;
-    if (out.some((x) => x.id === p.id)) continue;
-    out.push(p);
-    if (out.length >= limit) break;
-  }
-  return out;
 }
 
 function resultTease(boughtIds: string[]): { title: string; text: string } {
@@ -131,7 +113,6 @@ export default function ThankYouPage() {
   const greetName = firstName(customer?.name);
   const hasItems = Boolean(purchase && purchase.contents.length > 0);
   const boughtIds = useMemo(() => purchase?.contents.map((c) => c.id) ?? [], [purchase]);
-  const suggestions = useMemo(() => suggestProducts(boughtIds), [boughtIds]);
   const tease = useMemo(() => resultTease(boughtIds), [boughtIds]);
 
   const whatsappConfirm = getWhatsAppLink(
@@ -154,64 +135,57 @@ export default function ThankYouPage() {
       : "Bonjour Raonaq,\nJe souhaite corriger les infos de ma commande.",
   );
 
-  function addOnWhatsApp(product: Product) {
-    return getWhatsAppLink(
-      purchase?.orderId
-        ? `Bonjour Raonaq,\nJe souhaite ajouter ${product.name} (${product.price1} Dhs) à ma commande N° ${purchase.orderId}.`
-        : `Bonjour Raonaq,\nJe souhaite ajouter ${product.name} (${product.price1} Dhs) à ma commande.`,
-    );
-  }
-
   return (
     <div className="min-h-full bg-[#F7F1EC]">
       {/* Banner COD — après mount (évite hydration mismatch) */}
       {mounted && callWin ? (
-        <div className="sticky top-0 z-40 border-b border-[#C4A484]/25 bg-[#1C1412] text-white">
+        <div className="sticky top-0 z-40 border-b border-[#C4A484]/35 bg-[#F7F1EC]/95 text-[#1C1412] backdrop-blur-md">
           <div className="mx-auto flex max-w-3xl flex-col gap-2.5 px-4 py-3.5 sm:flex-row sm:items-center sm:gap-5 sm:px-6">
-            <span className="inline-flex w-fit shrink-0 bg-[#C45B6A] px-2.5 py-1 text-[10px] font-semibold tracking-[0.2em] uppercase">
+            <span className="inline-flex w-fit shrink-0 bg-[#C45B6A] px-2.5 py-1 text-[10px] font-semibold tracking-[0.2em] uppercase text-white">
               {callWin.badge}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-[14px] font-semibold leading-snug">{callWin.headline}</p>
-              <p className="mt-0.5 text-[12px] leading-relaxed text-white/55">{callWin.detail}</p>
+              <p className="text-[14px] font-semibold leading-snug text-[#1C1412]">{callWin.headline}</p>
+              <p className="mt-0.5 text-[12px] leading-relaxed text-[#1C1412]/55">{callWin.detail}</p>
             </div>
           </div>
         </div>
       ) : null}
 
-      {/* Hero marque */}
-      <section className="relative overflow-hidden bg-[#1C1412] text-white">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(196,164,132,0.28),transparent)]" />
+      {/* Hero marque — pearl / champagne */}
+      <section className="relative overflow-hidden border-b border-[#C4A484]/25 bg-[#F7F1EC] text-[#1C1412]">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_50%_-5%,rgba(196,164,132,0.4),transparent_58%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_95%_90%,rgba(196,91,106,0.1),transparent_55%)]" />
         <div className="relative mx-auto max-w-3xl px-5 py-12 text-center md:px-6 md:py-16">
-          <p className="font-display text-4xl font-semibold tracking-[0.1em] text-[#C4A484] md:text-5xl">
+          <p className="font-display text-4xl font-semibold tracking-[0.1em] text-[#C45B6A] md:text-5xl">
             رونق
           </p>
-          <p className="mt-2 text-[10px] font-medium tracking-[0.48em] text-white/40">
+          <p className="mt-2 text-[10px] font-medium tracking-[0.48em] text-[#C4A484]">
             RAONAQ · MAISON MAROCAINE
           </p>
-          <p className="mt-3 text-[13px] font-medium text-white/45">نتيجة صالون فدارك</p>
+          <p className="mt-3 text-[13px] font-medium text-[#1C1412]/50">نتيجة صالون فدارك</p>
 
-          <div className="mx-auto mt-8 h-px w-14 bg-[#C4A484]/50" />
+          <div className="mx-auto mt-8 h-px w-14 bg-[#C4A484]/60" />
 
-          <h1 className="font-display mt-8 text-[2.4rem] leading-[1.08] font-semibold md:text-5xl">
+          <h1 className="font-display mt-8 text-[2.4rem] leading-[1.08] font-semibold text-[#1C1412] md:text-5xl">
             {greetName ? (
               <>
                 Merci,
                 <br />
-                <span className="text-[#C4A484]">{greetName}</span>
+                <span className="text-[#C45B6A]">{greetName}</span>
               </>
             ) : (
               "Merci"
             )}
           </h1>
-          <p className="mx-auto mt-4 max-w-md text-[15px] leading-relaxed text-white/60">
+          <p className="mx-auto mt-4 max-w-md text-[15px] leading-relaxed text-[#1C1412]/55">
             Votre commande est enregistrée. Un appel Raonaq confirme l’adresse — puis l’écrin part vers vous.
           </p>
 
           {purchase?.orderId ? (
-            <div className="mt-8 inline-flex flex-col items-center gap-1 border border-[#C4A484]/35 bg-white/[0.04] px-10 py-4">
-              <span className="text-[9px] font-medium tracking-[0.36em] text-white/40">COMMANDE</span>
-              <span className="font-display text-2xl font-semibold tracking-wide text-[#C4A484]">
+            <div className="mt-8 inline-flex flex-col items-center gap-1 border border-[#C4A484]/40 bg-white/75 px-10 py-4">
+              <span className="text-[9px] font-medium tracking-[0.36em] text-[#C4A484]">COMMANDE</span>
+              <span className="font-display text-2xl font-semibold tracking-wide text-[#1C1412]">
                 N° {purchase.orderId}
               </span>
             </div>
@@ -226,7 +200,7 @@ export default function ThankYouPage() {
             <IconWhatsApp className="h-5 w-5" />
             Confirmation via WhatsApp
           </a>
-          <p className="mt-2.5 text-[12px] text-white/40">
+          <p className="mt-2.5 text-[12px] text-[#1C1412]/40">
             Un message suffit pour valider votre commande plus vite.
           </p>
         </div>
@@ -442,73 +416,15 @@ export default function ThankYouPage() {
           </div>
         </section>
 
-        {/* Suggestions */}
-        {suggestions.length > 0 && (
-          <section className="mt-10">
-            <p className="text-[10px] font-medium tracking-[0.32em] text-[#C45B6A]">COLLECTION</p>
-            <h2 className="font-display mt-1.5 text-2xl font-semibold text-[#1C1412]">
-              Ajouter au même colis
-            </h2>
-            <p className="mt-2 text-[13px] leading-relaxed text-[#1C1412]/50">
-              Pendant l’appel ou sur WhatsApp — une seule livraison Raonaq.
-            </p>
-
-            <ul className="mt-6 space-y-3">
-              {suggestions.map((p) => {
-                const wa = addOnWhatsApp(p);
-                return (
-                  <li key={p.id} className="flex gap-4 bg-white p-3 sm:p-4">
-                    <Link
-                      href={`/products/${p.slug}`}
-                      className="h-28 w-24 shrink-0 overflow-hidden bg-[#F7F1EC]"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={productThumb(p)} alt={p.name} className="h-full w-full object-cover" />
-                    </Link>
-                    <div className="flex min-w-0 flex-1 flex-col justify-between py-0.5">
-                      <div>
-                        <Link
-                          href={`/products/${p.slug}`}
-                          className="font-display text-lg font-semibold text-[#1C1412] hover:text-[#C45B6A]"
-                        >
-                          {p.name}
-                        </Link>
-                        <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-[#1C1412]/45">
-                          {p.compareLine || p.tagline}
-                        </p>
-                        <p className="mt-2 text-[15px] font-semibold tabular-nums text-[#1C1412]">
-                          {p.price1}
-                          <span className="ml-1 text-[12px] font-medium text-[#1C1412]/40">Dhs</span>
-                        </p>
-                      </div>
-                      {wa ? (
-                        <a
-                          href={wa}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-3 inline-flex w-fit items-center gap-1.5 text-[12px] font-semibold tracking-wide text-[#C45B6A] underline-offset-4 hover:underline"
-                        >
-                          <IconWhatsApp className="h-3.5 w-3.5" />
-                          Ajouter sur WhatsApp
-                        </a>
-                      ) : null}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        )}
-
         {/* Promesse brand */}
-        <section className="relative mt-10 overflow-hidden bg-[#1C1412] px-6 py-12 text-center text-white">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(196,164,132,0.15),transparent_65%)]" />
+        <section className="relative mt-10 overflow-hidden border border-[#C4A484]/30 bg-[#F7F1EC] px-6 py-12 text-center">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(196,164,132,0.28),transparent_65%)]" />
           <div className="relative">
-            <p className="font-display text-2xl font-semibold tracking-[0.08em] text-[#C4A484]">رونق</p>
-            <p className="font-display mt-4 text-2xl font-semibold leading-snug md:text-3xl">
+            <p className="font-display text-2xl font-semibold tracking-[0.08em] text-[#C45B6A]">رونق</p>
+            <p className="font-display mt-4 text-2xl font-semibold leading-snug text-[#1C1412] md:text-3xl">
               Ouvrez · inspectez · puis payez
             </p>
-            <p className="mx-auto mt-3 max-w-sm text-[13px] leading-relaxed text-white/50">
+            <p className="mx-auto mt-3 max-w-sm text-[13px] leading-relaxed text-[#1C1412]/50">
               Maison marocaine. Collection courte. Confiance à la porte — aucun paiement d’avance.
             </p>
           </div>

@@ -2,12 +2,8 @@
 import localFont from "next/font/local";
 import "./globals.css";
 import { CartProvider } from "../context/CartContext";
-import Header from "../components/Header";
-import CartDrawer from "../components/CartDrawer";
-import CheckoutModal from "../components/CheckoutModal";
-import Footer from "../components/Footer";
+import StoreShell from "../components/StoreShell";
 import Pixels from "../components/Pixels";
-import WhatsAppButton from "../components/WhatsAppButton";
 import { SITE } from "../lib/site";
 
 const outfit = localFont({
@@ -62,12 +58,7 @@ export default function RootLayout({
         className={`${outfit.className} ${outfit.variable} ${display.variable} bg-pearl-blush text-warm-black min-h-screen flex flex-col`}
       >
         <CartProvider>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <CartDrawer />
-          <CheckoutModal />
-          <WhatsAppButton />
+          <StoreShell>{children}</StoreShell>
         </CartProvider>
         <Pixels />
       </body>

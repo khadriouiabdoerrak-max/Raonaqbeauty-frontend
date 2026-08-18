@@ -176,23 +176,6 @@ export function confirmStatusStyle(status: string): {
   };
 }
 
-const OPEN_CONFIRM = new Set<string>([
-  'PENDING_CONFIRMATION',
-  'APPEL_1',
-  'APPEL_2',
-  'APPEL_3',
-  'APPEL_4',
-  'APPEL_5',
-  'APPEL_6',
-  'APPEL_7',
-  'APPEL_WHATSAPP',
-  'NO_ANSWER',
-  'REPORTE',
-  'BOITE_VOCALE',
-  'CONFIRMED',
-  'READY_TO_SHIP',
-]);
-
 const APPEL_CHAIN = [
   'APPEL_1',
   'APPEL_2',
@@ -240,22 +223,6 @@ export function isCallTodayQueue(o: AdminOrder): boolean {
     return true;
   }
   return isReporteDue(o);
-}
-
-export function phoneRiskInfo(orders: AdminOrder[], phone: string, excludeId?: string) {
-  const same = orders.filter(
-    (o) => o.phone === phone && o.order_number !== excludeId,
-  );
-  const cancelled = same.filter((o) => o.status === 'CANCELLED').length;
-  const returned = same.filter((o) => o.status === 'RETURNED').length;
-  const openDupes = same.filter((o) => OPEN_CONFIRM.has(o.status));
-  return {
-    cancelled,
-    returned,
-    openDupes,
-    risky: cancelled + returned >= 2 || openDupes.length > 0,
-    duplicate: openDupes.length > 0,
-  };
 }
 
 export function todayConfirmedForCourier(orders: AdminOrder[]): AdminOrder[] {

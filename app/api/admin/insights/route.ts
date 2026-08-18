@@ -11,7 +11,9 @@ export async function GET(request: Request) {
   }
 
   const period = new URL(request.url).searchParams.get('period') || 'today';
+  const calendar = new URL(request.url).searchParams.get('calendar') || '';
   const qs = new URLSearchParams({ period });
+  if (calendar) qs.set('calendar', calendar);
 
   try {
     const response = await fetch(

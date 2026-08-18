@@ -30,7 +30,7 @@ function parseIso(iso: string) {
   };
 }
 
-const WEEKDAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+const WEEKDAYS = ['إث', 'ثلا', 'أر', 'خم', 'جم', 'سب', 'أحد'];
 
 export default function AdminDateCalendar({
   value,
@@ -60,7 +60,7 @@ export default function AdminDateCalendar({
 
   const label = selected
     ? `${pad(selected.d)}/${pad(selected.m)}/${selected.y}`
-    : 'Calendrier';
+    : 'كالوندار';
 
   const shiftMonth = (delta: number) => {
     const dt = new Date(viewY, viewM - 1 + delta, 1);
@@ -204,7 +204,7 @@ export default function AdminDateCalendar({
                 }}
                 className="flex-1 py-2 rounded-xl border border-[#e6d9cc] text-xs font-bold"
               >
-                Aujourd’hui
+                اليوم
               </button>
               <button
                 type="button"
@@ -214,7 +214,7 @@ export default function AdminDateCalendar({
                 }}
                 className="flex-1 py-2 rounded-xl border border-[#e6d9cc] text-xs font-bold text-[#6a5648]"
               >
-                Tout
+                الكل
               </button>
             </div>
           </div>

@@ -8,7 +8,6 @@ import {
   adminLogin,
   adminLogout,
   fetchAdminStats,
-  type AdminStats,
 } from '@/lib/admin';
 import StoreInsightsPanel from './StoreInsightsPanel';
 
@@ -24,7 +23,7 @@ const OpsDesk = dynamic(() => import('./OpsDesk'), {
   ),
 });
 
-/** تأكيد | شحن | نظرة */
+/** تأكيد | شحن | حساب */
 type Tab = 'confirm' | 'ship' | 'overview';
 
 function parseTab(raw: string | null): Tab {
@@ -33,10 +32,11 @@ function parseTab(raw: string | null): Tab {
     raw === 'overview' ||
     raw === 'dashboard' ||
     raw === 'board' ||
-    raw === 'stats'
+    raw === 'stats' ||
+    raw === 'hesab' ||
+    raw === 'account'
   )
     return 'overview';
-  // confirm queue + legacy aliases
   if (
     raw === 'confirm' ||
     raw === 'orders' ||
@@ -53,44 +53,6 @@ function parseTab(raw: string | null): Tab {
   return 'confirm';
 }
 
-function MetricCard({
-  label,
-  value,
-  hint,
-  onClick,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-  onClick?: () => void;
-}) {
-  const className =
-    'rounded-2xl border border-champagne/40 bg-ivory p-5 shadow-card text-right w-full';
-  const body = (
-    <>
-      <p className="text-xs font-medium text-muted-brown mb-2">{label}</p>
-      <p className="text-2xl sm:text-3xl font-bold text-cocoa tracking-tight tabular-nums">
-        {value}
-      </p>
-      {hint ? (
-        <p className="text-[11px] text-muted-brown mt-2 leading-relaxed">{hint}</p>
-      ) : null}
-    </>
-  );
-  if (onClick) {
-    return (
-      <button
-        type="button"
-        onClick={onClick}
-        className={`${className} hover:border-cocoa/40 transition-colors`}
-      >
-        {body}
-      </button>
-    );
-  }
-  return <div className={className}>{body}</div>;
-}
-
 export default function AdminShell() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -102,11 +64,10 @@ export default function AdminShell() {
   const [booting, setBooting] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState<AdminStats | null>(null);
 
   const setTab = (next: Tab) => {
     if (next === 'ship') {
-      router.replace('/admin?tab=ship&pipe=confirmed', { scroll: false });
+      router.replace('/admin?tab=ship&pipe=all', { scroll: false });
       return;
     }
     if (next === 'overview') {
@@ -124,8 +85,7 @@ export default function AdminShell() {
     setLoading(true);
     setError('');
     try {
-      const statsData = await fetchAdminStats(secret);
-      setStats(statsData);
+      await fetchAdminStats(secret);
       setToken(secret);
       sessionStorage.setItem(ADMIN_TOKEN_KEY, secret);
     } catch (err) {
@@ -147,24 +107,9 @@ export default function AdminShell() {
   useEffect(() => {
     if (typeof document === 'undefined') return;
     if (tab === 'ship') document.title = 'شحن رونق';
-    else if (tab === 'overview') document.title = 'نظرة رونق';
+    else if (tab === 'overview') document.title = 'حساب رونق';
     else document.title = 'تأكيد رونق';
   }, [tab]);
-
-  const loadOverview = useCallback(async () => {
-    if (!token) return;
-    try {
-      const statsData = await fetchAdminStats(token);
-      setStats(statsData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'فشل التحميل');
-    }
-  }, [token]);
-
-  useEffect(() => {
-    if (!token) return;
-    if (tab === 'overview') void loadOverview();
-  }, [token, tab, loadOverview]);
 
   const onLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -187,7 +132,6 @@ export default function AdminShell() {
     if (token) await adminLogout(token);
     sessionStorage.removeItem(ADMIN_TOKEN_KEY);
     setToken('');
-    setStats(null);
   };
 
   if (booting) {
@@ -214,7 +158,7 @@ export default function AdminShell() {
           <div className="space-y-1">
             <p className="text-xs font-bold tracking-wide text-gold">رونق · RAONAQ</p>
             <h1 className="text-xl font-bold text-cocoa">إدارة رونق</h1>
-            <p className="text-sm text-muted-brown">تأكيد · شحن · نظرة</p>
+            <p className="text-sm text-muted-brown">تأكيد · شحن · حساب</p>
           </div>
           <input
             type="text"
@@ -251,7 +195,7 @@ export default function AdminShell() {
   const tabs: { id: Tab; label: string }[] = [
     { id: 'confirm', label: 'تأكيد' },
     { id: 'ship', label: 'شحن' },
-    { id: 'overview', label: 'نظرة' },
+    { id: 'overview', label: 'حساب' },
   ];
 
   return (
@@ -297,85 +241,12 @@ export default function AdminShell() {
       )}
 
       {tab === 'overview' && (
-        <div className="max-w-6xl mx-auto px-4 py-6 space-y-8">
-          <StoreInsightsPanel token={token} />
-
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-bold text-cocoa">اليوم — سريع</h2>
-              <p className="text-sm text-muted-brown">أرقام الطابور الآن</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => void loadOverview()}
-              className="px-4 py-2.5 rounded-xl bg-cocoa text-ivory text-sm font-bold"
-            >
-              تحديث
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <MetricCard
-              label="طلبات اليوم"
-              value={String(stats?.today ?? '—')}
-              onClick={() => goDesk('confirm', 'call_today')}
-            />
-            <MetricCard
-              label="قيد التأكيد"
-              value={String(stats?.pending ?? '—')}
-              hint="جديد + مكالمات"
-              onClick={() => goDesk('confirm', 'call_today')}
-            />
-            <MetricCard
-              label="مؤكد / جاهز للشحن"
-              value={String(
-                (stats?.confirmed ?? 0) + (stats?.ready_to_ship ?? 0),
-              )}
-              onClick={() => goDesk('ship', 'confirmed')}
-            />
-            <MetricCard
-              label="مرسل"
-              value={String(stats?.shipped ?? '—')}
-              onClick={() => goDesk('ship', 'shipped')}
-            />
-            <MetricCard
-              label="مسلم اليوم"
-              value={String(stats?.today_delivered ?? stats?.delivered ?? '—')}
-              onClick={() => goDesk('confirm', 'delivered')}
-            />
-            <MetricCard
-              label="مرتجع"
-              value={String(stats?.returned ?? '—')}
-              onClick={() => goDesk('confirm', 'returned')}
-            />
-            <MetricCard
-              label="ملغى"
-              value={String(stats?.cancelled ?? '—')}
-              onClick={() => goDesk('confirm', 'cancelled')}
-            />
-            <MetricCard
-              label="متأخر شحن"
-              value={String(stats?.stale_shipped ?? '—')}
-              onClick={() => goDesk('ship', 'stale')}
-            />
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => goDesk('confirm', 'call_today')}
-              className="px-4 py-2.5 rounded-xl border border-champagne/50 bg-ivory text-sm font-bold text-cocoa"
-            >
-              فتح طابور التأكيد
-            </button>
-            <button
-              type="button"
-              onClick={() => goDesk('ship', 'confirmed')}
-              className="px-4 py-2.5 rounded-xl border border-champagne/50 bg-ivory text-sm font-bold text-cocoa"
-            >
-              فتح مكتب الشحن
-            </button>
-          </div>
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <StoreInsightsPanel
+            token={token}
+            onOpenConfirm={() => goDesk('confirm', 'call_today')}
+            onOpenShip={() => goDesk('ship', 'all')}
+          />
         </div>
       )}
     </div>

@@ -70,7 +70,6 @@ import {
   confirmStatusStyle,
   isCallTodayQueue,
   nextAppelStatus,
-  phoneRiskInfo,
   printCourierList,
   todayConfirmedForCourier,
 } from '@/lib/opsQueue';
@@ -200,7 +199,6 @@ function isConfirmQueue(o: AdminOrder) {
     'INJOIGNABLE',
     'REPORTE',
     'NO_ANSWER',
-    'CANCELLED',
   ].includes(o.status);
 }
 
@@ -221,7 +219,9 @@ function isShipQueue(o: AdminOrder) {
   return (
     o.status === 'CONFIRMED' ||
     o.status === 'READY_TO_SHIP' ||
-    o.status === 'SHIPPED'
+    o.status === 'SHIPPED' ||
+    o.status === 'DELIVERED' ||
+    o.status === 'RETURNED'
   );
 }
 
@@ -277,6 +277,8 @@ function rowStageClass(o: AdminOrder): string {
   if (s === 'APPEL_2' || s === 'APPEL_1' || s === 'NO_ANSWER')
     return 'bg-amber-50 border-s-4 border-s-amber-400';
   if (s === 'SHIPPED') return 'bg-white border-s-4 border-s-[#2a1810]/40';
+  if (s === 'DELIVERED') return 'bg-emerald-50/50 border-s-4 border-s-emerald-500';
+  if (s === 'RETURNED') return 'bg-amber-50/80 border-s-4 border-s-amber-600';
   if (s === 'PENDING_CONFIRMATION')
     return 'bg-[#F7F1EC] border-s-4 border-s-[#C4A484]';
   return 'bg-white';
@@ -373,7 +375,7 @@ export default function OpsDesk({
     ) {
       return fromUrl;
     }
-    return initial === 'ship' ? 'confirmed' : 'call_today';
+    return initial === 'ship' ? 'all' : 'call_today';
   });
   const [activeId, setActiveId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -401,6 +403,8 @@ export default function OpsDesk({
   const [filterYear, setFilterYear] = useState('');
   const [filterMonth, setFilterMonth] = useState('');
   const [filterDay, setFilterDay] = useState('');
+  const [pageSize, setPageSize] = useState(10);
+  const [page, setPage] = useState(1);
   const [newOrderCount, setNewOrderCount] = useState(0);
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
   const [showWaIntake, setShowWaIntake] = useState(false);
@@ -435,7 +439,7 @@ export default function OpsDesk({
 
   const goMode = (m: Mode) => {
     if (m === 'ship') {
-      goPipe('confirmed', 'ship');
+      goPipe('all', 'ship');
       return;
     }
     if (m === 'orders') {
@@ -654,21 +658,37 @@ export default function OpsDesk({
         );
       } else if (pipe === 'shipped') {
         list = list.filter((o) => o.status === 'SHIPPED');
+      } else if (pipe === 'delivered') {
+        list = list.filter((o) => o.status === 'DELIVERED');
+      } else if (pipe === 'returned') {
+        list = list.filter((o) => o.status === 'RETURNED');
       } else if (pipe === 'stale') {
         list = list.filter(isStaleShip);
       }
-    } else if (pipe === 'call_today') {
+      // pipe === 'all' → كل طلبات الشحن فنفس الصفحة
+      const shipRank = (o: AdminOrder) => {
+        if (o.status === 'CONFIRMED' || o.status === 'READY_TO_SHIP') return 0;
+        if (o.status === 'SHIPPED') return 1;
+        if (o.status === 'DELIVERED') return 2;
+        if (o.status === 'RETURNED') return 3;
+        return 4;
+      };
+      list = [...list].sort((a, b) => {
+        const d = shipRank(a) - shipRank(b);
+        if (d !== 0) return d;
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      });
+    } else {
+      // طابور التأكيد: يبقى الطلب هنا حتى Confirmé، من بعد كيدوز للشحن
       list = list
-        .filter(isCallTodayQueue)
+        .filter(isConfirmQueue)
         .sort(
           (a, b) =>
             new Date(a.created_at).getTime() -
             new Date(b.created_at).getTime(),
         );
-    } else if (pipe === 'stale') {
-      list = list.filter(isStaleShip);
-    } else if (pipe !== 'all') {
-      list = list.filter((o) => stageOf(o) === pipe);
     }
     if (filterYear || filterMonth || filterDay) {
       list = list.filter((o) => {
@@ -701,6 +721,24 @@ export default function OpsDesk({
     filterMonth,
     filterDay,
   ]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [pipe, mode, query, filterYear, filterMonth, filterDay, pageSize]);
+
+  const totalPages = Math.max(1, Math.ceil(sheetRows.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
+  const pagedRows = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return sheetRows.slice(start, start + pageSize);
+  }, [sheetRows, safePage, pageSize]);
+  const rangeFrom = sheetRows.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const rangeTo = Math.min(safePage * pageSize, sheetRows.length);
 
   const confirmWaiting =
     pipeCounts.en_attente +
@@ -790,6 +828,9 @@ export default function OpsDesk({
           updated.phone,
           buildConfirmedWhatsAppMessage(updated),
         );
+        closeDetail();
+      } else if (body.status === 'CANCELLED') {
+        closeDetail();
       } else if (body.status === 'DELIVERED') {
         openCustomerWhatsApp(
           updated.phone,
@@ -928,38 +969,30 @@ export default function OpsDesk({
     [selectedShip],
   );
 
-  const shippableInSheet = useMemo(
-    () => sheetRows.filter(canSendToOzon),
-    [sheetRows],
-  );
+  const selectedShipId = selectedShipIds[0] || null;
 
-  const allShippableSelected =
-    shippableInSheet.length > 0 &&
-    shippableInSheet.every((o) => selectedShip[o.order_number]);
-
-  const runBatchOzonShip = async () => {
-    if (!token || !selectedShipIds.length) return;
+  const runSingleOzonShip = async () => {
+    if (!token || !selectedShipId) return;
+    if (selectedShipIds.length > 1) {
+      setSelectedShip({ [selectedShipId]: true });
+    }
     const ok = window.confirm(
-      `إرسال ${selectedShipIds.length} طلب إلى OzonExpress دفعة واحدة؟`,
+      `إرسال الطلب ${selectedShipId} إلى OzonExpress؟\nطلب واحد فقط — باش ما يتكرّرش الغلط.`,
     );
     if (!ok) return;
     setBusy(true);
     setError('');
     setBatchMsg('');
     try {
-      const results = await shipAdminOrdersBatch(token, selectedShipIds);
-      const okN = results.filter((r) => r.ok).length;
-      const fail = results.filter((r) => !r.ok);
-      setBatchMsg(
-        fail.length
-          ? `تم ${okN} · فشل ${fail.length}: ${fail
-              .map((f) => `${f.order_number} (${f.error})`)
-              .join(' · ')}`
-          : `تم إرسال ${okN} طلب إلى OzonExpress`,
-      );
-      setSelectedShip({});
-      await load(token, true);
-      if (okN > 0) {
+      const results = await shipAdminOrdersBatch(token, [selectedShipId]);
+      const row = results[0];
+      if (!row?.ok) {
+        setError(row?.error || 'فشل الإرسال إلى OzonExpress');
+        setBatchMsg('');
+      } else {
+        setBatchMsg(`تم إرسال ${selectedShipId} إلى OzonExpress`);
+        setSelectedShip({});
+        await load(token, true);
         try {
           await syncOzonExpress(token);
           await load(token, true);
@@ -968,7 +1001,7 @@ export default function OpsDesk({
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'فشل الإرسال الجماعي');
+      setError(err instanceof Error ? err.message : 'فشل الإرسال');
     } finally {
       setBusy(false);
     }
@@ -1047,9 +1080,6 @@ export default function OpsDesk({
     );
   }
 
-  const risk = active
-    ? phoneRiskInfo(orders, active.phone, active.order_number)
-    : null;
   const activeStage = active ? stageOf(active) : null;
   const shipAddrOk =
     shipCity.trim().length >= 2 && shipAddress.trim().length >= 8;
@@ -1057,26 +1087,14 @@ export default function OpsDesk({
   const orderFilters: { id: PipeFilter; label: string }[] =
     mode === 'ship'
       ? [
-          { id: 'confirmed', label: 'مؤكد' },
-          { id: 'shipped', label: 'مرسل' },
-          { id: 'stale', label: `متأخر +${STALE_SHIP_DAYS}j` },
-          { id: 'all', label: 'كل الشحن' },
-        ]
-      : [
-          { id: 'call_today', label: 'طابور اليوم' },
           { id: 'all', label: 'الكل' },
-          { id: 'en_attente', label: 'جديد' },
-          { id: 'appel_1', label: 'مكالمة 1' },
-          { id: 'appel_2', label: 'مكالمة 2' },
-          { id: 'appel_3', label: 'مكالمة 3' },
-          { id: 'reporte', label: 'مؤجل' },
-          { id: 'confirmed', label: 'مؤكد' },
+          { id: 'confirmed', label: 'جاهز' },
           { id: 'shipped', label: 'مرسل' },
-          { id: 'stale', label: 'متأخر' },
-          { id: 'delivered', label: 'مسلم' },
+          { id: 'delivered', label: 'مسلّم' },
           { id: 'returned', label: 'مرتجع' },
-          { id: 'cancelled', label: 'ملغى' },
-        ];
+          { id: 'stale', label: `متأخر +${STALE_SHIP_DAYS}j` },
+        ]
+      : [];
 
   const boardCards: {
     label: string;
@@ -1153,22 +1171,18 @@ export default function OpsDesk({
               <button
                 type="button"
                 onClick={() => goPipe('call_today', 'orders')}
-                className="text-sm bg-red-600 text-white rounded-full px-3 py-1 tabular-nums font-bold animate-pulse"
+                className="text-sm bg-red-600 text-white rounded-full px-3 py-1.5 tabular-nums font-bold animate-pulse"
               >
                 +{newOrderCount} جديد
               </button>
             ) : null}
-            <span className="text-sm bg-white border border-[#e6d9cc] rounded-full px-3 py-1 tabular-nums">
-              {stats?.today ?? 0} اليوم
-            </span>
-            <span className="text-sm bg-white border border-[#e6d9cc] rounded-full px-3 py-1 tabular-nums">
-              {confirmWaiting} تأكيد
-            </span>
-            <span className="text-sm bg-white border border-[#e6d9cc] rounded-full px-3 py-1 tabular-nums">
-              {shipReady} جاهز للشحن
-            </span>
+            {mode === 'ship' ? (
+              <span className="text-sm bg-white border border-[#e6d9cc] rounded-full px-3.5 py-1.5 tabular-nums font-bold">
+                جاهز {shipReady}
+              </span>
+            ) : null}
             {(stats?.sheet_errors ?? 0) > 0 ? (
-              <span className="text-sm bg-amber-100 border border-amber-300 text-amber-900 rounded-full px-3 py-1 tabular-nums font-bold">
+              <span className="text-sm bg-amber-100 border border-amber-300 text-amber-900 rounded-full px-3 py-1.5 tabular-nums font-bold">
                 Sheet ⚠ {stats?.sheet_errors}
               </span>
             ) : null}
@@ -1216,7 +1230,14 @@ export default function OpsDesk({
                 >
                   {m.label}
                   {m.id === 'orders' ? ` (${orders.length})` : ''}
-                  {m.id === 'ship' ? ` (${shipReady + pipeCounts.shipped})` : ''}
+                  {m.id === 'ship'
+                    ? ` (${
+                        shipReady +
+                        pipeCounts.shipped +
+                        pipeCounts.delivered +
+                        pipeCounts.returned
+                      })`
+                    : ''}
                 </button>
               ))}
             </div>
@@ -1486,12 +1507,13 @@ export default function OpsDesk({
                   </button>
                   <button
                     type="button"
-                    disabled={busy || !ozoneReady || selectedShipIds.length === 0}
-                    onClick={() => void runBatchOzonShip()}
+                    disabled={busy || !ozoneReady || !selectedShipId}
+                    onClick={() => void runSingleOzonShip()}
                     className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#2a1810] text-white text-sm font-bold disabled:opacity-50"
                   >
                     <Truck className="w-4 h-4" />
-                    إرسال المحدد ({selectedShipIds.length})
+                    إرسال لـ Ozon
+                    {selectedShipId ? ` · ${selectedShipId}` : ''}
                   </button>
                   <button
                     type="button"
@@ -1575,78 +1597,20 @@ export default function OpsDesk({
           </div>
 
           {mode === 'orders' ? (
-            <div className="rounded-xl border border-[#C4A484]/50 bg-[#F7F1EC] px-4 py-3 flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <p className="text-sm font-bold text-[#2a1810]">
-                  طابور اليوم: {pipeCounts.call_today}
+            <div className="rounded-xl border border-[#C4A484]/40 bg-white px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-baseline gap-3">
+                <p className="text-3xl font-bold tabular-nums text-[#2a1810]">
+                  {orders.filter(isConfirmQueue).length}
                 </p>
-                <p className="text-[11px] text-[#6a5648] mt-0.5">
-                  واتساب أولاً · من بعد اتصال · حتى 3 أيام (مكالمة 1→2→3) · هدف تقريبي ~7
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-1.5 text-[10px] font-bold">
-                {(
-                  [
-                    {
-                      id: 'en_attente' as PipeFilter,
-                      label: 'جديد',
-                      className:
-                        'bg-[#F7F1EC] border-[#C4A484] text-[#2a1810]',
-                    },
-                    {
-                      id: 'appel_1' as PipeFilter,
-                      label: 'يوم 1',
-                      className: 'bg-amber-50 border-amber-400 text-amber-950',
-                    },
-                    {
-                      id: 'appel_2' as PipeFilter,
-                      label: 'يوم 2',
-                      className:
-                        'bg-[#F8E8EB] border-[#C45B6A]/70 text-[#6B2A35]',
-                    },
-                    {
-                      id: 'appel_3' as PipeFilter,
-                      label: 'يوم 3',
-                      className:
-                        'bg-[#F3D5DB] border-[#C45B6A] text-[#4A1820]',
-                    },
-                  ] as const
-                ).map((chip) => {
-                  const on = pipe === chip.id;
-                  return (
-                    <button
-                      key={chip.id}
-                      type="button"
-                      onClick={() => goPipe(chip.id, 'orders')}
-                      className={`rounded-full border px-2.5 py-1 transition-all ${chip.className} ${
-                        on
-                          ? 'ring-2 ring-[#1C1412]/25 scale-[1.03]'
-                          : 'hover:brightness-[0.97] opacity-90 hover:opacity-100'
-                      }`}
-                    >
-                      {chip.label}
-                      <span className="ms-1 tabular-nums opacity-70">
-                        ({pipeCounts[chip.id]})
-                      </span>
-                    </button>
-                  );
-                })}
-                <button
-                  type="button"
-                  onClick={() => goPipe('call_today', 'orders')}
-                  className={`rounded-full border px-2.5 py-1 ${
-                    pipe === 'call_today'
-                      ? 'bg-[#2a1810] text-white border-[#2a1810]'
-                      : 'bg-white border-[#e6d9cc] text-[#5c4a3c]'
-                  }`}
-                >
-                  طابور اليوم
-                </button>
+                <div>
+                  <p className="text-sm font-bold text-[#2a1810]">فـ الطابور</p>
+                  <p className="text-[11px] text-[#6a5648]">واتساب · اتصال · تأكيد</p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowWaIntake(true)}
-                className="px-3.5 py-2 rounded-xl bg-[#25D366] text-white text-sm font-bold"
+                className="px-4 py-2.5 rounded-xl bg-[#25D366] text-white text-sm font-bold"
               >
                 + طلب واتساب
               </button>
@@ -1756,258 +1720,371 @@ export default function OpsDesk({
             </div>
           ) : null}
 
-          {mode === 'ship' && (batchMsg || selectedShipIds.length > 0) ? (
+          {mode === 'ship' && (batchMsg || selectedShipId) ? (
             <div className="rounded-xl border border-[#e6d9cc] bg-white px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-sm">
               <p className="text-[#2a1810] font-bold">
                 {batchMsg ||
-                  `${selectedShipIds.length} طلب محدد للإرسال إلى OzonExpress`}
+                  `طلب واحد محدد: ${selectedShipId} — إرسال لـ OzonExpress`}
               </p>
-              {selectedShipIds.length > 0 ? (
+              {selectedShipId ? (
                 <button
                   type="button"
                   onClick={() => setSelectedShip({})}
                   className="text-xs font-bold text-[#6a5648] underline"
                 >
-                  مسح التحديد
+                  إلغاء التحديد
                 </button>
               ) : null}
             </div>
           ) : null}
 
-          <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
-            {orderFilters.map((f) => {
-              const count =
-                mode === 'ship' && f.id === 'all'
-                  ? pipeCounts.confirmed + pipeCounts.shipped
-                  : pipeCounts[f.id];
-              const on = pipe === f.id;
-              return (
-                <button
-                  key={f.id}
-                  type="button"
-                  onClick={() => goPipe(f.id, mode === 'ship' ? 'ship' : 'orders')}
-                  className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold border tabular-nums ${
-                    on
-                      ? 'bg-[#2a1810] text-white border-[#2a1810]'
-                      : 'bg-white border-[#e6d9cc] text-[#5c4a3c]'
-                  }`}
-                >
-                  {f.label} ({count})
-                </button>
-              );
-            })}
-          </div>
+          {orderFilters.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {orderFilters.map((f) => {
+                const count =
+                  f.id === 'all'
+                    ? pipeCounts.confirmed +
+                      pipeCounts.shipped +
+                      pipeCounts.delivered +
+                      pipeCounts.returned
+                    : pipeCounts[f.id];
+                const on = pipe === f.id;
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => goPipe(f.id, mode === 'ship' ? 'ship' : 'orders')}
+                    className={`rounded-lg px-3.5 py-2 text-sm font-bold border tabular-nums ${
+                      on
+                        ? 'bg-[#2a1810] text-white border-[#2a1810]'
+                        : 'bg-white border-[#e6d9cc] text-[#5c4a3c] hover:border-[#C4A484]'
+                    }`}
+                  >
+                    {f.label}
+                    <span className={`ms-1.5 ${on ? 'opacity-80' : 'opacity-55'}`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
 
-          <div className="overflow-x-auto rounded-xl border border-[#b7c9b0] bg-white shadow-sm">
-            <table className="w-full text-sm text-right min-w-[1180px] border-collapse">
-              <thead>
-                <tr className="bg-[#dfe9d8] text-[#243d22] border-b border-[#b7c9b0]">
-                  {mode === 'ship' ? (
-                    <th className="p-2.5 font-semibold border-l border-[#b7c9b0] w-10">
-                      <input
-                        type="checkbox"
-                        checked={allShippableSelected}
-                        onChange={() => {
-                          if (allShippableSelected) {
-                            setSelectedShip({});
-                            return;
-                          }
-                          const next: Record<string, boolean> = {};
-                          for (const o of shippableInSheet) {
-                            next[o.order_number] = true;
-                          }
-                          setSelectedShip(next);
-                        }}
-                        aria-label="تحديد الكل"
-                        className="h-4 w-4 accent-[#c45c26]"
-                      />
-                    </th>
-                  ) : null}
-                  <th className="p-2.5 font-semibold border-l border-[#b7c9b0]">
-                    تاريخ
-                  </th>
-                  <th className="p-2.5 font-semibold border-l border-[#b7c9b0]">
-                    أيام
-                  </th>
-                  <th className="p-2.5 font-semibold border-l border-[#b7c9b0]">
-                    N°
-                  </th>
-                  <th className="p-2.5 font-semibold border-l border-[#b7c9b0]">
-                    Client
-                  </th>
-                  <th className="p-2.5 font-semibold border-l border-[#b7c9b0]">
-                    Tél
-                  </th>
-                  <th className="p-2.5 font-semibold border-l border-[#b7c9b0]">
-                    Ville
-                  </th>
-                  <th className="p-2.5 font-semibold border-l border-[#b7c9b0] min-w-[120px]">
-                    Produits
-                  </th>
-                  <th className="p-2.5 font-semibold border-l border-[#b7c9b0]">
-                    COD
-                  </th>
-                  <th className="p-2.5 font-semibold border-l border-[#b7c9b0]">
-                    Statut
-                  </th>
-                  <th className="p-2.5 font-semibold border-l border-[#b7c9b0]">
-                    État Ozon
-                  </th>
-                  <th className="p-2.5 font-semibold">تفاصيل</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sheetRows.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={mode === 'ship' ? 12 : 11}
-                      className="p-12 text-center text-[#6a5648]"
-                    >
-                      Aucune commande dans ce filtre.
-                    </td>
-                  </tr>
-                ) : (
-                  sheetRows.map((o) => {
-                    const ozoneOk = canSendToOzon(o);
+          {mode === 'orders' ? (
+            <div className="rounded-xl border border-[#e6d9cc] bg-white overflow-hidden">
+              {pagedRows.length === 0 ? (
+                <p className="p-12 text-center text-[#6a5648]">
+                  ما كاين حتى طلب فهاد الفلتر.
+                </p>
+              ) : (
+                <ul className="divide-y divide-[#eee4d8]">
+                  {pagedRows.map((o) => {
+                    const st = confirmStatusStyle(o.status);
+                    const canCallQueue = isCallTodayQueue(o);
                     return (
-                      <tr
+                      <li
                         key={o.order_number}
-                        className={`border-t border-[#dde8d8] ${rowStageClass(o)} hover:brightness-[0.98]`}
+                        className={`px-3 py-3.5 sm:px-4 ${rowStageClass(o)}`}
                       >
-                        {mode === 'ship' ? (
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                          <button
+                            type="button"
+                            onClick={() => openDetail(o.order_number)}
+                            className="min-w-0 flex-1 text-right"
+                          >
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span
+                                className={`rounded-md border px-2 py-0.5 text-[11px] font-bold ${st.soft}`}
+                              >
+                                {o.status_label}
+                              </span>
+                              <span className="text-[11px] font-bold text-[#6a5648] tabular-nums">
+                                {daysLabel(o)}
+                              </span>
+                              <span className="text-[11px] text-[#8a7464] tabular-nums">
+                                {formatAdminDate(o.created_at)}
+                              </span>
+                            </div>
+                            <p className="mt-1.5 text-base font-bold text-[#2a1810] truncate">
+                              {o.customer_name}
+                            </p>
+                            <p className="mt-0.5 text-sm text-[#5c4a3c] truncate">
+                              {o.city}
+                              <span className="text-[#c4a484]"> · </span>
+                              {formatStoreProductLine(o.products)}
+                            </p>
+                            <p className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-xs text-[#6a5648]">
+                              <span className="font-mono">{o.order_number}</span>
+                              <span className="font-bold tabular-nums text-[#2a1810] text-sm">
+                                {o.total_amount} DH
+                              </span>
+                            </p>
+                          </button>
+
+                          <div className="flex flex-wrap items-center gap-2 shrink-0">
+                            <a
+                              href={telHref(o.phone)}
+                              className="inline-flex items-center gap-1.5 rounded-lg bg-[#2a1810] px-3.5 py-2.5 text-sm font-bold text-white"
+                              dir="ltr"
+                            >
+                              <Phone className="w-4 h-4" />
+                              {o.phone}
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openCustomerWhatsApp(
+                                  o.phone,
+                                  buildCallCenterConfirmMessage(o),
+                                )
+                              }
+                              className="inline-flex items-center gap-1.5 rounded-lg bg-[#25D366] px-3 py-2.5 text-sm font-bold text-white"
+                              aria-label="واتساب"
+                            >
+                              <MessageCircle className="w-4 h-4" />
+                              واتساب
+                            </button>
+                            {canCallQueue ? (
+                              <button
+                                type="button"
+                                disabled={busy}
+                                onClick={() => markNoAnswer(o)}
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-[#e6d9cc] bg-white px-3 py-2.5 text-sm font-bold text-[#5c4a3c] disabled:opacity-50"
+                              >
+                                <PhoneMissed className="w-4 h-4" />
+                                ما جاوبش
+                              </button>
+                            ) : null}
+                            <button
+                              type="button"
+                              onClick={() => openDetail(o.order_number)}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-[#e6d9cc] bg-[#faf6f1] px-3 py-2.5 text-sm font-bold text-[#2a1810]"
+                            >
+                              <Eye className="w-4 h-4" />
+                              فتح
+                            </button>
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-[#b7c9b0] bg-white shadow-sm">
+              <table className="w-full text-sm text-right border-collapse min-w-[1100px]">
+                <thead>
+                  <tr className="bg-[#dfe9d8] text-[#243d22] border-b border-[#b7c9b0]">
+                    <th className="p-2.5 font-semibold border-l border-[#b7c9b0] w-10 text-center">
+                      <span className="sr-only">اختيار</span>
+                    </th>
+                    <th className="p-2.5 font-semibold border-l border-[#b7c9b0] whitespace-nowrap">
+                      التاريخ
+                    </th>
+                    <th className="p-2.5 font-semibold border-l border-[#b7c9b0] whitespace-nowrap">
+                      أيام
+                    </th>
+                    <th className="p-2.5 font-semibold border-l border-[#b7c9b0] whitespace-nowrap">
+                      رقم
+                    </th>
+                    <th className="p-2.5 font-semibold border-l border-[#b7c9b0]">
+                      الزبون
+                    </th>
+                    <th className="p-2.5 font-semibold border-l border-[#b7c9b0] whitespace-nowrap">
+                      هاتف
+                    </th>
+                    <th className="p-2.5 font-semibold border-l border-[#b7c9b0]">
+                      مدينة
+                    </th>
+                    <th className="p-2.5 font-semibold border-l border-[#b7c9b0] min-w-[100px]">
+                      منتج
+                    </th>
+                    <th className="p-2.5 font-semibold border-l border-[#b7c9b0] whitespace-nowrap">
+                      مبلغ
+                    </th>
+                    <th className="p-2.5 font-semibold border-l border-[#b7c9b0]">
+                      حالة
+                    </th>
+                    <th className="p-2.5 font-semibold border-l border-[#b7c9b0]">
+                      Ozon
+                    </th>
+                    <th className="p-2.5 font-semibold"> </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pagedRows.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={12}
+                        className="p-12 text-center text-[#6a5648]"
+                      >
+                        ما كاين حتى طلب فهاد الفلتر.
+                      </td>
+                    </tr>
+                  ) : (
+                    pagedRows.map((o) => {
+                      const ozoneOk = canSendToOzon(o);
+                      return (
+                        <tr
+                          key={o.order_number}
+                          className={`border-t border-[#dde8d8] ${rowStageClass(o)} hover:brightness-[0.98]`}
+                        >
                           <td className="p-2.5 border-l border-[#dde8d8] text-center">
                             <input
-                              type="checkbox"
+                              type="radio"
+                              name="ozon-ship-one"
                               disabled={!ozoneOk}
-                              checked={Boolean(selectedShip[o.order_number])}
-                              onChange={(e) => {
-                                const on = e.target.checked;
-                                setSelectedShip((prev) => {
-                                  const next = { ...prev };
-                                  if (on) next[o.order_number] = true;
-                                  else delete next[o.order_number];
-                                  return next;
-                                });
+                              checked={selectedShipId === o.order_number}
+                              onChange={() => {
+                                setSelectedShip({ [o.order_number]: true });
                               }}
-                              aria-label={`تحديد ${o.order_number}`}
+                              aria-label={`اختيار ${o.order_number} للإرسال`}
                               className="h-4 w-4 accent-[#c45c26] disabled:opacity-30"
                               title={
                                 ozoneOk
-                                  ? 'تحديد للإرسال إلى Ozon'
+                                  ? 'اختيار هاد الطلب فقط للإرسال إلى Ozon'
                                   : 'خاص يكون مؤكد + عنوان كامل (≥8) بدون تتبع'
                               }
                             />
                           </td>
-                        ) : null}
-                        <td className="p-2.5 text-xs text-[#6a5648] whitespace-nowrap border-l border-[#dde8d8]">
-                          {(() => {
-                            const p = orderDateParts(o.created_at);
-                            if (!p.year) return formatAdminDate(o.created_at);
-                            return (
-                              <>
-                                <div className="font-bold text-[#2a1810] tabular-nums">
-                                  {p.year}
-                                </div>
-                                <div className="tabular-nums">
-                                  {String(p.day).padStart(2, '0')}/
-                                  {String(p.month).padStart(2, '0')} · {p.time}
-                                </div>
-                              </>
-                            );
-                          })()}
-                          <div className="text-[11px]">
-                            {timeAgo(o.created_at)}
-                          </div>
-                        </td>
-                        <td className="p-2.5 text-xs font-bold tabular-nums border-l border-[#dde8d8] whitespace-nowrap">
-                          {daysLabel(o)}
-                        </td>
-                        <td className="p-2.5 font-mono text-xs border-l border-[#dde8d8]">
-                          {o.order_number}
-                        </td>
-                        <td className="p-2.5 font-medium border-l border-[#dde8d8]">
-                          {o.customer_name}
-                        </td>
-                        <td className="p-2.5 dir-ltr text-left border-l border-[#dde8d8] whitespace-nowrap">
-                          {o.phone}
-                        </td>
-                        <td className="p-2.5 border-l border-[#dde8d8] dir-ltr text-left text-xs">
-                          {o.city}
-                        </td>
-                        <td
-                          className="p-2.5 text-xs max-w-[200px] border-l border-[#dde8d8]"
-                          title={o.products}
-                        >
-                          {formatStoreProductLine(o.products)}
-                        </td>
-                        <td className="p-2.5 font-bold tabular-nums border-l border-[#dde8d8]">
-                          {o.total_amount}
-                        </td>
-                        <td className="p-2.5 text-xs font-bold border-l border-[#dde8d8]">
-                          {o.status_label}
-                        </td>
-                        <td className="p-2.5 text-xs border-l border-[#dde8d8]">
-                          {o.courier_status ? (
-                            <div>
-                              <p
-                                className={`font-bold ${
-                                  isOzonNoResponseStatus(o.courier_status)
-                                    ? 'text-amber-800'
-                                    : 'text-[#c45c26]'
-                                }`}
-                              >
-                                {o.courier_status}
-                              </p>
-                              {o.tracking_number ? (
-                                <p className="font-mono text-[11px] text-[#6a5648] mt-0.5">
-                                  {o.tracking_number}
-                                </p>
-                              ) : null}
-                              {isOzonNoResponseStatus(o.courier_status) ? (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    openCustomerWhatsApp(
-                                      o.phone,
-                                      buildNoResponseWhatsAppMessage(o),
-                                    )
-                                  }
-                                  className="mt-1 text-[11px] font-bold text-[#25D366] underline"
-                                >
-                                  تذكير واتساب
-                                </button>
-                              ) : null}
-                            </div>
-                          ) : o.tracking_number ? (
-                            <p className="font-mono text-[11px]">
-                              {o.tracking_number}
-                            </p>
-                          ) : o.follow_up_at ? (
-                            formatAdminDate(o.follow_up_at)
-                          ) : (
-                            '—'
-                          )}
-                        </td>
-                        <td className="p-2">
-                          <button
-                            type="button"
-                            onClick={() => openDetail(o.order_number)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2a1810] text-white text-xs font-bold"
+                          <td className="p-2.5 text-xs text-[#2a1810] whitespace-nowrap border-l border-[#dde8d8] tabular-nums font-medium">
+                            {formatAdminDate(o.created_at)}
+                          </td>
+                          <td className="p-2.5 text-xs font-bold tabular-nums border-l border-[#dde8d8] whitespace-nowrap text-[#6a5648]">
+                            {daysLabel(o)}
+                          </td>
+                          <td className="p-2.5 font-mono text-xs border-l border-[#dde8d8] whitespace-nowrap">
+                            {o.order_number}
+                          </td>
+                          <td
+                            className="p-2.5 font-medium border-l border-[#dde8d8] max-w-[140px] truncate"
+                            title={o.customer_name}
                           >
-                            <Eye className="w-3.5 h-3.5" />
-                            تفاصيل
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                            {o.customer_name}
+                          </td>
+                          <td className="p-2.5 dir-ltr text-left border-l border-[#dde8d8] whitespace-nowrap font-semibold tracking-wide">
+                            {o.phone}
+                          </td>
+                          <td
+                            className="p-2.5 border-l border-[#dde8d8] text-xs max-w-[100px] truncate"
+                            title={o.city}
+                          >
+                            {o.city}
+                          </td>
+                          <td
+                            className="p-2.5 text-xs max-w-[160px] truncate border-l border-[#dde8d8]"
+                            title={o.products}
+                          >
+                            {formatStoreProductLine(o.products)}
+                          </td>
+                          <td className="p-2.5 font-bold tabular-nums border-l border-[#dde8d8] whitespace-nowrap">
+                            {o.total_amount}
+                          </td>
+                          <td className="p-2.5 text-xs font-bold border-l border-[#dde8d8] whitespace-nowrap">
+                            {o.status_label}
+                          </td>
+                          <td className="p-2.5 text-xs border-l border-[#dde8d8]">
+                            {o.courier_status ? (
+                              <div>
+                                <p
+                                  className={`font-bold ${
+                                    isOzonNoResponseStatus(o.courier_status)
+                                      ? 'text-amber-800'
+                                      : 'text-[#c45c26]'
+                                  }`}
+                                >
+                                  {o.courier_status}
+                                </p>
+                                {o.tracking_number ? (
+                                  <p className="font-mono text-[11px] text-[#6a5648] mt-0.5">
+                                    {o.tracking_number}
+                                  </p>
+                                ) : null}
+                                {isOzonNoResponseStatus(o.courier_status) ? (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      openCustomerWhatsApp(
+                                        o.phone,
+                                        buildNoResponseWhatsAppMessage(o),
+                                      )
+                                    }
+                                    className="mt-1 text-[11px] font-bold text-[#25D366] underline"
+                                  >
+                                    تذكير واتساب
+                                  </button>
+                                ) : null}
+                              </div>
+                            ) : o.tracking_number ? (
+                              <p className="font-mono text-[11px]">
+                                {o.tracking_number}
+                              </p>
+                            ) : o.follow_up_at ? (
+                              formatAdminDate(o.follow_up_at)
+                            ) : (
+                              '—'
+                            )}
+                          </td>
+                          <td className="p-2">
+                            <button
+                              type="button"
+                              onClick={() => openDetail(o.order_number)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2a1810] text-white text-xs font-bold"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              فتح
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between text-xs text-[#6a5648]">
+            <label className="inline-flex items-center gap-2">
+              <span>عرض</span>
+              <select
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+                className="rounded-lg border border-[#e6d9cc] bg-white px-2 py-1.5 text-sm font-semibold text-[#2a1810]"
+              >
+                {[10, 25, 50, 100].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+              <span>في الصفحة</span>
+            </label>
+            <p className="tabular-nums">
+              {rangeFrom}–{rangeTo} من {sheetRows.length}
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={safePage <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className="rounded-lg border border-[#e6d9cc] bg-white px-3 py-1.5 font-bold text-[#2a1810] disabled:opacity-35"
+              >
+                السابق
+              </button>
+              <span className="tabular-nums font-semibold text-[#2a1810]">
+                {safePage} / {totalPages}
+              </span>
+              <button
+                type="button"
+                disabled={safePage >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                className="rounded-lg border border-[#e6d9cc] bg-white px-3 py-1.5 font-bold text-[#2a1810] disabled:opacity-35"
+              >
+                التالي
+              </button>
+            </div>
           </div>
-          <p className="text-xs text-[#6a5648] tabular-nums">
-            {sheetRows.length} lignes
-          </p>
         </div>
       )}
 
@@ -2042,24 +2119,6 @@ export default function OpsDesk({
                 <p className="text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl px-3 py-2 font-bold">
                   {error}
                 </p>
-              ) : null}
-
-              {risk?.risky ? (
-                <div className="flex gap-2 text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
-                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <div>
-                    <p>
-                      Attention: annulations / retours / doublons sur ce numéro
-                      ({risk.cancelled} annul. · {risk.returned} ret.).
-                    </p>
-                    {risk.openDupes.length > 0 ? (
-                      <p className="mt-1 font-bold">
-                        Ouverts:{' '}
-                        {risk.openDupes.map((o) => o.order_number).join(', ')}
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
               ) : null}
 
               {active.sheet_sync_error ? (

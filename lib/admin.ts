@@ -92,13 +92,38 @@ export type StoreInsights = {
       sales: number;
       orders: number;
       delivered: number;
+      frozen?: number;
     }
   >;
+  calendar?: {
+    year: number;
+    month: number;
+    days: Record<
+      string,
+      { orders: number; delivered: number; earnings: number; sales: number }
+    >;
+  };
   store: {
     orders: number;
     sales: number;
     earnings: number;
     delivered: number;
+    frozen?: number;
+    frozen_count?: number;
+    returned_value?: number;
+    cancelled_value?: number;
+    confirm_rate?: number;
+    delivery_rate?: number;
+    return_rate?: number;
+    funnel?: {
+      entered: number;
+      pending: number;
+      confirmed: number;
+      shipped: number;
+      delivered: number;
+      returned: number;
+      cancelled: number;
+    };
     max_order_value: number;
     avg_order_value: number;
     min_order_value: number;
@@ -121,8 +146,10 @@ export type StoreInsights = {
 export async function fetchAdminInsights(
   token: string,
   period: InsightPeriod | string = 'today',
+  calendarMonth?: string,
 ) {
   const qs = new URLSearchParams({ period: String(period) });
+  if (calendarMonth) qs.set('calendar', calendarMonth);
   const res = await fetch(`/api/admin/insights?${qs}`, {
     headers: { 'X-Admin-Token': token },
     cache: 'no-store',
@@ -181,14 +208,14 @@ export function orderDateParts(iso: string) {
   };
 }
 
-/** Full chronology: year · day/month · time */
+/** Full chronology: HH:mm DD/MM/YYYY */
 export function formatAdminDate(iso: string) {
   try {
     const p = orderDateParts(iso);
     if (!p.year) return iso;
     const mm = String(p.month).padStart(2, '0');
     const dd = String(p.day).padStart(2, '0');
-    return `${p.year}-${mm}-${dd} · ${p.time}`;
+    return `${p.time} ${dd}/${mm}/${p.year}`;
   } catch {
     return iso;
   }

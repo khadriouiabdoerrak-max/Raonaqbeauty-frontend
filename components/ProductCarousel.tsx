@@ -58,11 +58,15 @@ export default function ProductCarousel() {
             className="relative z-[1] flex w-[min(78vw,280px)] max-w-full shrink-0 snap-start flex-col overflow-hidden bg-white md:w-[240px] lg:w-[280px] xl:w-[300px]"
           >
             <Link href={`/products/${product.slug}`} className="relative block">
-              {product.tag && (
+              {product.available === false ? (
+                <span className="absolute left-3 top-3 z-10 bg-[#C45B6A] px-3 py-1.5 text-[10px] font-medium tracking-wide text-white">
+                  Bientôt
+                </span>
+              ) : product.tag ? (
                 <span className="absolute left-3 top-3 z-10 bg-[#1C1412] px-3 py-1.5 text-[10px] font-medium tracking-wide text-white">
                   {product.tag}
                 </span>
-              )}
+              ) : null}
               <ProductShot
                 src={product.heroImage}
                 alt={product.name}
@@ -82,7 +86,7 @@ export default function ProductCarousel() {
                 href={`/products/${product.slug}`}
                 className="btn btn-primary btn-block min-h-12 px-3 text-sm md:min-h-[52px]"
               >
-                Voir
+                {product.available === false ? "Bientôt" : "Voir"}
               </Link>
             </div>
           </article>

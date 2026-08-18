@@ -12,11 +12,11 @@ import ProductShot from "../../../components/ProductShot";
 import PdpGalleryBanner from "../../../components/PdpGalleryBanner";
 import PdpTrustStrip from "../../../components/PdpTrustStrip";
 import ReviewMarquee from "../../../components/ReviewMarquee";
-import { products, productThumb, type Product, type ProductReview } from "../../../lib/products";
+import { getProductBySlug, productThumb, productIsAvailable, type Product, type ProductReview } from "../../../lib/products";
 
 const PdpUgcReels = dynamic(() => import("../../../components/PdpUgcReels"), {
   ssr: false,
-  loading: () => <div className="min-h-[12rem] border-b border-[#1C1412]/8 bg-white" aria-hidden />,
+  loading: () => <div className="min-h-[12rem] border-b border-[#1C1412]/8 bg-[#F7F1EC]" aria-hidden />,
 });
 
 /** Preuve COD — langage froid TikTok / Snap (Maroc) */
@@ -123,6 +123,7 @@ function BuyPanel({
   const [fold, setFold] = useState<string | null>("ship");
   const [qty, setQty] = useState(1);
   const toggle = (id: string) => setFold((cur) => (cur === id ? null : id));
+  const canOrder = productIsAvailable(product);
 
   return (
     <div>
@@ -145,50 +146,68 @@ function BuyPanel({
       <div className="mt-5">
         <Price amount={product.price1} was={product.priceWas} size="lg" />
       </div>
-      <p className="mt-1.5 text-[12px] font-medium text-[#C45B6A]">
-        Paiement à la porte · ouvrez, inspectez, puis payez
-      </p>
+      {!canOrder ? (
+        <p className="mt-1.5 text-[12px] font-medium text-[#C45B6A]">Bientôt disponible · stock en cours</p>
+      ) : (
+        <p className="mt-1.5 text-[12px] font-medium text-[#C45B6A]">
+          Paiement à la porte · ouvrez, inspectez, puis payez
+        </p>
+      )}
 
       {/* CTA d’abord — cold traffic */}
       <div className="mt-5 flex flex-col gap-2">
-        <div className="flex items-stretch gap-2">
-          <div className="flex h-14 shrink-0 items-center overflow-hidden border border-[#1C1412]/12">
+        {canOrder ? (
+          <>
+            <div className="flex items-stretch gap-2">
+              <div className="flex h-14 shrink-0 items-center overflow-hidden border border-[#1C1412]/12">
+                <button
+                  type="button"
+                  className="h-14 w-11 text-lg text-[#1C1412]/60"
+                  onClick={() => setQty((n) => Math.max(1, n - 1))}
+                  aria-label="Moins"
+                >
+                  −
+                </button>
+                <span className="w-8 text-center text-sm font-semibold">{qty}</span>
+                <button
+                  type="button"
+                  className="h-14 w-11 text-lg text-[#1C1412]/60"
+                  onClick={() => setQty((n) => Math.min(6, n + 1))}
+                  aria-label="Plus"
+                >
+                  +
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => onAdd(product.price1, qty)}
+                className="btn btn-primary min-h-14 flex-1 rounded-none px-3 text-[13px] font-semibold tracking-wide"
+              >
+                Commander
+              </button>
+            </div>
             <button
               type="button"
-              className="h-14 w-11 text-lg text-[#1C1412]/60"
-              onClick={() => setQty((n) => Math.max(1, n - 1))}
-              aria-label="Moins"
+              onClick={() => onAdd(product.price2, 2)}
+              className="btn btn-secondary btn-block min-h-12 rounded-none text-[13px]"
             >
-              −
+              Deux pièces — {product.price2} Dhs
             </button>
-            <span className="w-8 text-center text-sm font-semibold">{qty}</span>
-            <button
-              type="button"
-              className="h-14 w-11 text-lg text-[#1C1412]/60"
-              onClick={() => setQty((n) => Math.min(6, n + 1))}
-              aria-label="Plus"
-            >
-              +
-            </button>
-          </div>
+          </>
+        ) : (
           <button
             type="button"
-            onClick={() => onAdd(product.price1, qty)}
-            className="btn btn-primary min-h-14 flex-1 rounded-none px-3 text-[13px] font-semibold tracking-wide"
+            disabled
+            className="btn min-h-14 w-full cursor-not-allowed rounded-none border border-[#1C1412]/15 bg-[#1C1412]/08 px-3 text-[13px] font-semibold tracking-wide text-[#1C1412]/45"
           >
-            Commander
+            Bientôt disponible
           </button>
-        </div>
-        <button
-          type="button"
-          onClick={() => onAdd(product.price2, 2)}
-          className="btn btn-secondary btn-block min-h-12 rounded-none text-[13px]"
-        >
-          Deux pièces — {product.price2} Dhs
-        </button>
+        )}
       </div>
       <p className="mt-2 text-center text-[11px] text-[#1C1412]/45">
-        Confirmation par téléphone · livraison gratuite 24–48 h
+        {canOrder
+          ? "Confirmation par téléphone · livraison gratuite 24–48 h"
+          : "Revenez bientôt — cet outil arrive chez Raonaq"}
       </p>
 
       {/* Objections COD */}
@@ -268,7 +287,6 @@ export default function ProductClient({ product }: { product: Product }) {
   const { addToCart, isCartOpen, isCheckoutOpen } = useCart();
   const [selectedImage, setSelectedImage] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const others = products.filter((p) => p.id !== product.id).slice(0, 4);
 
   const faqs = [
     ...COLD_FAQS,
@@ -304,6 +322,7 @@ export default function ProductClient({ product }: { product: Product }) {
   }, [product.id]);
 
   const add = (price: number, qty: number) => {
+    if (!productIsAvailable(product)) return;
     addToCart({
       id: product.id,
       name: `Raonaq ${product.name}`,
@@ -314,7 +333,14 @@ export default function ProductClient({ product }: { product: Product }) {
   };
 
   const galleryShot = product.gallery[selectedImage] ?? product.gallery[0];
-  const showSticky = !isCartOpen && !isCheckoutOpen;
+  const showSticky = !isCartOpen && !isCheckoutOpen && productIsAvailable(product);
+  /** Cross-sell en stock : GO ↔ DUO */
+  const suggestOther =
+    product.slug === "raonaq-go"
+      ? getProductBySlug("raonaq-duo")
+      : product.slug === "raonaq-duo"
+        ? getProductBySlug("raonaq-go")
+        : undefined;
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-white pb-28 md:pb-0">
@@ -372,8 +398,8 @@ export default function ProductClient({ product }: { product: Product }) {
       {/* Trust marquee — livraison, COD, retour, support */}
       <PdpTrustStrip />
 
-      {/* UGC Instagram / reels locaux */}
-      <PdpUgcReels />
+      {/* UGC — uniquement sur les outils en stock (GO, DUO) */}
+      {productIsAvailable(product) ? <PdpUgcReels /> : null}
 
       {/* 3. Résultat / émotion */}
       <section className="bg-[#F7F1EC] py-12 md:py-16">
@@ -499,16 +525,31 @@ export default function ProductClient({ product }: { product: Product }) {
             Numéro inconnu ? <span className="text-white/60">Répondez — c’est Raonaq.</span>
           </p>
 
-          <button
-            type="button"
-            onClick={() => add(product.price1, 1)}
-            className="btn btn-primary btn-lg mt-7 min-w-[200px] rounded-none"
-          >
-            Commander
-          </button>
-          <p className="mt-2.5 text-[11px] text-white/35">
-            {product.price1} Dhs · ouvrir · inspecter · payer
-          </p>
+          {productIsAvailable(product) ? (
+            <>
+              <button
+                type="button"
+                onClick={() => add(product.price1, 1)}
+                className="btn btn-primary btn-lg mt-7 min-w-[200px] rounded-none"
+              >
+                Commander
+              </button>
+              <p className="mt-2.5 text-[11px] text-white/35">
+                {product.price1} Dhs · ouvrir · inspecter · payer
+              </p>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                disabled
+                className="btn btn-lg mt-7 min-w-[200px] cursor-not-allowed rounded-none border border-white/20 bg-white/10 text-white/50"
+              >
+                Bientôt disponible
+              </button>
+              <p className="mt-2.5 text-[11px] text-white/35">{product.price1} Dhs · bientôt en stock</p>
+            </>
+          )}
         </div>
       </section>
 
@@ -560,27 +601,32 @@ export default function ProductClient({ product }: { product: Product }) {
         </section>
       ) : null}
 
-      {/* 9. Cross-sell léger */}
-      {others.length > 0 && (
+      {suggestOther && productIsAvailable(suggestOther) ? (
         <section className="border-t border-[#1C1412]/8 bg-[#F7F1EC] py-12 md:py-16">
-          <div className="container mx-auto px-4">
-            <p className="text-[11px] font-medium tracking-[0.28em] text-[#C45B6A]">COLLECTION</p>
+          <div className="container mx-auto max-w-lg px-4">
+            <p className="text-[11px] font-medium tracking-[0.28em] text-[#C45B6A]">AUSSI CHEZ RAONAQ</p>
             <h2 className="font-display mt-2 text-2xl font-semibold text-[#1C1412] md:text-3xl">
-              Autres outils Raonaq
+              {suggestOther.slug === "raonaq-go" ? "Pour une retouche nomade" : "Pour toute la tête"}
             </h2>
-            <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
-              {others.map((p) => (
-                <Link key={p.id} href={`/products/${p.slug}`} className="group block">
-                  <ProductShot src={p.heroImage} alt={p.name} variant="card" />
-                  <p className="mt-2 text-[11px] tracking-[0.18em] text-[#C4A484]">{p.nameFr}</p>
-                  <p className="font-display text-lg font-semibold text-[#1C1412]">{p.name}</p>
-                  <p className="text-xs font-medium text-[#C45B6A]">{p.price1} Dhs</p>
-                </Link>
-              ))}
-            </div>
+            <Link href={`/products/${suggestOther.slug}`} className="group mt-8 block">
+              <ProductShot src={suggestOther.heroImage} alt={suggestOther.name} variant="card" />
+              <p className="mt-3 text-[12px] font-medium text-[#1C1412]/55">{suggestOther.nameFr}</p>
+              <p className="font-display text-2xl font-semibold tracking-wide text-[#1C1412]">
+                {suggestOther.name}
+              </p>
+              <p className="mt-1 text-[15px] font-semibold leading-snug text-[#1C1412]">
+                {suggestOther.compareLine}
+              </p>
+              <div className="mt-3">
+                <Price amount={suggestOther.price1} was={suggestOther.priceWas} />
+              </div>
+              <span className="btn btn-primary btn-block mt-5 min-h-12 rounded-none text-sm font-semibold">
+                Voir {suggestOther.name}
+              </span>
+            </Link>
           </div>
         </section>
-      )}
+      ) : null}
 
       {/* Sticky mobile — Commander */}
       {showSticky && (

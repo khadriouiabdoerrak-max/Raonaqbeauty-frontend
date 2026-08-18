@@ -5,26 +5,33 @@ import { PDP_UGC_REELS, type UgcReel } from "../lib/ugcReels";
 
 function LocalVideo({
   reel,
-  active,
-  sectionLive,
+  isPlayingSlot,
+  onPlayRequest,
+  onStopped,
 }: {
   reel: UgcReel;
-  active: boolean;
-  sectionLive: boolean;
+  /** Only this reel should be playing */
+  isPlayingSlot: boolean;
+  onPlayRequest: () => void;
+  onStopped: () => void;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
+  /** First decoded frame visible — keep poster until then (no white flash) */
+  const [hasFrame, setHasFrame] = useState(false);
   const [muted, setMuted] = useState(true);
   const [showPauseHint, setShowPauseHint] = useState(false);
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Another reel took the slot → pause this one
   useEffect(() => {
-    if (active && sectionLive) return;
+    if (isPlayingSlot) return;
     const el = ref.current;
     if (el && !el.paused) el.pause();
     setPlaying(false);
+    setHasFrame(false);
     setShowPauseHint(false);
-  }, [active, sectionLive]);
+  }, [isPlayingSlot]);
 
   useEffect(() => {
     return () => {
@@ -40,10 +47,12 @@ function LocalVideo({
       v.pause();
       setPlaying(false);
       setShowPauseHint(false);
+      onStopped();
       return;
     }
 
-    // Must call play() in the same user-gesture turn (no await before it).
+    onPlayRequest();
+
     if (!v.getAttribute("src")) {
       v.src = reel.videoSrc;
     }
@@ -52,13 +61,14 @@ function LocalVideo({
     if (playPromise !== undefined) {
       void playPromise
         .then(() => {
-          setPlaying(true);
           setShowPauseHint(true);
           if (hintTimer.current) clearTimeout(hintTimer.current);
           hintTimer.current = setTimeout(() => setShowPauseHint(false), 1400);
         })
         .catch(() => {
           setPlaying(false);
+          setHasFrame(false);
+          onStopped();
         });
     }
   };
@@ -72,33 +82,38 @@ function LocalVideo({
   };
 
   return (
-    <div className="relative h-full w-full bg-[#F7F1EC]">
-      {!playing ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={reel.posterSrc}
-          alt=""
-          className="absolute inset-0 z-[1] h-full w-full object-cover"
-          draggable={false}
-          loading="lazy"
-          decoding="async"
-        />
-      ) : null}
-
+    <div className="relative h-full w-full bg-[#1C1412]">
       <video
         ref={ref}
-        className={`relative z-0 h-full w-full object-cover ${playing ? "opacity-100" : "opacity-0"}`}
+        className="absolute inset-0 z-0 h-full w-full object-cover"
+        poster={reel.posterSrc}
         playsInline
         muted={muted}
         loop
         preload="none"
         controls={false}
-        onPlay={() => setPlaying(true)}
+        onPlaying={() => {
+          setPlaying(true);
+          setHasFrame(true);
+        }}
         onPause={() => {
           setPlaying(false);
           setShowPauseHint(false);
         }}
       />
+
+      {/* Cover until a real frame paints — avoids beige/white flash */}
+      {!hasFrame ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={reel.posterSrc}
+          alt=""
+          className="pointer-events-none absolute inset-0 z-[1] h-full w-full object-cover"
+          draggable={false}
+          loading="lazy"
+          decoding="async"
+        />
+      ) : null}
 
       {!playing ? (
         <button
@@ -173,14 +188,16 @@ function ReelSlide({
   reel,
   index,
   total,
-  near,
-  sectionLive,
+  isPlayingSlot,
+  onPlayRequest,
+  onStopped,
 }: {
   reel: UgcReel;
   index: number;
   total: number;
-  near: boolean;
-  sectionLive: boolean;
+  isPlayingSlot: boolean;
+  onPlayRequest: () => void;
+  onStopped: () => void;
 }) {
   return (
     <div
@@ -189,7 +206,12 @@ function ReelSlide({
     >
       <div className="overflow-hidden border border-[#C4A484]/35 bg-[#F7F1EC]">
         <div className="relative aspect-[9/16] overflow-hidden bg-[#F7F1EC]">
-          <LocalVideo reel={reel} active={near} sectionLive={sectionLive} />
+          <LocalVideo
+            reel={reel}
+            isPlayingSlot={isPlayingSlot}
+            onPlayRequest={onPlayRequest}
+            onStopped={onStopped}
+          />
           <div className="pointer-events-none absolute left-3 top-3 z-[1]">
             <p className="font-display text-[11px] font-semibold tracking-[0.2em] text-white drop-shadow-[0_1px_8px_rgba(28,20,18,0.45)]">
               رونق
@@ -242,23 +264,9 @@ function NavBtn({
 }
 
 export default function PdpUgcReels() {
-  const sectionRef = useRef<HTMLElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
-  const [sectionLive, setSectionLive] = useState(true);
-
-  useEffect(() => {
-    const el = sectionRef.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        setSectionLive(entry.isIntersecting);
-      },
-      { rootMargin: "160px 0px", threshold: 0.01 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+  const [playingId, setPlayingId] = useState<string | null>(null);
 
   const syncActive = useCallback(() => {
     const el = scrollerRef.current;
@@ -308,11 +316,7 @@ export default function PdpUgcReels() {
   const last = PDP_UGC_REELS.length - 1;
 
   return (
-    <section
-      ref={sectionRef}
-      className="border-b border-[#1C1412]/8 bg-[#F7F1EC]"
-      aria-label="Vidéos Raonaq"
-    >
+    <section className="border-b border-[#1C1412]/8 bg-[#F7F1EC]" aria-label="Vidéos Raonaq">
       <div className="pt-12 pb-10 md:pt-14 md:pb-12">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -324,7 +328,7 @@ export default function PdpUgcReels() {
                 Résultat salon, filmé
               </h2>
               <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-[#1C1412]/50">
-                Lecture manuelle — pause et son à ta guise.
+                Touche une vidéo — une seule à la fois.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -344,8 +348,9 @@ export default function PdpUgcReels() {
               reel={reel}
               index={i}
               total={PDP_UGC_REELS.length}
-              near={Math.abs(i - active) <= 1}
-              sectionLive={sectionLive}
+              isPlayingSlot={playingId === reel.id}
+              onPlayRequest={() => setPlayingId(reel.id)}
+              onStopped={() => setPlayingId((id) => (id === reel.id ? null : id))}
             />
           ))}
         </div>

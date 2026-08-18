@@ -160,6 +160,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
     accepted_upsell: Boolean(input.acceptedUpsell),
     event_id: eventId,
     items: input.cart.map((item) => ({
+      product_id: item.id,
       product_name: item.name,
       quantity: item.quantity,
       price: item.price,

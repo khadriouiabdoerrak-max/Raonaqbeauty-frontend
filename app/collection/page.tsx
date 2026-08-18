@@ -64,15 +64,19 @@ export default function CollectionPage() {
             </h2>
           </div>
 
-          <div className="grid min-w-0 gap-8 sm:grid-cols-2 lg:grid-cols-3 lg:gap-10">
+          <div className="grid min-w-0 gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
             {list.map((product) => (
               <article key={product.id} className="group flex h-full min-w-0 flex-col">
                 <Link href={`/products/${product.slug}`} className="relative block min-w-0 overflow-hidden">
-                  {product.tag && (
+                  {product.available === false ? (
+                    <span className="absolute left-3 top-3 z-10 bg-[#C45B6A] px-3 py-1.5 text-[10px] font-medium tracking-wide text-white">
+                      Bientôt
+                    </span>
+                  ) : product.tag ? (
                     <span className="absolute left-3 top-3 z-10 bg-[#1C1412] px-3 py-1.5 text-[10px] font-medium tracking-wide text-white">
                       {product.tag}
                     </span>
-                  )}
+                  ) : null}
                   <ProductShot
                     src={product.heroImage}
                     alt={product.name}
@@ -97,7 +101,7 @@ export default function CollectionPage() {
                       href={`/products/${product.slug}`}
                       className="btn btn-primary btn-block min-h-14 px-5 py-4 text-base font-semibold md:min-h-16 md:text-lg"
                     >
-                      Voir l’outil
+                      {product.available === false ? "Voir · bientôt" : "Voir l’outil"}
                     </Link>
                   </div>
                 </div>

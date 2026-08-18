@@ -62,6 +62,8 @@ export type Product = {
   price2: number;
   /** Ancien prix affiché barré — seulement si réel */
   priceWas?: number;
+  /** false = bientôt (pas de commande) */
+  available?: boolean;
   heroImage: string;
   gallery: ProductShot[];
   /** Déposez le fichier dans /public/videos puis renseignez le chemin, ex. /videos/raonaq-trio.mp4 */
@@ -112,6 +114,11 @@ export const productThumb = (p: Product): string => p.gallery[0]?.src ?? p.heroI
 export function productSavePercent(p: Product): number | null {
   if (p.priceWas == null || p.priceWas <= p.price1) return null;
   return Math.round((1 - p.price1 / p.priceWas) * 100);
+}
+
+/** Commande ouverte — défaut true si le champ est absent */
+export function productIsAvailable(p: Product): boolean {
+  return p.available !== false;
 }
 
 /** Bandeau galerie PDP — accroche + offre seule (le nom reste dans le panneau achat) */
@@ -281,8 +288,9 @@ export const products: Product[] = [
         text: "Trois filles à la maison : chacune se coiffe en 15 minutes. Même mon mari a remarqué le volume.",
       },
     ],
-    price1: 199,
-    price2: 279,
+    price1: 550,
+    price2: 999,
+    available: false,
     heroImage: "/images/raonaq-trio-woman.webp",
   },
   {
@@ -402,8 +410,9 @@ export const products: Product[] = [
         text: "Cheveux longs et épais : vraie différence de temps. L’air est puissant sans être lourd à tenir.",
       },
     ],
-    price1: 199,
-    price2: 279,
+    price1: 250,
+    price2: 399,
+    available: false,
     heroImage: "/images/raonaq-air-soft-woman.webp",
     gallery: [
       { src: "/images/raonaq-air-soft-woman.webp", label: "Le résultat" },
@@ -524,8 +533,9 @@ export const products: Product[] = [
         text: "Certains matins, les cheveux tiennent encore. JOUR suffit pour retoucher quelques sections.",
       },
     ],
-    price1: 199,
-    price2: 279,
+    price1: 250,
+    price2: 399,
+    available: false,
     heroImage: "/images/raonaq-air-pink-woman.webp",
     gallery: [
       { src: "/images/raonaq-air-pink-woman.webp", label: "Le résultat" },
@@ -651,8 +661,9 @@ export const products: Product[] = [
         text: "Rapide : sèche et coiffe en même temps. Mes cheveux n’ont jamais eu cet air « fait ».",
       },
     ],
-    price1: 199,
-    price2: 279,
+    price1: 450,
+    price2: 799,
+    available: false,
     heroImage: "/images/raonaq-volume-woman.webp",
     gallery: [
       { src: "/images/raonaq-volume-woman.webp", label: "Le résultat" },
@@ -773,8 +784,9 @@ export const products: Product[] = [
         text: "Petit, facile à tenir — ma frange est réglée en quelques minutes.",
       },
     ],
-    price1: 199,
-    price2: 279,
+    price1: 249,
+    price2: 399,
+    priceWas: 450,
     heroImage: "/images/raonaq-go-woman.webp",
     gallery: [
       { src: "/images/raonaq-go-woman.webp", label: "Le résultat" },

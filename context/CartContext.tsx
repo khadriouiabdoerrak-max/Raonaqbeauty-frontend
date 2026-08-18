@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { usePathname } from "next/navigation";
+import { products, productIsAvailable } from "../lib/products";
 import { trackAddToCart } from "../lib/pixels";
 
 export type CartItem = {
@@ -116,6 +117,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [isCartOpen, isCheckoutOpen]);
 
   const addToCart = useCallback((item: CartItem) => {
+    const catalog = products.find((p) => p.id === item.id);
+    if (catalog && !productIsAvailable(catalog)) return;
+
     setCart((prev) => {
       const existing = prev.find((i) => i.id === item.id);
       if (existing) {

@@ -5,7 +5,7 @@ import { useCart } from "../../context/CartContext";
 import { trackPurchase, type LastPurchase, type PixelContent } from "../../lib/pixels";
 import { getWhatsAppLink } from "../../lib/contact";
 import { clearPendingOrder, consumePurchaseForTracking, readLastOrder } from "../../lib/orders";
-import { products, productThumb } from "../../lib/products";
+import { products, productThumb, type Product } from "../../lib/products";
 import { SITE, getSocialLinks } from "../../lib/site";
 import { getCallWindow, type CallWindow } from "../../lib/callWindow";
 

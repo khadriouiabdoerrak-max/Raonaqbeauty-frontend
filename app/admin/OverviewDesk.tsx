@@ -1,10 +1,11 @@
 'use client';
 
 /**
- * حساب رونق — لوحة COD للأحجام الكبيرة
- * عمل الآن = شنو خاصو خدمة
- * الحساب = الفلوس
- * التحليل = القمع والنسب
+ * مكتب حساب رونق — على منطق منصات COD (eGrow / CODRocket):
+ * 1) KPIs فوق (تأكيد · رجوع · محصّل · مسلّم)
+ * 2) عمل الآن = طوابير قابلة للفتح
+ * 3) الحساب = فلوس COD
+ * 4) التحليل = قمع + نسب + منتجات/مدن
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -54,22 +55,41 @@ const STATUS_AR: Record<string, string> = {
   INJOIGNABLE: 'ما كيتجاوبش',
 };
 
+/** أهداف COD المعتادة فالمغرب / MENA */
+const TARGET = {
+  confirmMin: 80,
+  confirmWarn: 65,
+  rtoMax: 15,
+  rtoWarn: 25,
+};
+
 function pad(n: number) {
   return String(n).padStart(2, '0');
 }
-
-function mad(n: number | null | undefined) {
-  return `${Number(n || 0).toLocaleString('fr-MA', {
+function mad(v: number | null | undefined) {
+  return `${Number(v || 0).toLocaleString('fr-MA', {
     maximumFractionDigits: 0,
   })} DH`;
 }
-
-function pct(n: number | null | undefined) {
-  return `${Number(n || 0)}%`;
+function pct(v: number | null | undefined) {
+  return `${Number(v || 0)}%`;
+}
+function num(v: number | null | undefined) {
+  return Number(v || 0);
+}
+function fmt(v: number) {
+  return v.toLocaleString('fr-MA');
 }
 
-function n(v: number | null | undefined) {
-  return Number(v || 0);
+function scoreConfirm(rate: number): 'good' | 'warn' | 'bad' {
+  if (rate >= TARGET.confirmMin) return 'good';
+  if (rate >= TARGET.confirmWarn) return 'warn';
+  return 'bad';
+}
+function scoreRto(rate: number): 'good' | 'warn' | 'bad' {
+  if (rate <= TARGET.rtoMax) return 'good';
+  if (rate <= TARGET.rtoWarn) return 'warn';
+  return 'bad';
 }
 
 type Props = {
@@ -87,6 +107,7 @@ export default function OverviewDesk({ token, onGoDesk }: Props) {
   const [data, setData] = useState<StoreInsights | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
 
   const calendarParam = `${calY}-${pad(calM)}`;
   const selectedDay = /^\d{4}-\d{2}-\d{2}$/.test(period) ? period : '';
@@ -102,6 +123,7 @@ export default function OverviewDesk({ token, onGoDesk }: Props) {
       ]);
       setStats(s);
       setData(insights);
+      setUpdatedAt(new Date());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'فشل التحميل');
     } finally {
@@ -112,6 +134,13 @@ export default function OverviewDesk({ token, onGoDesk }: Props) {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  // تحديث تلقائي كل دقيقة — مهم ملي كيطلع الحجم
+  useEffect(() => {
+    if (!token) return;
+    const id = window.setInterval(() => void refresh(), 60_000);
+    return () => window.clearInterval(id);
+  }, [token, refresh]);
 
   const dayCounts = useMemo(() => {
     const days = data?.calendar?.days || {};
@@ -137,35 +166,42 @@ export default function OverviewDesk({ token, onGoDesk }: Props) {
 
   const store = data?.store;
   const funnel = store?.funnel;
-  const entered = Math.max(1, n(funnel?.entered));
+  const cr = num(store?.confirm_rate);
+  const rto = num(store?.return_rate);
+  const dr = num(store?.delivery_rate);
 
-  const confirmQueue = n(stats?.pending);
-  const shipReady = n(stats?.confirmed) + n(stats?.ready_to_ship);
-  const shipped = n(stats?.shipped);
-  const stale = n(stats?.stale_shipped);
-  const reporteDue = n(stats?.reporte_due ?? stats?.reporte);
-  const workTotal = confirmQueue + shipReady + stale + reporteDue;
+  const qConfirm = num(stats?.pending);
+  const qShip = num(stats?.confirmed) + num(stats?.ready_to_ship);
+  const qShipped = num(stats?.shipped);
+  const qStale = num(stats?.stale_shipped);
+  const qReporte = num(stats?.reporte_due ?? stats?.reporte);
+  const workLoad = qConfirm + qShip + qStale + qReporte;
 
-  const views: { id: View; label: string; hint: string }[] = [
-    { id: 'work', label: 'عمل الآن', hint: 'شنو خاصو خدمة' },
-    { id: 'money', label: 'الحساب', hint: 'فلوس COD' },
-    { id: 'analyze', label: 'التحليل', hint: 'قمع · نسب' },
+  const views: { id: View; label: string; sub: string }[] = [
+    { id: 'work', label: 'عمل', sub: 'الطوابير' },
+    { id: 'money', label: 'حساب', sub: 'فلوس COD' },
+    { id: 'analyze', label: 'تحليل', sub: 'قمع · نسب' },
   ];
 
   return (
-    <div className={`space-y-6 ${loading ? 'opacity-75' : ''}`} dir="rtl">
-      {/* رأس ثابت الفهم */}
-      <div className="flex flex-wrap items-end justify-between gap-3">
+    <div className={`space-y-5 ${loading ? 'opacity-80' : ''}`} dir="rtl">
+      {/* رأس */}
+      <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-[11px] font-bold tracking-[0.2em] text-[#C4A484]">
-            RAONAQ · OPERATIONS
+          <p className="text-[11px] font-bold tracking-[0.22em] text-[#C4A484]">
+            RAONAQ · COD DESK
           </p>
-          <h2 className="mt-1 text-2xl font-bold text-[#1C1412]">مكتب الحساب</h2>
+          <h2 className="mt-1 text-2xl font-bold text-[#1C1412]">مكتب القيادة</h2>
           <p className="mt-1 text-sm text-[#6a5648]">
-            {workTotal > 0
-              ? `${workTotal.toLocaleString('fr-MA')} طلب يستاهل خدمة دابا`
-              : 'ما كاينش ضغط فالطابور دابا'}
-            {data?.period_label ? ` · تحليل: ${data.period_label}` : ''}
+            {workLoad > 0
+              ? `${fmt(workLoad)} طلب فالطابور دابا`
+              : 'الطابور هادئ'}
+            {updatedAt
+              ? ` · تحديث ${updatedAt.toLocaleTimeString('fr-MA', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}`
+              : ''}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -178,90 +214,97 @@ export default function OverviewDesk({ token, onGoDesk }: Props) {
             type="button"
             disabled={loading}
             onClick={() => void refresh()}
-            className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-[#e6d9cc] bg-white text-sm font-bold disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-[#e6d9cc] bg-white px-3 py-2.5 text-sm font-bold disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             تحديث
           </button>
         </div>
-      </div>
+      </header>
 
       {error ? (
-        <p className="text-sm font-bold text-red-800 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+        <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-bold text-red-800">
           {error}
         </p>
       ) : null}
 
-      {/* تبصير سريع دائم */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-        <Mini
-          label="طابور العمل"
-          value={String(workTotal)}
-          tone={workTotal > 0 ? 'warn' : 'ok'}
-          onClick={() => setView('work')}
+      {/* North-star KPIs — دائماً فوق بحال eGrow */}
+      <section className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <NorthStar
+          label="نسبة التأكيد"
+          value={pct(cr)}
+          hint={`هدف ≥ ${TARGET.confirmMin}%`}
+          score={scoreConfirm(cr)}
+          onClick={() => setView('analyze')}
         />
-        <Mini
-          label="محصّل (الفترة)"
+        <NorthStar
+          label="نسبة الرجوع (RTO)"
+          value={pct(rto)}
+          hint={`هدف ≤ ${TARGET.rtoMax}%`}
+          score={scoreRto(rto)}
+          onClick={() => setView('analyze')}
+        />
+        <NorthStar
+          label="محصّل COD"
           value={mad(store?.earnings)}
-          tone="dark"
+          hint={data?.period_label || 'الفترة'}
+          score="neutral"
+          emphasize
           onClick={() => setView('money')}
         />
-        <Mini
-          label="تأكيد %"
-          value={pct(store?.confirm_rate)}
-          onClick={() => setView('analyze')}
+        <NorthStar
+          label="مسلّم اليوم"
+          value={fmt(num(stats?.today_delivered))}
+          hint={`${fmt(num(stats?.today))} طلب دخلات اليوم`}
+          score="neutral"
+          onClick={() => onGoDesk('ship', 'delivered')}
         />
-        <Mini
-          label="رجوع %"
-          value={pct(store?.return_rate)}
-          tone={n(store?.return_rate) >= 20 ? 'warn' : 'ok'}
-          onClick={() => setView('analyze')}
-        />
-      </div>
+      </section>
 
-      {/* تبويبات داخلية */}
-      <div className="flex gap-1 p-1 rounded-2xl bg-[#eee4d8]">
+      {/* تبويبات */}
+      <nav className="flex gap-1 rounded-2xl bg-[#ebe3d8] p-1">
         {views.map((v) => (
           <button
             key={v.id}
             type="button"
             onClick={() => setView(v.id)}
-            className={`flex-1 rounded-xl px-3 py-3 text-center transition ${
+            className={`flex-1 rounded-xl px-2 py-2.5 text-center transition ${
               view === v.id
-                ? 'bg-[#1C1412] text-white shadow-sm'
-                : 'text-[#5c4a3c] hover:bg-white/60'
+                ? 'bg-[#1C1412] text-white'
+                : 'text-[#5c4a3c] hover:bg-white/70'
             }`}
           >
             <p className="text-sm font-bold">{v.label}</p>
             <p
-              className={`text-[10px] mt-0.5 ${
-                view === v.id ? 'text-white/65' : 'text-[#8a7464]'
+              className={`text-[10px] ${
+                view === v.id ? 'text-white/60' : 'text-[#8a7464]'
               }`}
             >
-              {v.hint}
+              {v.sub}
             </p>
           </button>
         ))}
-      </div>
+      </nav>
 
       {view === 'work' ? (
-        <WorkView
-          confirmQueue={confirmQueue}
-          shipReady={shipReady}
-          shipped={shipped}
-          stale={stale}
-          reporteDue={reporteDue}
-          today={n(stats?.today)}
-          todayDelivered={n(stats?.today_delivered)}
-          todayReturned={n(stats?.today_returned)}
-          todayCancelled={n(stats?.today_cancelled)}
-          sheetErrors={n(stats?.sheet_errors)}
+        <WorkBoard
+          qConfirm={qConfirm}
+          qShip={qShip}
+          qShipped={qShipped}
+          qStale={qStale}
+          qReporte={qReporte}
+          today={num(stats?.today)}
+          todayDelivered={num(stats?.today_delivered)}
+          todayReturned={num(stats?.today_returned)}
+          todayCancelled={num(stats?.today_cancelled)}
+          sheetErrors={num(stats?.sheet_errors)}
+          deliveryRate={dr}
           onGoDesk={onGoDesk}
         />
       ) : null}
 
       {view === 'money' ? (
-        <MoneyView
+        <MoneyBoard
           period={period}
           setPeriod={setPeriod}
           store={store}
@@ -271,12 +314,11 @@ export default function OverviewDesk({ token, onGoDesk }: Props) {
       ) : null}
 
       {view === 'analyze' ? (
-        <AnalyzeView
+        <AnalyzeBoard
           period={period}
           setPeriod={setPeriod}
           store={store}
           funnel={funnel}
-          entered={entered}
           onGoDesk={onGoDesk}
         />
       ) : null}
@@ -284,181 +326,226 @@ export default function OverviewDesk({ token, onGoDesk }: Props) {
   );
 }
 
-function Mini({
+function NorthStar({
   label,
   value,
-  tone = 'default',
+  hint,
+  score,
+  emphasize,
   onClick,
 }: {
   label: string;
   value: string;
-  tone?: 'default' | 'dark' | 'warn' | 'ok';
+  hint: string;
+  score: 'good' | 'warn' | 'bad' | 'neutral';
+  emphasize?: boolean;
   onClick?: () => void;
 }) {
-  const cls =
-    tone === 'dark'
-      ? 'border-[#1C1412] bg-[#1C1412] text-white'
-      : tone === 'warn'
-        ? 'border-amber-300 bg-amber-50 text-[#1C1412]'
-        : tone === 'ok'
-          ? 'border-teal-200 bg-teal-50 text-[#1C1412]'
-          : 'border-[#e6d9cc] bg-white text-[#1C1412]';
+  const ring =
+    score === 'good'
+      ? 'border-teal-300 bg-teal-50'
+      : score === 'warn'
+        ? 'border-amber-300 bg-amber-50'
+        : score === 'bad'
+          ? 'border-[#C45B6A]/40 bg-[#FBEFF1]'
+          : emphasize
+            ? 'border-[#1C1412] bg-[#1C1412] text-white'
+            : 'border-[#e6d9cc] bg-white';
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-xl border px-3 py-3 text-right ${cls}`}
+      className={`rounded-2xl border p-3.5 text-right transition hover:brightness-[0.98] ${ring}`}
     >
       <p
         className={`text-[10px] font-bold ${
-          tone === 'dark' ? 'text-white/65' : 'text-[#6a5648]'
+          emphasize ? 'text-white/65' : 'text-[#6a5648]'
         }`}
       >
         {label}
       </p>
-      <p className="mt-1 text-lg font-bold tabular-nums">{value}</p>
+      <p className="mt-1 text-xl font-bold tabular-nums sm:text-2xl">{value}</p>
+      <p
+        className={`mt-1 text-[10px] leading-snug ${
+          emphasize ? 'text-white/50' : 'text-[#8a7464]'
+        }`}
+      >
+        {hint}
+      </p>
     </button>
   );
 }
 
-function ActionCard({
+function QueueCard({
   title,
   count,
   hint,
   cta,
-  tone = 'default',
+  tone,
   onClick,
 }: {
   title: string;
   count: number;
   hint: string;
   cta: string;
-  tone?: 'default' | 'urgent' | 'ship' | 'ok';
+  tone: 'idle' | 'hot' | 'ship' | 'risk';
   onClick: () => void;
 }) {
-  const wrap =
-    tone === 'urgent'
+  const bg =
+    tone === 'hot'
       ? 'border-amber-400 bg-amber-50'
       : tone === 'ship'
         ? 'border-sky-300 bg-sky-50'
-        : tone === 'ok'
-          ? 'border-teal-300 bg-teal-50'
+        : tone === 'risk'
+          ? 'border-[#C45B6A]/45 bg-[#FBEFF1]'
           : 'border-[#e6d9cc] bg-white';
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`w-full rounded-2xl border p-4 text-right transition hover:brightness-[0.98] ${wrap}`}
+      className={`flex w-full flex-col rounded-2xl border p-4 text-right transition hover:brightness-[0.98] ${bg}`}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-sm font-bold text-[#1C1412]">{title}</p>
-          <p className="mt-1 text-[12px] text-[#6a5648] leading-snug">{hint}</p>
+          <p className="mt-1 text-[11px] leading-snug text-[#6a5648]">{hint}</p>
         </div>
-        <p className="text-3xl font-bold tabular-nums text-[#1C1412] shrink-0">
-          {count.toLocaleString('fr-MA')}
+        <p className="shrink-0 text-3xl font-bold tabular-nums text-[#1C1412]">
+          {fmt(count)}
         </p>
       </div>
-      <p className="mt-3 text-[12px] font-bold text-[#C45B6A]">{cta} ←</p>
+      <p className="mt-auto pt-3 text-[12px] font-bold text-[#C45B6A]">
+        {cta} ←
+      </p>
     </button>
   );
 }
 
-function WorkView({
-  confirmQueue,
-  shipReady,
-  shipped,
-  stale,
-  reporteDue,
+function WorkBoard({
+  qConfirm,
+  qShip,
+  qShipped,
+  qStale,
+  qReporte,
   today,
   todayDelivered,
   todayReturned,
   todayCancelled,
   sheetErrors,
+  deliveryRate,
   onGoDesk,
 }: {
-  confirmQueue: number;
-  shipReady: number;
-  shipped: number;
-  stale: number;
-  reporteDue: number;
+  qConfirm: number;
+  qShip: number;
+  qShipped: number;
+  qStale: number;
+  qReporte: number;
   today: number;
   todayDelivered: number;
   todayReturned: number;
   todayCancelled: number;
   sheetErrors: number;
+  deliveryRate: number;
   onGoDesk: (desk: Desk, pipe: string) => void;
 }) {
   return (
-    <div className="space-y-6">
-      <section className="space-y-3">
-        <div>
-          <h3 className="text-base font-bold text-[#1C1412]">أولوية الخدمة</h3>
-          <p className="text-[12px] text-[#6a5648]">
-            ابدأ من فوق لتحت — كل كارت كيفتح الطابور مباشرة
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <ActionCard
-            title="تأكيد · خاصو اتصال"
-            count={confirmQueue}
-            hint="جديد + مكالمات + ما جاوبش"
-            cta="فتح طابور التأكيد"
-            tone={confirmQueue > 0 ? 'urgent' : 'default'}
+    <div className="space-y-5">
+      <p className="text-[12px] text-[#6a5648]">
+        منطق COD: أكّد ← صيفط ← تابع ← حصّل. ابدأ من الكروت السخونة.
+      </p>
+
+      <div className="grid gap-3 lg:grid-cols-3">
+        <div className="space-y-2">
+          <p className="text-[11px] font-bold text-[#8a7464]">① تأكيد</p>
+          <QueueCard
+            title="كاتسنى الاتصال"
+            count={qConfirm}
+            hint="جديد · مكالمات · ما جاوبش"
+            cta="طابور التأكيد"
+            tone={qConfirm > 0 ? 'hot' : 'idle'}
             onClick={() => onGoDesk('confirm', 'call_today')}
           />
-          <ActionCard
-            title="شحن · جاهز للإرسال"
-            count={shipReady}
-            hint="مؤكد / READY — صيفط لـ Ozone"
-            cta="فتح جاهز للشحن"
-            tone={shipReady > 0 ? 'ship' : 'default'}
+          <QueueCard
+            title="مؤجل حان وقته"
+            count={qReporte}
+            hint="رجع اليوم للمكالمة"
+            cta="شوف المؤجل"
+            tone={qReporte > 0 ? 'hot' : 'idle'}
+            onClick={() => onGoDesk('confirm', 'call_today')}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-[11px] font-bold text-[#8a7464]">② شحن</p>
+          <QueueCard
+            title="جاهز لـ Ozone"
+            count={qShip}
+            hint="مؤكد / READY — خاص الإرسال"
+            cta="افتح الجاهزين"
+            tone={qShip > 0 ? 'ship' : 'idle'}
             onClick={() => onGoDesk('ship', 'confirmed')}
           />
-          <ActionCard
-            title="متابعة · مرسل"
-            count={shipped}
-            hint="عند شركة التوصيل — زامن Ozone"
-            cta="فتح المرسلين"
+          <QueueCard
+            title="عند الشركة"
+            count={qShipped}
+            hint="مرسل — زامن الحالات"
+            cta="افتح المرسلين"
             tone="ship"
             onClick={() => onGoDesk('ship', 'shipped')}
           />
-          <ActionCard
-            title="انتباه · متأخر / مؤجل"
-            count={stale + reporteDue}
-            hint={`${stale} متأخر شحن · ${reporteDue} مؤجل حان`}
-            cta="شوف المتأخرين"
-            tone={stale + reporteDue > 0 ? 'urgent' : 'ok'}
-            onClick={() =>
-              onGoDesk('ship', stale > 0 ? 'stale' : 'shipped')
-            }
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-[11px] font-bold text-[#8a7464]">③ مخاطر</p>
+          <QueueCard
+            title="متأخر فالتتبع"
+            count={qStale}
+            hint="مرسل بزاف بلا تحديث"
+            cta="افتح المتأخر"
+            tone={qStale > 0 ? 'risk' : 'idle'}
+            onClick={() => onGoDesk('ship', 'stale')}
+          />
+          <QueueCard
+            title="مرتجع اليوم"
+            count={todayReturned}
+            hint="شوف المرتجعين — قلّل RTO"
+            cta="افتح المرتجع"
+            tone={todayReturned > 0 ? 'risk' : 'idle'}
+            onClick={() => onGoDesk('ship', 'returned')}
           />
         </div>
-      </section>
+      </div>
 
-      <section className="space-y-3">
-        <h3 className="text-base font-bold text-[#1C1412]">نتائج اليوم</h3>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-          <StatChip label="طلبات دخلات" value={today} />
-          <StatChip
+      <section className="rounded-2xl border border-[#e6d9cc] bg-white p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="text-sm font-bold text-[#1C1412]">نبض اليوم</p>
+            <p className="text-[11px] text-[#6a5648]">
+              نسبة التسليم فالفترة: {pct(deliveryRate)}
+            </p>
+          </div>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Pulse label="دخلات" value={today} />
+          <Pulse
             label="مسلّم"
             value={todayDelivered}
             onClick={() => onGoDesk('ship', 'delivered')}
           />
-          <StatChip
+          <Pulse
             label="مرتجع"
             value={todayReturned}
             onClick={() => onGoDesk('ship', 'returned')}
           />
-          <StatChip
+          <Pulse
             label="ملغى"
             value={todayCancelled}
             onClick={() => onGoDesk('confirm', 'cancelled')}
           />
         </div>
         {sheetErrors > 0 ? (
-          <p className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-bold text-amber-950">
-            ⚠ {sheetErrors} خطأ مزامنة Sheet — راجع الطلبات
+          <p className="mt-3 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-950">
+            ⚠ {sheetErrors} خطأ Sheet — راجع المزامنة
           </p>
         ) : null}
       </section>
@@ -466,7 +553,7 @@ function WorkView({
   );
 }
 
-function StatChip({
+function Pulse({
   label,
   value,
   onClick,
@@ -475,12 +562,10 @@ function StatChip({
   value: number;
   onClick?: () => void;
 }) {
-  const inner = (
+  const body = (
     <>
       <p className="text-[10px] font-bold text-[#6a5648]">{label}</p>
-      <p className="mt-1 text-xl font-bold tabular-nums">
-        {value.toLocaleString('fr-MA')}
-      </p>
+      <p className="mt-0.5 text-lg font-bold tabular-nums">{fmt(value)}</p>
     </>
   );
   if (onClick) {
@@ -488,20 +573,20 @@ function StatChip({
       <button
         type="button"
         onClick={onClick}
-        className="rounded-xl border border-[#e6d9cc] bg-white px-3 py-3 text-right hover:border-[#C4A484]"
+        className="rounded-xl border border-[#eee4d8] bg-[#F7F1EC] px-3 py-2.5 text-right hover:border-[#C4A484]"
       >
-        {inner}
+        {body}
       </button>
     );
   }
   return (
-    <div className="rounded-xl border border-[#e6d9cc] bg-white px-3 py-3 text-right">
-      {inner}
+    <div className="rounded-xl border border-[#eee4d8] bg-[#F7F1EC] px-3 py-2.5 text-right">
+      {body}
     </div>
   );
 }
 
-function PeriodBar({
+function PeriodPills({
   period,
   setPeriod,
 }: {
@@ -509,16 +594,16 @@ function PeriodBar({
   setPeriod: (p: string) => void;
 }) {
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-1">
       {PERIODS.map((p) => (
         <button
           key={p.id}
           type="button"
           onClick={() => setPeriod(p.id)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${
+          className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-bold ${
             period === p.id
-              ? 'bg-[#1C1412] text-white border-[#1C1412]'
-              : 'bg-white border-[#e6d9cc] text-[#5c4a3c]'
+              ? 'border-[#1C1412] bg-[#1C1412] text-white'
+              : 'border-[#e6d9cc] bg-white text-[#5c4a3c]'
           }`}
         >
           {p.label}
@@ -528,7 +613,7 @@ function PeriodBar({
   );
 }
 
-function MoneyView({
+function MoneyBoard({
   period,
   setPeriod,
   store,
@@ -541,77 +626,66 @@ function MoneyView({
   earnings: StoreInsights['earnings'] | undefined;
   periodLabel?: string;
 }) {
+  const collected = num(store?.earnings);
+  const frozen = num(store?.frozen);
+  const returned = num(store?.returned_value);
+  const pipeline = collected + frozen;
+
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h3 className="text-base font-bold text-[#1C1412]">فلوس COD</h3>
+          <h3 className="text-base font-bold text-[#1C1412]">تحصيل COD</h3>
           <p className="text-[12px] text-[#6a5648]">
-            {periodLabel || 'الفترة'} · محصّل ≠ ربح صافي
+            {periodLabel || 'الفترة'} · ماشي ربح صافي (بلا تكلفة بضاعة / Ozon)
           </p>
         </div>
-        <PeriodBar period={period} setPeriod={setPeriod} />
+        <PeriodPills period={period} setPeriod={setPeriod} />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="rounded-2xl border border-[#1C1412] bg-[#1C1412] text-white p-5">
-          <p className="text-[11px] font-bold text-white/65">محصّل</p>
-          <p className="mt-2 text-3xl font-bold tabular-nums">
-            {mad(store?.earnings)}
-          </p>
-          <p className="mt-2 text-[12px] text-white/55">
-            {n(store?.delivered)} مسلّم · الفلوس اللي جات
+      {/* مسار الفلوس */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-2xl border border-[#1C1412] bg-[#1C1412] p-5 text-white">
+          <p className="text-[11px] font-bold text-white/60">① محصّل</p>
+          <p className="mt-2 text-3xl font-bold tabular-nums">{mad(collected)}</p>
+          <p className="mt-2 text-[11px] text-white/50">
+            {fmt(num(store?.delivered))} مسلّم · الفلوس اللي وصلت
           </p>
         </div>
         <div className="rounded-2xl border border-sky-200 bg-sky-50 p-5">
-          <p className="text-[11px] font-bold text-[#6a5648]">فريزو فالتوصيل</p>
-          <p className="mt-2 text-3xl font-bold tabular-nums text-[#1C1412]">
-            {mad(store?.frozen)}
-          </p>
-          <p className="mt-2 text-[12px] text-[#6a5648]">
-            {n(store?.frozen_count)} طرد مرسل · باقي معلّق
+          <p className="text-[11px] font-bold text-[#6a5648]">② فريزو</p>
+          <p className="mt-2 text-3xl font-bold tabular-nums">{mad(frozen)}</p>
+          <p className="mt-2 text-[11px] text-[#6a5648]">
+            {fmt(num(store?.frozen_count))} طرد فالتوصيل · غادي يتحصّل ولا يرجع
           </p>
         </div>
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-          <p className="text-[11px] font-bold text-[#6a5648]">مرتجع (قيمة)</p>
-          <p className="mt-2 text-3xl font-bold tabular-nums text-[#1C1412]">
-            {mad(store?.returned_value)}
-          </p>
-          <p className="mt-2 text-[12px] text-[#6a5648]">خسائر رجوع فالفترة</p>
+          <p className="text-[11px] font-bold text-[#6a5648]">③ مرتجع</p>
+          <p className="mt-2 text-3xl font-bold tabular-nums">{mad(returned)}</p>
+          <p className="mt-2 text-[11px] text-[#6a5648]">قيمة اللي رجعات · خسارة محتملة</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-        <div className="rounded-xl border border-[#e6d9cc] bg-white px-3 py-3 text-right">
-          <p className="text-[10px] font-bold text-[#6a5648]">متوسط الطلب</p>
-          <p className="mt-1 text-xl font-bold tabular-nums">
-            {mad(store?.avg_order_value)}
-          </p>
-        </div>
-        <div className="rounded-xl border border-[#e6d9cc] bg-white px-3 py-3 text-right">
-          <p className="text-[10px] font-bold text-[#6a5648]">قيمة الملغى</p>
-          <p className="mt-1 text-xl font-bold tabular-nums">
-            {mad(store?.cancelled_value)}
-          </p>
-        </div>
-        <div className="rounded-xl border border-[#e6d9cc] bg-white px-3 py-3 text-right">
-          <p className="text-[10px] font-bold text-[#6a5648]">طلبات (بلا ملغى)</p>
-          <p className="mt-1 text-xl font-bold tabular-nums">
-            {n(store?.orders).toLocaleString('fr-MA')}
-          </p>
-        </div>
-        <div className="rounded-xl border border-[#e6d9cc] bg-white px-3 py-3 text-right">
-          <p className="text-[10px] font-bold text-[#6a5648]">مبيعات محتسبة</p>
-          <p className="mt-1 text-xl font-bold tabular-nums">
-            {mad(store?.sales)}
-          </p>
+      <div className="rounded-2xl border border-[#e6d9cc] bg-white p-4">
+        <p className="text-xs font-bold text-[#6a5648]">مجموع فالدورة (محصّل + فريزو)</p>
+        <p className="mt-1 text-2xl font-bold tabular-nums text-[#1C1412]">
+          {mad(pipeline)}
+        </p>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <MiniMoney label="متوسط الطلب" value={mad(store?.avg_order_value)} />
+          <MiniMoney label="قيمة الملغى" value={mad(store?.cancelled_value)} />
+          <MiniMoney
+            label="طلبات محتسبة"
+            value={fmt(num(store?.orders))}
+          />
+          <MiniMoney label="مبيعات محتسبة" value={mad(store?.sales)} />
         </div>
       </div>
 
       {earnings ? (
         <div className="space-y-2">
-          <p className="text-xs font-bold text-[#6a5648]">لمحة سريعة لكل فترة</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+          <p className="text-xs font-bold text-[#6a5648]">مقارنة الفترات</p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
             {PERIODS.map((p) => {
               const row = earnings[p.id];
               const on = period === p.id;
@@ -628,7 +702,7 @@ function MoneyView({
                 >
                   <p
                     className={`text-[10px] font-bold ${
-                      on ? 'text-white/65' : 'text-[#6a5648]'
+                      on ? 'text-white/60' : 'text-[#6a5648]'
                     }`}
                   >
                     {p.label}
@@ -637,11 +711,11 @@ function MoneyView({
                     {mad(row?.earnings)}
                   </p>
                   <p
-                    className={`mt-0.5 text-[10px] tabular-nums ${
-                      on ? 'text-white/50' : 'text-[#8a7464]'
+                    className={`mt-0.5 text-[10px] ${
+                      on ? 'text-white/45' : 'text-[#8a7464]'
                     }`}
                   >
-                    {n(row?.delivered)} مسلّم
+                    {fmt(num(row?.delivered))} مسلّم
                   </p>
                 </button>
               );
@@ -653,224 +727,204 @@ function MoneyView({
   );
 }
 
-function FunnelBar({
-  label,
-  count,
-  total,
-  tone,
-  onClick,
-}: {
-  label: string;
-  count: number;
-  total: number;
-  tone: string;
-  onClick?: () => void;
-}) {
-  const width = Math.max(4, Math.round((count / Math.max(total, 1)) * 100));
-  const body = (
-    <>
-      <div className="flex items-center justify-between gap-2 text-sm">
-        <span className="font-bold text-[#1C1412]">{label}</span>
-        <span className="tabular-nums font-bold text-[#1C1412]">
-          {count.toLocaleString('fr-MA')}
-          <span className="ms-1 text-[11px] font-medium text-[#8a7464]">
-            {Math.round((count / Math.max(total, 1)) * 100)}%
-          </span>
-        </span>
-      </div>
-      <div className="mt-2 h-2.5 rounded-full bg-[#f0e6dc] overflow-hidden">
-        <div
-          className={`h-full rounded-full ${tone}`}
-          style={{ width: `${width}%` }}
-        />
-      </div>
-    </>
-  );
-  if (onClick) {
-    return (
-      <button
-        type="button"
-        onClick={onClick}
-        className="w-full rounded-xl border border-[#e6d9cc] bg-white px-4 py-3 text-right hover:border-[#C4A484]"
-      >
-        {body}
-      </button>
-    );
-  }
+function MiniMoney({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-[#e6d9cc] bg-white px-4 py-3">
-      {body}
+    <div className="rounded-xl bg-[#F7F1EC] px-3 py-2.5">
+      <p className="text-[10px] font-bold text-[#6a5648]">{label}</p>
+      <p className="mt-0.5 text-sm font-bold tabular-nums text-[#1C1412]">
+        {value}
+      </p>
     </div>
   );
 }
 
-function AnalyzeView({
+function AnalyzeBoard({
   period,
   setPeriod,
   store,
   funnel,
-  entered,
   onGoDesk,
 }: {
   period: string;
   setPeriod: (p: string) => void;
   store: StoreInsights['store'] | undefined;
   funnel: StoreInsights['store']['funnel'] | undefined;
-  entered: number;
   onGoDesk: (desk: Desk, pipe: string) => void;
 }) {
+  const entered = Math.max(1, num(funnel?.entered));
+  const steps: {
+    label: string;
+    count: number;
+    color: string;
+    desk?: Desk;
+    pipe?: string;
+  }[] = [
+    { label: 'داخلة', count: num(funnel?.entered), color: 'bg-[#C4A484]' },
+    {
+      label: 'قيد التأكيد',
+      count: num(funnel?.pending),
+      color: 'bg-amber-400',
+      desk: 'confirm',
+      pipe: 'call_today',
+    },
+    {
+      label: 'مؤكد',
+      count: num(funnel?.confirmed),
+      color: 'bg-teal-500',
+      desk: 'ship',
+      pipe: 'confirmed',
+    },
+    {
+      label: 'مرسل',
+      count: num(funnel?.shipped),
+      color: 'bg-sky-500',
+      desk: 'ship',
+      pipe: 'shipped',
+    },
+    {
+      label: 'مسلّم',
+      count: num(funnel?.delivered),
+      color: 'bg-emerald-500',
+      desk: 'ship',
+      pipe: 'delivered',
+    },
+    {
+      label: 'مرتجع',
+      count: num(funnel?.returned),
+      color: 'bg-orange-400',
+      desk: 'ship',
+      pipe: 'returned',
+    },
+    {
+      label: 'ملغى',
+      count: num(funnel?.cancelled),
+      color: 'bg-[#C45B6A]',
+      desk: 'confirm',
+      pipe: 'cancelled',
+    },
+  ];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h3 className="text-base font-bold text-[#1C1412]">تحليل الأداء</h3>
+          <h3 className="text-base font-bold text-[#1C1412]">تحليل القمع</h3>
           <p className="text-[12px] text-[#6a5648]">
-            القمع والنسب — باش تعرف فين كتضيع الطلبات
+            فين كتضيع الطلبات — كليكي على السطر باش تفتح الطابور
           </p>
         </div>
-        <PeriodBar period={period} setPeriod={setPeriod} />
+        <PeriodPills period={period} setPeriod={setPeriod} />
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-        <div className="rounded-xl border border-teal-200 bg-teal-50 px-3 py-3">
-          <p className="text-[10px] font-bold text-[#6a5648]">نسبة التأكيد</p>
-          <p className="mt-1 text-2xl font-bold tabular-nums">
-            {pct(store?.confirm_rate)}
-          </p>
-        </div>
-        <div className="rounded-xl border border-sky-200 bg-sky-50 px-3 py-3">
-          <p className="text-[10px] font-bold text-[#6a5648]">نسبة التسليم</p>
-          <p className="mt-1 text-2xl font-bold tabular-nums">
-            {pct(store?.delivery_rate)}
-          </p>
-        </div>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3">
-          <p className="text-[10px] font-bold text-[#6a5648]">نسبة الرجوع</p>
-          <p className="mt-1 text-2xl font-bold tabular-nums">
-            {pct(store?.return_rate)}
-          </p>
-        </div>
-        <div className="rounded-xl border border-[#e6d9cc] bg-white px-3 py-3">
-          <p className="text-[10px] font-bold text-[#6a5648]">تحويل COD</p>
-          <p className="mt-1 text-2xl font-bold tabular-nums">
-            {pct(store?.conversion_rate)}
-          </p>
-        </div>
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <RateCard
+          label="تأكيد"
+          value={pct(store?.confirm_rate)}
+          score={scoreConfirm(num(store?.confirm_rate))}
+          target={`≥ ${TARGET.confirmMin}%`}
+        />
+        <RateCard
+          label="تسليم"
+          value={pct(store?.delivery_rate)}
+          score={
+            num(store?.delivery_rate) >= 75
+              ? 'good'
+              : num(store?.delivery_rate) >= 55
+                ? 'warn'
+                : 'bad'
+          }
+          target="≥ 75%"
+        />
+        <RateCard
+          label="رجوع RTO"
+          value={pct(store?.return_rate)}
+          score={scoreRto(num(store?.return_rate))}
+          target={`≤ ${TARGET.rtoMax}%`}
+        />
+        <RateCard
+          label="تحويل COD"
+          value={pct(store?.conversion_rate)}
+          score="neutral"
+          target="مسلّم ÷ داخلة"
+        />
       </div>
 
       <div className="space-y-2">
-        <p className="text-xs font-bold text-[#6a5648]">
-          مسار الطلبات ({entered.toLocaleString('fr-MA')} داخلة)
-        </p>
-        <div className="space-y-2">
-          <FunnelBar
-            label="داخلة"
-            count={n(funnel?.entered)}
-            total={entered}
-            tone="bg-[#C4A484]"
-          />
-          <FunnelBar
-            label="قيد التأكيد"
-            count={n(funnel?.pending)}
-            total={entered}
-            tone="bg-amber-400"
-            onClick={() => onGoDesk('confirm', 'call_today')}
-          />
-          <FunnelBar
-            label="مؤكد / جاهز"
-            count={n(funnel?.confirmed)}
-            total={entered}
-            tone="bg-teal-500"
-            onClick={() => onGoDesk('ship', 'confirmed')}
-          />
-          <FunnelBar
-            label="مرسل"
-            count={n(funnel?.shipped)}
-            total={entered}
-            tone="bg-sky-500"
-            onClick={() => onGoDesk('ship', 'shipped')}
-          />
-          <FunnelBar
-            label="مسلّم"
-            count={n(funnel?.delivered)}
-            total={entered}
-            tone="bg-emerald-500"
-            onClick={() => onGoDesk('ship', 'delivered')}
-          />
-          <FunnelBar
-            label="مرتجع"
-            count={n(funnel?.returned)}
-            total={entered}
-            tone="bg-orange-400"
-            onClick={() => onGoDesk('ship', 'returned')}
-          />
-          <FunnelBar
-            label="ملغى"
-            count={n(funnel?.cancelled)}
-            total={entered}
-            tone="bg-[#C45B6A]"
-            onClick={() => onGoDesk('confirm', 'cancelled')}
-          />
-        </div>
+        {steps.map((s) => {
+          const w = Math.max(3, Math.round((s.count / entered) * 100));
+          const row = (
+            <>
+              <div className="flex items-center justify-between gap-2 text-sm">
+                <span className="font-bold text-[#1C1412]">{s.label}</span>
+                <span className="tabular-nums font-bold">
+                  {fmt(s.count)}
+                  <span className="ms-1 text-[11px] font-medium text-[#8a7464]">
+                    {Math.round((s.count / entered) * 100)}%
+                  </span>
+                </span>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#f0e6dc]">
+                <div
+                  className={`h-full rounded-full ${s.color}`}
+                  style={{ width: `${w}%` }}
+                />
+              </div>
+            </>
+          );
+          if (s.desk && s.pipe) {
+            return (
+              <button
+                key={s.label}
+                type="button"
+                onClick={() => onGoDesk(s.desk!, s.pipe!)}
+                className="w-full rounded-xl border border-[#e6d9cc] bg-white px-4 py-3 text-right hover:border-[#C4A484]"
+              >
+                {row}
+              </button>
+            );
+          }
+          return (
+            <div
+              key={s.label}
+              className="rounded-xl border border-[#e6d9cc] bg-white px-4 py-3"
+            >
+              {row}
+            </div>
+          );
+        })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <div className="rounded-2xl border border-[#e6d9cc] bg-white p-4 space-y-3">
-          <p className="text-xs font-bold text-[#6a5648]">أفضل المنتجات</p>
-          {store?.top_products?.length ? (
-            <ul className="space-y-2">
-              {store.top_products.slice(0, 8).map((p, i) => (
-                <li
-                  key={p.name}
-                  className="flex justify-between gap-3 text-sm border-b border-[#f0e6dc] pb-2 last:border-0"
-                >
-                  <span className="truncate">
-                    <span className="text-[#C4A484] font-bold me-1">{i + 1}.</span>
-                    {p.name}
-                  </span>
-                  <span className="shrink-0 tabular-nums text-[#6a5648]">
-                    ×{p.quantity} · {mad(p.revenue)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-[#6a5648]">ما كاينش بيانات</p>
-          )}
-        </div>
-        <div className="rounded-2xl border border-[#e6d9cc] bg-white p-4 space-y-3">
-          <p className="text-xs font-bold text-[#6a5648]">أفضل المدن</p>
-          {store?.top_cities?.length ? (
-            <ul className="space-y-2">
-              {store.top_cities.slice(0, 8).map((c, i) => (
-                <li
-                  key={c.city}
-                  className="flex justify-between gap-3 text-sm border-b border-[#f0e6dc] pb-2 last:border-0"
-                >
-                  <span className="truncate">
-                    <span className="text-[#C4A484] font-bold me-1">{i + 1}.</span>
-                    {c.city}
-                  </span>
-                  <span className="font-bold tabular-nums">{c.count}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-[#6a5648]">ما كاينش بيانات</p>
-          )}
-        </div>
+      <div className="grid gap-3 lg:grid-cols-2">
+        <ListCard
+          title="أفضل المنتجات"
+          empty="ما كاينش بيانات"
+          rows={(store?.top_products || []).slice(0, 8).map((p, i) => ({
+            key: p.name,
+            left: `${i + 1}. ${p.name}`,
+            right: `×${p.quantity} · ${mad(p.revenue)}`,
+          }))}
+        />
+        <ListCard
+          title="أفضل المدن"
+          empty="ما كاينش بيانات"
+          rows={(store?.top_cities || []).slice(0, 8).map((c, i) => ({
+            key: c.city,
+            left: `${i + 1}. ${c.city}`,
+            right: String(c.count),
+          }))}
+        />
       </div>
 
       {store?.by_status && Object.keys(store.by_status).length > 0 ? (
         <div className="space-y-2">
           <p className="text-xs font-bold text-[#6a5648]">تفصيل الحالات</p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {Object.entries(store.by_status)
               .sort((a, b) => b[1] - a[1])
               .map(([status, count]) => (
                 <span
                   key={status}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-[#e6d9cc] bg-white px-3 py-1.5 text-xs font-bold"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#e6d9cc] bg-white px-2.5 py-1 text-[11px] font-bold"
                 >
                   {STATUS_AR[status] || status}
                   <span className="tabular-nums text-[#6a5648]">{count}</span>
@@ -879,6 +933,67 @@ function AnalyzeView({
           </div>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function RateCard({
+  label,
+  value,
+  target,
+  score,
+}: {
+  label: string;
+  value: string;
+  target: string;
+  score: 'good' | 'warn' | 'bad' | 'neutral';
+}) {
+  const bg =
+    score === 'good'
+      ? 'border-teal-200 bg-teal-50'
+      : score === 'warn'
+        ? 'border-amber-200 bg-amber-50'
+        : score === 'bad'
+          ? 'border-[#C45B6A]/35 bg-[#FBEFF1]'
+          : 'border-[#e6d9cc] bg-white';
+  return (
+    <div className={`rounded-xl border px-3 py-3 ${bg}`}>
+      <p className="text-[10px] font-bold text-[#6a5648]">{label}</p>
+      <p className="mt-1 text-2xl font-bold tabular-nums">{value}</p>
+      <p className="mt-0.5 text-[10px] text-[#8a7464]">{target}</p>
+    </div>
+  );
+}
+
+function ListCard({
+  title,
+  empty,
+  rows,
+}: {
+  title: string;
+  empty: string;
+  rows: { key: string; left: string; right: string }[];
+}) {
+  return (
+    <div className="rounded-2xl border border-[#e6d9cc] bg-white p-4 space-y-2">
+      <p className="text-xs font-bold text-[#6a5648]">{title}</p>
+      {rows.length ? (
+        <ul className="space-y-2">
+          {rows.map((r) => (
+            <li
+              key={r.key}
+              className="flex justify-between gap-3 border-b border-[#f0e6dc] pb-2 text-sm last:border-0"
+            >
+              <span className="truncate font-medium text-[#1C1412]">{r.left}</span>
+              <span className="shrink-0 tabular-nums text-[#6a5648]">
+                {r.right}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-[#6a5648]">{empty}</p>
+      )}
     </div>
   );
 }

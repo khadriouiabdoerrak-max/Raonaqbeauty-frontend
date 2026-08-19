@@ -60,7 +60,11 @@ export default function RootLayout({
         <CartProvider>
           <StoreShell>{children}</StoreShell>
         </CartProvider>
-        <Pixels />
+        <Pixels
+          facebookId={process.env.FB_PIXEL_ID || process.env.NEXT_PUBLIC_FB_PIXEL_ID}
+          tiktokId={process.env.TIKTOK_PIXEL_ID || process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID}
+          snapId={process.env.SNAP_PIXEL_ID || process.env.NEXT_PUBLIC_SNAPCHAT_PIXEL_ID}
+        />
       </body>
     </html>
   );

@@ -689,7 +689,6 @@ export default function OpsDesk({
   }, [orders]);
 
   const sortedOrders = useMemo(() => {
-    // ترتيب ثابت بالتاريخ — الحالة كتبان باللون، ما كتقفزش الصفوف
     return [...orders].sort((a, b) => {
       const dt =
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -715,38 +714,31 @@ export default function OpsDesk({
       } else if (pipe === 'stale') {
         list = list.filter(isStaleShip);
       }
-      // pipe === 'all' → نفس الترتيب الزمني؛ اللون كيبيّن واش مرسل ولا لا
+      // الكل: ترتيب ثابت بالتاريخ — اللون كيبيّن الحالة بلا قفز الصفوف
     } else if (mode === 'orders') {
-      if (pipe === 'call_today') {
-        list = list.filter(isCallTodayQueue);
-      } else if (pipe === 'en_attente') {
-        list = list.filter((o) => o.status === 'PENDING_CONFIRMATION');
-      } else if (pipe === 'appel_1') {
-        list = list.filter(
-          (o) => o.status === 'APPEL_1' || o.status === 'NO_ANSWER',
-        );
-      } else if (pipe === 'appel_2') {
-        list = list.filter((o) => o.status === 'APPEL_2');
-      } else if (pipe === 'appel_3') {
-        list = list.filter((o) =>
-          ['APPEL_3', 'APPEL_4', 'APPEL_5', 'APPEL_6', 'APPEL_7'].includes(
-            o.status,
-          ),
-        );
-      } else if (pipe === 'reporte') {
-        list = list.filter((o) => o.status === 'REPORTE');
-      } else if (pipe === 'confirmed') {
-        list = list.filter(
-          (o) => o.status === 'CONFIRMED' || o.status === 'READY_TO_SHIP',
-        );
-      } else if (pipe === 'delivered') {
+      // طابور التأكيد كما كان قبل: كل الطابور، الجديد فوق
+      if (pipe === 'delivered') {
         list = list.filter((o) => o.status === 'DELIVERED');
       } else if (pipe === 'cancelled') {
         list = list.filter((o) =>
           ['CANCELLED', 'FAUX_NM', 'DOUBLE', 'INJOIGNABLE'].includes(o.status),
         );
       } else {
-        list = list.filter(isConfirmQueue);
+        list = list
+          .filter(isConfirmQueue)
+          .sort((a, b) => {
+            const rank = (o: AdminOrder) => {
+              if (o.status === 'PENDING_CONFIRMATION') return 0;
+              if (o.status === 'NO_ANSWER') return 1;
+              return 2;
+            };
+            const d = rank(a) - rank(b);
+            if (d !== 0) return d;
+            return (
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime()
+            );
+          });
       }
     }
     if (filterYear || filterMonth || filterDay) {

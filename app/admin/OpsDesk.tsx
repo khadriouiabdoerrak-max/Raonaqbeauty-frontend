@@ -166,6 +166,22 @@ function playChime() {
   }
 }
 
+function minsWaiting(iso: string) {
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return 0;
+  return Math.floor((Date.now() - t) / 60000);
+}
+
+function urgency(o: AdminOrder) {
+  let s = minsWaiting(o.created_at);
+  if (o.status === 'APPEL_3' || o.status === 'APPEL_2') s += 120;
+  if (o.status === 'APPEL_1' || o.status === 'NO_ANSWER') s += 80;
+  if (o.status === 'REPORTE') s += 40;
+  if ((o.days_open ?? 0) >= 2) s += 50;
+  if (o.total_amount >= 500) s += 30;
+  return s;
+}
+
 function isConfirmQueue(o: AdminOrder) {
   return [
     'PENDING_CONFIRMATION',
@@ -690,10 +706,13 @@ export default function OpsDesk({
 
   const sortedOrders = useMemo(() => {
     return [...orders].sort((a, b) => {
-      const dt =
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      if (dt !== 0) return dt;
-      return b.order_number.localeCompare(a.order_number, 'en');
+      const ac = isConfirmQueue(a);
+      const bc = isConfirmQueue(b);
+      if (ac && bc) return urgency(b) - urgency(a);
+      if (ac !== bc) return ac ? -1 : 1;
+      return (
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
     });
   }, [orders]);
 
@@ -714,32 +733,38 @@ export default function OpsDesk({
       } else if (pipe === 'stale') {
         list = list.filter(isStaleShip);
       }
-      // الكل: ترتيب ثابت بالتاريخ — اللون كيبيّن الحالة بلا قفز الصفوف
-    } else if (mode === 'orders') {
-      // طابور التأكيد كما كان قبل: كل الطابور، الجديد فوق
-      if (pipe === 'delivered') {
-        list = list.filter((o) => o.status === 'DELIVERED');
-      } else if (pipe === 'cancelled') {
-        list = list.filter((o) =>
-          ['CANCELLED', 'FAUX_NM', 'DOUBLE', 'INJOIGNABLE'].includes(o.status),
+      // pipe === 'all' → كل طلبات الشحن فنفس الصفحة
+      const shipRank = (o: AdminOrder) => {
+        if (o.status === 'CONFIRMED' || o.status === 'READY_TO_SHIP') return 0;
+        if (o.status === 'SHIPPED') return 1;
+        if (o.status === 'DELIVERED') return 2;
+        if (o.status === 'RETURNED') return 3;
+        return 4;
+      };
+      list = [...list].sort((a, b) => {
+        const d = shipRank(a) - shipRank(b);
+        if (d !== 0) return d;
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
-      } else {
-        list = list
-          .filter(isConfirmQueue)
-          .sort((a, b) => {
-            const rank = (o: AdminOrder) => {
-              if (o.status === 'PENDING_CONFIRMATION') return 0;
-              if (o.status === 'NO_ANSWER') return 1;
-              return 2;
-            };
-            const d = rank(a) - rank(b);
-            if (d !== 0) return d;
-            return (
-              new Date(b.created_at).getTime() -
-              new Date(a.created_at).getTime()
-            );
-          });
-      }
+      });
+    } else {
+      // طابور التأكيد: الأجدد فوق — الكموند الجديدة كطيح فالرأس، مرتبة واحد تحت واحد
+      list = list
+        .filter(isConfirmQueue)
+        .sort((a, b) => {
+          const rank = (o: AdminOrder) => {
+            if (o.status === 'PENDING_CONFIRMATION') return 0;
+            if (o.status === 'NO_ANSWER') return 1;
+            return 2;
+          };
+          const d = rank(a) - rank(b);
+          if (d !== 0) return d;
+          return (
+            new Date(b.created_at).getTime() -
+            new Date(a.created_at).getTime()
+          );
+        });
     }
     if (filterYear || filterMonth || filterDay) {
       list = list.filter((o) => {
@@ -1020,9 +1045,14 @@ export default function OpsDesk({
     [selectedShip],
   );
 
+  const shipSelectableOnPage = useMemo(
+    () => pagedRows.filter((o) => canSendToOzon(o)),
+    [pagedRows],
+  );
+
   const allShipPageSelected =
-    pagedRows.length > 0 &&
-    pagedRows.every((o) => selectedShip[o.order_number]);
+    shipSelectableOnPage.length > 0 &&
+    shipSelectableOnPage.every((o) => selectedShip[o.order_number]);
 
   const toggleShipSelect = (id: string, on: boolean) => {
     setSelectedShip((prev) => {
@@ -1037,9 +1067,9 @@ export default function OpsDesk({
     setSelectedShip((prev) => {
       const next = { ...prev };
       if (allShipPageSelected) {
-        for (const o of pagedRows) delete next[o.order_number];
+        for (const o of shipSelectableOnPage) delete next[o.order_number];
       } else {
-        for (const o of pagedRows) next[o.order_number] = true;
+        for (const o of shipSelectableOnPage) next[o.order_number] = true;
       }
       return next;
     });
@@ -1059,24 +1089,11 @@ export default function OpsDesk({
 
   const runSelectedOzonShip = async () => {
     if (!token || selectedShipIds.length === 0) return;
-    const selectedOrders = selectedShipIds
-      .map((id) => orders.find((o) => o.order_number === id))
-      .filter((o): o is AdminOrder => Boolean(o));
-    const ready = selectedOrders.filter((o) => canSendToOzon(o));
-    const skipped = selectedOrders.length - ready.length;
-    if (ready.length === 0) {
-      setError(
-        'ما كاين حتى طلب جاهز بين المحددين — خاص مؤكد + عنوان كامل بدون تتبع.',
-      );
-      return;
-    }
-    const ids = ready.map((o) => o.order_number);
+    const ids = [...selectedShipIds];
     const ok = window.confirm(
-      skipped > 0
-        ? `إرسال ${ids.length} طلب جاهز إلى OzonExpress؟\n(${skipped} محدد ما غاديش يتبعت — ما جاهزش)`
-        : ids.length === 1
-          ? `إرسال الطلب ${ids[0]} إلى OzonExpress؟`
-          : `إرسال ${ids.length} طلبات محددة إلى OzonExpress؟`,
+      ids.length === 1
+        ? `إرسال الطلب ${ids[0]} إلى OzonExpress؟`
+        : `إرسال ${ids.length} طلبات محددة إلى OzonExpress؟`,
     );
     if (!ok) return;
     setBusy(true);
@@ -2004,11 +2021,11 @@ export default function OpsDesk({
                       <input
                         type="checkbox"
                         checked={allShipPageSelected}
-                        disabled={pagedRows.length === 0}
+                        disabled={shipSelectableOnPage.length === 0}
                         onChange={toggleSelectAllShipPage}
-                        aria-label="تحديد كل الطلبات فهاد الصفحة"
+                        aria-label="تحديد كل الجاهزين فهاد الصفحة"
                         className="h-4 w-4 accent-[#c45c26] disabled:opacity-30"
-                        title="تحديد / إلغاء كل الطلبات فهاد الصفحة"
+                        title="تحديد / إلغاء كل الطلبات الجاهزة فهاد الصفحة"
                       />
                     </th>
                     <th className="p-2.5 font-semibold border-l border-[#b7c9b0] whitespace-nowrap">
@@ -2065,6 +2082,7 @@ export default function OpsDesk({
                           <td className="p-2.5 border-l border-[#dde8d8] text-center">
                             <input
                               type="checkbox"
+                              disabled={!ozoneOk}
                               checked={Boolean(selectedShip[o.order_number])}
                               onChange={(e) =>
                                 toggleShipSelect(
@@ -2072,12 +2090,12 @@ export default function OpsDesk({
                                   e.target.checked,
                                 )
                               }
-                              aria-label={`اختيار ${o.order_number}`}
-                              className="h-4 w-4 accent-[#c45c26]"
+                              aria-label={`اختيار ${o.order_number} للإرسال`}
+                              className="h-4 w-4 accent-[#c45c26] disabled:opacity-30"
                               title={
                                 ozoneOk
-                                  ? 'جاهز للإرسال إلى Ozon'
-                                  : 'محدد — الإرسال لـ Ozon غير جاهز بعد (مؤكد + عنوان)'
+                                  ? 'اختيار هاد الطلب للإرسال إلى Ozon'
+                                  : 'خاص يكون مؤكد + عنوان كامل (≥8) بدون تتبع'
                               }
                             />
                           </td>

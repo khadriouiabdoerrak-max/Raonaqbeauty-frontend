@@ -8,6 +8,7 @@ import {
   adminLogin,
   adminLogout,
   fetchAdminStats,
+  type AdminStats,
 } from '@/lib/admin';
 import StoreInsightsPanel from './StoreInsightsPanel';
 
@@ -53,6 +54,44 @@ function parseTab(raw: string | null): Tab {
   return 'confirm';
 }
 
+function MetricCard({
+  label,
+  value,
+  hint,
+  onClick,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  onClick?: () => void;
+}) {
+  const className =
+    'rounded-2xl border border-champagne/40 bg-ivory p-5 shadow-card text-right w-full';
+  const body = (
+    <>
+      <p className="text-xs font-medium text-muted-brown mb-2">{label}</p>
+      <p className="text-2xl sm:text-3xl font-bold text-cocoa tracking-tight tabular-nums">
+        {value}
+      </p>
+      {hint ? (
+        <p className="text-[11px] text-muted-brown mt-2 leading-relaxed">{hint}</p>
+      ) : null}
+    </>
+  );
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={`${className} hover:border-cocoa/40 transition-colors`}
+      >
+        {body}
+      </button>
+    );
+  }
+  return <div className={className}>{body}</div>;
+}
+
 export default function AdminShell() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -64,6 +103,7 @@ export default function AdminShell() {
   const [booting, setBooting] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState<AdminStats | null>(null);
 
   const setTab = (next: Tab) => {
     if (next === 'ship') {
@@ -80,6 +120,15 @@ export default function AdminShell() {
   const goDesk = (desk: 'confirm' | 'ship', pipe: string) => {
     router.replace(`/admin?tab=${desk}&pipe=${pipe}`, { scroll: false });
   };
+
+  const loadOverview = useCallback(async (secret: string) => {
+    try {
+      const next = await fetchAdminStats(secret);
+      setStats(next);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'فشل تحميل الإحصائيات');
+    }
+  }, []);
 
   const bootstrap = useCallback(async (secret: string) => {
     setLoading(true);
@@ -103,6 +152,11 @@ export default function AdminShell() {
     if (saved) void bootstrap(saved);
     else setBooting(false);
   }, [bootstrap]);
+
+  useEffect(() => {
+    if (!token || tab !== 'overview') return;
+    void loadOverview(token);
+  }, [token, tab, loadOverview]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -132,6 +186,7 @@ export default function AdminShell() {
     if (token) await adminLogout(token);
     sessionStorage.removeItem(ADMIN_TOKEN_KEY);
     setToken('');
+    setStats(null);
   };
 
   if (booting) {
@@ -241,12 +296,72 @@ export default function AdminShell() {
       )}
 
       {tab === 'overview' && (
-        <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className="max-w-6xl mx-auto px-4 py-6 space-y-8">
           <StoreInsightsPanel
             token={token}
             onOpenConfirm={() => goDesk('confirm', 'call_today')}
             onOpenShip={() => goDesk('ship', 'all')}
           />
+
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold text-cocoa">اليوم — سريع</h2>
+              <p className="text-sm text-muted-brown">أرقام الطابور الآن</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => void loadOverview(token)}
+              className="px-4 py-2.5 rounded-xl bg-cocoa text-ivory text-sm font-bold"
+            >
+              تحديث
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <MetricCard
+              label="طلبات اليوم"
+              value={String(stats?.today ?? '—')}
+              onClick={() => goDesk('confirm', 'call_today')}
+            />
+            <MetricCard
+              label="قيد التأكيد"
+              value={String(stats?.pending ?? '—')}
+              hint="جديد + مكالمات"
+              onClick={() => goDesk('confirm', 'call_today')}
+            />
+            <MetricCard
+              label="مؤكد / جاهز للشحن"
+              value={String(
+                (stats?.confirmed ?? 0) + (stats?.ready_to_ship ?? 0),
+              )}
+              onClick={() => goDesk('ship', 'confirmed')}
+            />
+            <MetricCard
+              label="مرسل"
+              value={String(stats?.shipped ?? '—')}
+              onClick={() => goDesk('ship', 'shipped')}
+            />
+            <MetricCard
+              label="مسلم اليوم"
+              value={String(stats?.today_delivered ?? stats?.delivered ?? '—')}
+              onClick={() => goDesk('confirm', 'delivered')}
+            />
+            <MetricCard
+              label="مرتجع"
+              value={String(stats?.returned ?? '—')}
+              onClick={() => goDesk('ship', 'returned')}
+            />
+            <MetricCard
+              label="ملغى"
+              value={String(stats?.cancelled ?? '—')}
+              onClick={() => goDesk('confirm', 'cancelled')}
+            />
+            <MetricCard
+              label="متأخر شحن"
+              value={String(stats?.stale_shipped ?? '—')}
+              onClick={() => goDesk('ship', 'stale')}
+            />
+          </div>
         </div>
       )}
     </div>

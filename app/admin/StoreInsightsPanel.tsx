@@ -200,6 +200,48 @@ export default function StoreInsightsPanel({
         ))}
       </div>
 
+      {data?.earnings ? (
+        <section className="space-y-3">
+          <h3 className="text-sm font-bold text-[#6a5648]">لمحة كل الفترات</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+            {PERIODS.map((p) => {
+              const row = data.earnings?.[p.id];
+              const on = period === p.id;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setPeriod(p.id)}
+                  className={`rounded-xl border px-3 py-3 text-right transition-colors ${
+                    on
+                      ? 'border-[#1C1412] bg-[#1C1412] text-white'
+                      : 'border-[#e6d9cc] bg-white hover:border-[#C4A484]'
+                  }`}
+                >
+                  <p
+                    className={`text-[11px] font-medium ${
+                      on ? 'text-white/70' : 'text-[#6a5648]'
+                    }`}
+                  >
+                    {p.label}
+                  </p>
+                  <p className="mt-1 text-lg font-bold tabular-nums">
+                    {mad(row?.earnings)}
+                  </p>
+                  <p
+                    className={`mt-0.5 text-[11px] tabular-nums ${
+                      on ? 'text-white/55' : 'text-[#6a5648]'
+                    }`}
+                  >
+                    {row?.orders ?? 0} طلب · {row?.delivered ?? 0} مسلّم
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
       <section className="space-y-3">
         <h3 className="text-sm font-bold text-[#6a5648]">
           الفلوس
@@ -337,6 +379,25 @@ export default function StoreInsightsPanel({
           )}
         </div>
       </div>
+
+      {store?.by_status && Object.keys(store.by_status).length > 0 ? (
+        <section className="space-y-3">
+          <h3 className="text-sm font-bold text-[#6a5648]">حسب الحالة</h3>
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(store.by_status)
+              .sort((a, b) => b[1] - a[1])
+              .map(([status, count]) => (
+                <span
+                  key={status}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#e6d9cc] bg-white px-3 py-1.5 text-xs font-bold text-[#1C1412]"
+                >
+                  {status}
+                  <span className="tabular-nums text-[#6a5648]">{count}</span>
+                </span>
+              ))}
+          </div>
+        </section>
+      ) : null}
 
       {(onOpenConfirm || onOpenShip) && (
         <div className="flex flex-wrap gap-2">

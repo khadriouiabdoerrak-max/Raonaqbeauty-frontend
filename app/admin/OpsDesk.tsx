@@ -681,14 +681,22 @@ export default function OpsDesk({
         );
       });
     } else {
-      // طابور التأكيد: يبقى الطلب هنا حتى Confirmé، من بعد كيدوز للشحن
+      // طابور التأكيد: الأجدد فوق — الكموند الجديدة كطيح فالرأس، مرتبة واحد تحت واحد
       list = list
         .filter(isConfirmQueue)
-        .sort(
-          (a, b) =>
-            new Date(a.created_at).getTime() -
-            new Date(b.created_at).getTime(),
-        );
+        .sort((a, b) => {
+          const rank = (o: AdminOrder) => {
+            if (o.status === 'PENDING_CONFIRMATION') return 0;
+            if (o.status === 'NO_ANSWER') return 1;
+            return 2;
+          };
+          const d = rank(a) - rank(b);
+          if (d !== 0) return d;
+          return (
+            new Date(b.created_at).getTime() -
+            new Date(a.created_at).getTime()
+          );
+        });
     }
     if (filterYear || filterMonth || filterDay) {
       list = list.filter((o) => {

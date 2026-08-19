@@ -4,7 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartContext";
 import { trackInitiateCheckout } from "../lib/pixels";
-import { createOrder, saveLastOrder, toLastPurchase } from "../lib/orders";
+import {
+  createOrder,
+  OrderSubmitError,
+  saveLastOrder,
+  toLastPurchase,
+} from "../lib/orders";
 
 type FieldKey = "name" | "phone" | "city" | "address";
 type FieldErrors = Partial<Record<FieldKey, string>>;
@@ -45,6 +50,8 @@ export default function CheckoutModal() {
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const checkoutTracked = useRef(false);
+  /** Sync lock — React state is async; double-click can fire 2 creates without this */
+  const submittingRef = useRef(false);
   const nameRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
   const cityRef = useRef<HTMLInputElement>(null);
@@ -61,7 +68,10 @@ export default function CheckoutModal() {
       checkoutTracked.current = false;
       setErrors({});
       setFormError("");
-      setIsSubmitting(false);
+      // Don't unlock mid-flight if modal closed while request still running
+      if (!submittingRef.current) {
+        setIsSubmitting(false);
+      }
       return;
     }
     if (checkoutTracked.current || cart.length === 0) return;
@@ -93,7 +103,8 @@ export default function CheckoutModal() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) return;
+    e.stopPropagation();
+    if (submittingRef.current || isSubmitting) return;
 
     const nextErrors = validateForm(form, cart.length);
     setErrors(nextErrors);
@@ -111,6 +122,7 @@ export default function CheckoutModal() {
       return;
     }
 
+    submittingRef.current = true;
     setIsSubmitting(true);
 
     const customer = {
@@ -143,12 +155,17 @@ export default function CheckoutModal() {
       }
 
       setForm(emptyForm);
-      router.push("/thank-you");
       finishOrder();
+      router.push("/thank-you");
     } catch (err) {
       console.error(err);
+      submittingRef.current = false;
       setIsSubmitting(false);
-      setFormError("Impossible d’enregistrer la commande. Réessayez.");
+      setFormError(
+        err instanceof OrderSubmitError
+          ? err.message
+          : "Impossible d’enregistrer la commande. Réessayez."
+      );
     }
   };
 
@@ -162,7 +179,7 @@ export default function CheckoutModal() {
   return (
     <div
       className="fixed inset-0 z-[90] flex items-end justify-center bg-[#1C1412]/55 sm:items-center sm:p-4"
-      onClick={closeCheckout}
+      onClick={isSubmitting ? undefined : closeCheckout}
     >
       <div
         className="relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl border border-champagne/25 bg-white shadow-2xl sm:max-h-[90vh] sm:max-w-md sm:rounded-2xl"
@@ -189,7 +206,8 @@ export default function CheckoutModal() {
           <button
             type="button"
             onClick={closeCheckout}
-            className="shrink-0 rounded-xl bg-pearl-blush p-2 text-warm-black/50 transition-colors hover:text-warm-black"
+            disabled={isSubmitting}
+            className="shrink-0 rounded-xl bg-pearl-blush p-2 text-warm-black/50 transition-colors hover:text-warm-black disabled:opacity-40"
             aria-label="Fermer"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
@@ -222,7 +240,8 @@ export default function CheckoutModal() {
               <button
                 type="button"
                 onClick={backToCart}
-                className="w-full pt-1 text-center text-[12px] font-black text-rosewood"
+                disabled={isSubmitting}
+                className="w-full pt-1 text-center text-[12px] font-black text-rosewood disabled:opacity-40"
               >
                 Modifier le panier
               </button>
@@ -324,8 +343,9 @@ export default function CheckoutModal() {
             <button
               type="submit"
               disabled={isSubmitting}
+              aria-busy={isSubmitting}
               onMouseDown={(e) => e.preventDefault()}
-              className="btn btn-primary btn-block btn-lg disabled:opacity-70"
+              className="btn btn-primary btn-block btn-lg disabled:pointer-events-none disabled:opacity-70"
             >
               {isSubmitting ? "Enregistrement..." : "Confirmer — payer à la livraison"}
             </button>

@@ -167,18 +167,72 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
     })),
   };
 
-  const order = await postDirect<{ id: number }>(ORDERS_API, payload);
+  try {
+    const order = await postDirect<{ id: number }>(ORDERS_API, payload, {
+      timeoutMs: 28000,
+      retries: 3,
+    });
 
-  if (!order?.id) {
-    throw new Error("no_order_id");
+    if (!order?.id) {
+      throw new Error("no_order_id");
+    }
+
+    return {
+      orderId: order.id,
+      eventId,
+      total: input.total,
+      contents,
+    };
+  } catch (error) {
+    throw classifyOrderError(error);
   }
+}
 
-  return {
-    orderId: order.id,
-    eventId,
-    total: input.total,
-    contents,
-  };
+export class OrderSubmitError extends Error {
+  constructor(
+    message: string,
+    public readonly kind: "timeout" | "rate" | "server" | "client"
+  ) {
+    super(message);
+    this.name = "OrderSubmitError";
+  }
+}
+
+function classifyOrderError(error: unknown): OrderSubmitError {
+  const raw =
+    error instanceof Error
+      ? `${error.name} ${error.message}`
+      : String(error ?? "");
+  const lower = raw.toLowerCase();
+
+  if (
+    lower.includes("abort") ||
+    lower.includes("timeout") ||
+    lower.includes("failed to fetch") ||
+    lower.includes("networkerror") ||
+    lower.includes("network")
+  ) {
+    return new OrderSubmitError(
+      "Pas de réponse. Vérifiez la connexion et réessayez une seule fois.",
+      "timeout"
+    );
+  }
+  if (lower.includes("429") || lower.includes("trop de commandes")) {
+    return new OrderSubmitError(
+      "Trop de tentatives. Attendez un instant puis réessayez.",
+      "rate"
+    );
+  }
+  if (lower.includes("409") || lower.includes("bientôt")) {
+    return new OrderSubmitError(
+      "Produit bientôt disponible — commande non acceptée.",
+      "client"
+    );
+  }
+  return new OrderSubmitError(
+    "Impossible d’enregistrer la commande. Réessayez.",
+    "server"
+  );
 }
 
 export async function attachUpsell(
@@ -196,27 +250,49 @@ export async function attachUpsell(
   });
 }
 
-async function postDirect<T>(url: string, payload: unknown): Promise<T> {
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function postDirect<T>(
+  url: string,
+  payload: unknown,
+  opts?: { timeoutMs?: number; retries?: number }
+): Promise<T> {
+  const retries = opts?.retries ?? 3;
+  const timeoutMs = opts?.timeoutMs ?? 20000;
   let lastError: unknown = "request_failed";
 
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  for (let attempt = 0; attempt < retries; attempt += 1) {
     try {
-      const res = await fetchWithTimeout(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetchWithTimeout(
+        url,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(payload),
+        },
+        timeoutMs
+      );
       const text = await res.text();
       if (!res.ok) {
         lastError = text || res.status;
+        // Don't retry client errors (validation, OOS) — only 429 / 5xx
         if (res.status >= 400 && res.status < 500 && res.status !== 429) {
           break;
+        }
+        if (attempt < retries - 1) {
+          await sleep(400 * (attempt + 1));
         }
         continue;
       }
       return JSON.parse(text) as T;
     } catch (error) {
       lastError = error;
+      // Network / timeout — safe to retry: backend dedupes by event_id
+      if (attempt < retries - 1) {
+        await sleep(500 * (attempt + 1));
+      }
     }
   }
 

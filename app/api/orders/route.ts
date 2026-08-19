@@ -11,7 +11,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const limited = rateLimit(request, "orders", 12, 60_000);
+  const limited = rateLimit(request, "orders", 24, 60_000);
   if (!limited.ok) {
     return NextResponse.json(
       { detail: "Trop de commandes. Réessaie dans un instant." },

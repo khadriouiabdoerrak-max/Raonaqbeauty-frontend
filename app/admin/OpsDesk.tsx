@@ -977,29 +977,84 @@ export default function OpsDesk({
     [selectedShip],
   );
 
-  const selectedShipId = selectedShipIds[0] || null;
+  const shipSelectableOnPage = useMemo(
+    () => pagedRows.filter((o) => canSendToOzon(o)),
+    [pagedRows],
+  );
 
-  const runSingleOzonShip = async () => {
-    if (!token || !selectedShipId) return;
-    if (selectedShipIds.length > 1) {
-      setSelectedShip({ [selectedShipId]: true });
+  const allShipPageSelected =
+    shipSelectableOnPage.length > 0 &&
+    shipSelectableOnPage.every((o) => selectedShip[o.order_number]);
+
+  const toggleShipSelect = (id: string, on: boolean) => {
+    setSelectedShip((prev) => {
+      const next = { ...prev };
+      if (on) next[id] = true;
+      else delete next[id];
+      return next;
+    });
+  };
+
+  const toggleSelectAllShipPage = () => {
+    setSelectedShip((prev) => {
+      const next = { ...prev };
+      if (allShipPageSelected) {
+        for (const o of shipSelectableOnPage) delete next[o.order_number];
+      } else {
+        for (const o of shipSelectableOnPage) next[o.order_number] = true;
+      }
+      return next;
+    });
+  };
+
+  const withPreservedScroll = async (fn: () => Promise<void>) => {
+    const y = typeof window !== 'undefined' ? window.scrollY : 0;
+    try {
+      await fn();
+    } finally {
+      requestAnimationFrame(() => {
+        window.scrollTo(0, y);
+        requestAnimationFrame(() => window.scrollTo(0, y));
+      });
     }
+  };
+
+  const runSelectedOzonShip = async () => {
+    if (!token || selectedShipIds.length === 0) return;
+    const ids = [...selectedShipIds];
     const ok = window.confirm(
-      `إرسال الطلب ${selectedShipId} إلى OzonExpress؟\nطلب واحد فقط — باش ما يتكرّرش الغلط.`,
+      ids.length === 1
+        ? `إرسال الطلب ${ids[0]} إلى OzonExpress؟`
+        : `إرسال ${ids.length} طلبات محددة إلى OzonExpress؟`,
     );
     if (!ok) return;
     setBusy(true);
     setError('');
     setBatchMsg('');
     try {
-      const results = await shipAdminOrdersBatch(token, [selectedShipId]);
-      const row = results[0];
-      if (!row?.ok) {
-        setError(row?.error || 'فشل الإرسال إلى OzonExpress');
-        setBatchMsg('');
-      } else {
-        setBatchMsg(`تم إرسال ${selectedShipId} إلى OzonExpress`);
-        setSelectedShip({});
+      const results = await shipAdminOrdersBatch(token, ids);
+      const okRows = results.filter((r) => r.ok);
+      const failRows = results.filter((r) => !r.ok);
+      if (okRows.length) {
+        setBatchMsg(
+          okRows.length === 1
+            ? `تم إرسال ${okRows[0].order_number} إلى OzonExpress`
+            : `تم إرسال ${okRows.length} طلبات إلى OzonExpress`,
+        );
+        setSelectedShip((prev) => {
+          const next = { ...prev };
+          for (const r of okRows) delete next[r.order_number];
+          return next;
+        });
+      }
+      if (failRows.length) {
+        setError(
+          failRows
+            .map((r) => `${r.order_number}: ${r.error || 'فشل'}`)
+            .join(' · '),
+        );
+      }
+      await withPreservedScroll(async () => {
         await load(token, true);
         try {
           await syncOzonExpress(token);
@@ -1007,7 +1062,7 @@ export default function OpsDesk({
         } catch {
           /* ignore */
         }
-      }
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'فشل الإرسال');
     } finally {
@@ -1515,13 +1570,15 @@ export default function OpsDesk({
                   </button>
                   <button
                     type="button"
-                    disabled={busy || !ozoneReady || !selectedShipId}
-                    onClick={() => void runSingleOzonShip()}
+                    disabled={busy || !ozoneReady || selectedShipIds.length === 0}
+                    onClick={() => void runSelectedOzonShip()}
                     className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#2a1810] text-white text-sm font-bold disabled:opacity-50"
                   >
                     <Truck className="w-4 h-4" />
                     إرسال لـ Ozon
-                    {selectedShipId ? ` · ${selectedShipId}` : ''}
+                    {selectedShipIds.length
+                      ? ` · ${selectedShipIds.length}`
+                      : ''}
                   </button>
                   <button
                     type="button"
@@ -1558,7 +1615,9 @@ export default function OpsDesk({
                             );
                           }
                           setBatchMsg(parts.join(' · '));
-                          await load(token, true);
+                          await withPreservedScroll(async () => {
+                            await load(token, true);
+                          });
                         } catch (err) {
                           setError(
                             err instanceof Error ? err.message : 'فشل المزامنة',
@@ -1728,13 +1787,15 @@ export default function OpsDesk({
             </div>
           ) : null}
 
-          {mode === 'ship' && (batchMsg || selectedShipId) ? (
+          {mode === 'ship' && (batchMsg || selectedShipIds.length > 0) ? (
             <div className="rounded-xl border border-[#e6d9cc] bg-white px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-sm">
               <p className="text-[#2a1810] font-bold">
                 {batchMsg ||
-                  `طلب واحد محدد: ${selectedShipId} — إرسال لـ OzonExpress`}
+                  (selectedShipIds.length === 1
+                    ? `محدد: ${selectedShipIds[0]} — جاهز للإرسال لـ OzonExpress`
+                    : `محدد: ${selectedShipIds.length} طلبات — جاهزين للإرسال لـ OzonExpress`)}
               </p>
-              {selectedShipId ? (
+              {selectedShipIds.length > 0 ? (
                 <button
                   type="button"
                   onClick={() => setSelectedShip({})}
@@ -1885,7 +1946,15 @@ export default function OpsDesk({
                 <thead>
                   <tr className="bg-[#dfe9d8] text-[#243d22] border-b border-[#b7c9b0]">
                     <th className="p-2.5 font-semibold border-l border-[#b7c9b0] w-10 text-center">
-                      <span className="sr-only">اختيار</span>
+                      <input
+                        type="checkbox"
+                        checked={allShipPageSelected}
+                        disabled={shipSelectableOnPage.length === 0}
+                        onChange={toggleSelectAllShipPage}
+                        aria-label="تحديد كل الجاهزين فهاد الصفحة"
+                        className="h-4 w-4 accent-[#c45c26] disabled:opacity-30"
+                        title="تحديد / إلغاء كل الطلبات الجاهزة فهاد الصفحة"
+                      />
                     </th>
                     <th className="p-2.5 font-semibold border-l border-[#b7c9b0] whitespace-nowrap">
                       التاريخ
@@ -1940,18 +2009,20 @@ export default function OpsDesk({
                         >
                           <td className="p-2.5 border-l border-[#dde8d8] text-center">
                             <input
-                              type="radio"
-                              name="ozon-ship-one"
+                              type="checkbox"
                               disabled={!ozoneOk}
-                              checked={selectedShipId === o.order_number}
-                              onChange={() => {
-                                setSelectedShip({ [o.order_number]: true });
-                              }}
+                              checked={Boolean(selectedShip[o.order_number])}
+                              onChange={(e) =>
+                                toggleShipSelect(
+                                  o.order_number,
+                                  e.target.checked,
+                                )
+                              }
                               aria-label={`اختيار ${o.order_number} للإرسال`}
                               className="h-4 w-4 accent-[#c45c26] disabled:opacity-30"
                               title={
                                 ozoneOk
-                                  ? 'اختيار هاد الطلب فقط للإرسال إلى Ozon'
+                                  ? 'اختيار هاد الطلب للإرسال إلى Ozon'
                                   : 'خاص يكون مؤكد + عنوان كامل (≥8) بدون تتبع'
                               }
                             />

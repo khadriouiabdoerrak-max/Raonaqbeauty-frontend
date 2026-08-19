@@ -93,7 +93,28 @@ export default function ThankYouPage() {
     setCallWin(getCallWindow());
 
     const data = readLastOrder();
-    if (data) setPurchase(data);
+    if (data) {
+      setPurchase(data);
+    } else if (
+      process.env.NODE_ENV === "development" &&
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("demo") === "1"
+    ) {
+      setPurchase({
+        orderId: 19,
+        eventId: "demo",
+        value: 249,
+        contents: [
+          { id: "p5", name: "Raonaq GO", price: 249, quantity: 1 },
+        ],
+        customer: {
+          name: "Salma Test",
+          phone: "0612345678",
+          city: "Casablanca",
+          address: "Hay Riad, Rue 12",
+        },
+      });
+    }
 
     if (tracked.current) return;
     const forPixel = consumePurchaseForTracking();
@@ -118,7 +139,7 @@ export default function ThankYouPage() {
   const whatsappConfirm = getWhatsAppLink(
     (() => {
       const lines = ["Bonjour Raonaq,"];
-      if (purchase?.orderId) lines.push(`Je confirme ma commande N° ${purchase.orderId}.`);
+      if (purchase?.orderId) lines.push(`Je confirme ma commande RQ-${purchase.orderId}.`);
       else lines.push("Je souhaite confirmer ma commande.");
       if (customer?.name) lines.push(`Nom : ${customer.name}`);
       if (customer?.phone) lines.push(`Téléphone : ${customer.phone}`);
@@ -131,7 +152,7 @@ export default function ThankYouPage() {
 
   const whatsappFix = getWhatsAppLink(
     purchase?.orderId
-      ? `Bonjour Raonaq,\nJe souhaite corriger les infos de ma commande N° ${purchase.orderId}.`
+      ? `Bonjour Raonaq,\nJe souhaite corriger les infos de ma commande RQ-${purchase.orderId}.`
       : "Bonjour Raonaq,\nJe souhaite corriger les infos de ma commande.",
   );
 
@@ -183,12 +204,12 @@ export default function ThankYouPage() {
           </p>
 
           {purchase?.orderId ? (
-            <div className="mt-8 inline-flex flex-col items-center gap-1 border border-[#C4A484]/40 bg-white/75 px-10 py-4">
-              <span className="text-[9px] font-medium tracking-[0.36em] text-[#C4A484]">COMMANDE</span>
-              <span className="font-display text-2xl font-semibold tracking-wide text-[#1C1412]">
-                N° {purchase.orderId}
+            <p className="mt-7 text-[13px] font-medium text-[#1C1412]/45">
+              Référence{" "}
+              <span className="font-display text-[1.35rem] font-semibold tracking-[0.04em] text-[#1C1412]">
+                RQ-{purchase.orderId}
               </span>
-            </div>
+            </p>
           ) : null}
 
           <a
@@ -219,8 +240,8 @@ export default function ThankYouPage() {
                   </h2>
                 </div>
                 {purchase?.orderId ? (
-                  <p className="shrink-0 text-[12px] font-medium tracking-wide text-white/40">
-                    N° {purchase.orderId}
+                  <p className="shrink-0 font-display text-[15px] font-semibold tracking-wide text-[#C4A484]">
+                    RQ-{purchase.orderId}
                   </p>
                 ) : null}
               </div>
@@ -343,7 +364,9 @@ export default function ThankYouPage() {
                 </h2>
               </div>
               {purchase.orderId ? (
-                <p className="text-[12px] text-[#1C1412]/35">N° {purchase.orderId}</p>
+                <p className="font-display text-[15px] font-semibold text-[#1C1412]/45">
+                  RQ-{purchase.orderId}
+                </p>
               ) : null}
             </div>
 

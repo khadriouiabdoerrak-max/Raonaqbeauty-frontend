@@ -263,25 +263,93 @@ function stageOf(o: AdminOrder): PipeFilter {
 
 function rowStageClass(o: AdminOrder): string {
   const s = o.status;
-  if (s === 'CONFIRMED' || s === 'READY_TO_SHIP')
-    return 'bg-emerald-50/80 border-s-4 border-s-emerald-600';
-  if (s === 'CANCELLED' || s === 'FAUX_NM' || s === 'DOUBLE' || s === 'INJOIGNABLE')
-    return 'bg-stone-100 border-s-4 border-s-stone-400';
-  if (s === 'BOITE_VOCALE' || s === 'APPEL_WHATSAPP')
-    return 'bg-violet-50 border-s-4 border-s-violet-500';
-  if (s === 'REPORTE') return 'bg-sky-50 border-s-4 border-s-sky-500';
-  if (s === 'APPEL_7' || s === 'APPEL_6')
-    return 'bg-[#F3D5DB] border-s-4 border-s-[#C45B6A]';
-  if (s === 'APPEL_5' || s === 'APPEL_4' || s === 'APPEL_3')
-    return 'bg-[#F8E8EB] border-s-4 border-s-[#C45B6A]/70';
-  if (s === 'APPEL_2' || s === 'APPEL_1' || s === 'NO_ANSWER')
-    return 'bg-amber-50 border-s-4 border-s-amber-400';
-  if (s === 'SHIPPED') return 'bg-white border-s-4 border-s-[#2a1810]/40';
-  if (s === 'DELIVERED') return 'bg-emerald-50/50 border-s-4 border-s-emerald-500';
-  if (s === 'RETURNED') return 'bg-amber-50/80 border-s-4 border-s-amber-600';
-  if (s === 'PENDING_CONFIRMATION')
-    return 'bg-[#F7F1EC] border-s-4 border-s-[#C4A484]';
-  return 'bg-white';
+  const base = 'border-s-4 transition-colors';
+
+  // Livré / retour — final
+  if (s === 'DELIVERED')
+    return `${base} bg-emerald-50/90 border-s-emerald-400`;
+  if (s === 'RETURNED')
+    return `${base} bg-orange-50/90 border-s-orange-300`;
+
+  // Chez le livreur / Ozone (tracking ou SHIPPED)
+  if (s === 'SHIPPED' || hasRealTracking(o)) {
+    if (isOzonNoResponseStatus(o.courier_status)) {
+      return `${base} bg-amber-50/95 border-s-amber-400`;
+    }
+    return `${base} bg-sky-50/95 border-s-sky-400`;
+  }
+
+  // Confirmé — prêt à envoyer à la société
+  if (s === 'CONFIRMED' || s === 'READY_TO_SHIP') {
+    return `${base} bg-teal-50/90 border-s-teal-400`;
+  }
+
+  // Annulé / faux / double
+  if (
+    s === 'CANCELLED' ||
+    s === 'FAUX_NM' ||
+    s === 'DOUBLE' ||
+    s === 'INJOIGNABLE'
+  ) {
+    return `${base} bg-stone-100/90 border-s-stone-300`;
+  }
+
+  if (s === 'BOITE_VOCALE' || s === 'APPEL_WHATSAPP') {
+    return `${base} bg-violet-50/80 border-s-violet-300`;
+  }
+  if (s === 'REPORTE') return `${base} bg-sky-50/80 border-s-sky-300`;
+
+  // Relances — rose plus marqué plus on avance
+  if (s === 'APPEL_7' || s === 'APPEL_6') {
+    return `${base} bg-[#F8E4E8] border-s-[#C45B6A]/80`;
+  }
+  if (s === 'APPEL_5' || s === 'APPEL_4' || s === 'APPEL_3') {
+    return `${base} bg-[#FBEFF1] border-s-[#C45B6A]/55`;
+  }
+  if (s === 'APPEL_2' || s === 'APPEL_1' || s === 'NO_ANSWER') {
+    return `${base} bg-amber-50/90 border-s-amber-300`;
+  }
+
+  // Nouveau — en attente de confirmation
+  if (s === 'PENDING_CONFIRMATION') {
+    return `${base} bg-[#F7F1EC] border-s-[#C4A484]`;
+  }
+
+  return `${base} bg-white border-s-transparent`;
+}
+
+/** ليجاند خفيف — تأكيد + شحن */
+function StatusColorLegend({ mode }: { mode: Mode }) {
+  const items =
+    mode === 'ship'
+      ? [
+          { c: 'bg-teal-50 border-teal-300', t: 'مؤكد · جاهز' },
+          { c: 'bg-sky-50 border-sky-300', t: 'مرسل للشركة' },
+          { c: 'bg-amber-50 border-amber-300', t: 'ما جاوبش Ozone' },
+          { c: 'bg-emerald-50 border-emerald-300', t: 'توصل' },
+          { c: 'bg-orange-50 border-orange-300', t: 'راجع' },
+        ]
+      : [
+          { c: 'bg-[#F7F1EC] border-[#C4A484]', t: 'جديد' },
+          { c: 'bg-amber-50 border-amber-300', t: 'ما جاوبش' },
+          { c: 'bg-sky-50 border-sky-300', t: 'مؤجل' },
+          { c: 'bg-teal-50 border-teal-300', t: 'مؤكد' },
+          { c: 'bg-stone-100 border-stone-300', t: 'ملغى' },
+        ];
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#6a5648]">
+      <span className="font-bold text-[#8a7464]">ألوان:</span>
+      {items.map((it) => (
+        <span
+          key={it.t}
+          className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 ${it.c}`}
+        >
+          {it.t}
+        </span>
+      ))}
+    </div>
+  );
 }
 
 function daysLabel(o: AdminOrder) {
@@ -1838,6 +1906,10 @@ export default function OpsDesk({
               })}
             </div>
           ) : null}
+
+          {(mode === 'orders' || mode === 'ship') && (
+            <StatusColorLegend mode={mode} />
+          )}
 
           {mode === 'orders' ? (
             <div className="rounded-xl border border-[#e6d9cc] bg-white overflow-hidden">

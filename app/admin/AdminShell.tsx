@@ -296,72 +296,110 @@ export default function AdminShell() {
       )}
 
       {tab === 'overview' && (
-        <div className="max-w-6xl mx-auto px-4 py-6 space-y-8">
+        <div className="max-w-6xl mx-auto px-4 py-6 space-y-10">
           <StoreInsightsPanel
             token={token}
             onOpenConfirm={() => goDesk('confirm', 'call_today')}
             onOpenShip={() => goDesk('ship', 'all')}
+            onGoDesk={goDesk}
           />
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-bold text-cocoa">اليوم — سريع</h2>
-              <p className="text-sm text-muted-brown">أرقام الطابور الآن</p>
+          <section className="space-y-4 border-t border-champagne/40 pt-8">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-bold text-cocoa">طابور الآن</h2>
+                <p className="text-sm text-muted-brown">
+                  اللي خاصو خدمة دابا — ماشي غير إحصاء الفترة
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void loadOverview(token)}
+                className="px-4 py-2.5 rounded-xl bg-cocoa text-ivory text-sm font-bold"
+              >
+                تحديث الطابور
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => void loadOverview(token)}
-              className="px-4 py-2.5 rounded-xl bg-cocoa text-ivory text-sm font-bold"
-            >
-              تحديث
-            </button>
-          </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <MetricCard
-              label="طلبات اليوم"
-              value={String(stats?.today ?? '—')}
-              onClick={() => goDesk('confirm', 'call_today')}
-            />
-            <MetricCard
-              label="قيد التأكيد"
-              value={String(stats?.pending ?? '—')}
-              hint="جديد + مكالمات"
-              onClick={() => goDesk('confirm', 'call_today')}
-            />
-            <MetricCard
-              label="مؤكد / جاهز للشحن"
-              value={String(
-                (stats?.confirmed ?? 0) + (stats?.ready_to_ship ?? 0),
-              )}
-              onClick={() => goDesk('ship', 'confirmed')}
-            />
-            <MetricCard
-              label="مرسل"
-              value={String(stats?.shipped ?? '—')}
-              onClick={() => goDesk('ship', 'shipped')}
-            />
-            <MetricCard
-              label="مسلم اليوم"
-              value={String(stats?.today_delivered ?? stats?.delivered ?? '—')}
-              onClick={() => goDesk('confirm', 'delivered')}
-            />
-            <MetricCard
-              label="مرتجع"
-              value={String(stats?.returned ?? '—')}
-              onClick={() => goDesk('ship', 'returned')}
-            />
-            <MetricCard
-              label="ملغى"
-              value={String(stats?.cancelled ?? '—')}
-              onClick={() => goDesk('confirm', 'cancelled')}
-            />
-            <MetricCard
-              label="متأخر شحن"
-              value={String(stats?.stale_shipped ?? '—')}
-              onClick={() => goDesk('ship', 'stale')}
-            />
-          </div>
+            <div>
+              <p className="mb-2 text-[11px] font-bold text-muted-brown">تأكيد</p>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <MetricCard
+                  label="طلبات اليوم"
+                  value={String(stats?.today ?? '—')}
+                  onClick={() => goDesk('confirm', 'call_today')}
+                />
+                <MetricCard
+                  label="قيد التأكيد"
+                  value={String(stats?.pending ?? '—')}
+                  hint="جديد + مكالمات"
+                  onClick={() => goDesk('confirm', 'call_today')}
+                />
+                <MetricCard
+                  label="ملغى (الكل)"
+                  value={String(stats?.cancelled ?? '—')}
+                  onClick={() => goDesk('confirm', 'cancelled')}
+                />
+                <MetricCard
+                  label="مؤجل حان وقته"
+                  value={String(stats?.reporte_due ?? stats?.reporte ?? '—')}
+                  onClick={() => goDesk('confirm', 'call_today')}
+                />
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-2 text-[11px] font-bold text-muted-brown">شحن · توصيل</p>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <MetricCard
+                  label="جاهز للشحن"
+                  value={String(
+                    (stats?.confirmed ?? 0) + (stats?.ready_to_ship ?? 0),
+                  )}
+                  onClick={() => goDesk('ship', 'confirmed')}
+                />
+                <MetricCard
+                  label="مرسل عند الشركة"
+                  value={String(stats?.shipped ?? '—')}
+                  onClick={() => goDesk('ship', 'shipped')}
+                />
+                <MetricCard
+                  label="متأخر شحن"
+                  value={String(stats?.stale_shipped ?? '—')}
+                  hint="مرسل بزاف وما تبدّلاتش حالته"
+                  onClick={() => goDesk('ship', 'stale')}
+                />
+                <MetricCard
+                  label="مرتجع"
+                  value={String(stats?.returned ?? '—')}
+                  onClick={() => goDesk('ship', 'returned')}
+                />
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-2 text-[11px] font-bold text-muted-brown">نتائج اليوم</p>
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                <MetricCard
+                  label="مسلّم اليوم"
+                  value={String(
+                    stats?.today_delivered ?? stats?.delivered ?? '—',
+                  )}
+                  onClick={() => goDesk('ship', 'delivered')}
+                />
+                <MetricCard
+                  label="مرتجع اليوم"
+                  value={String(stats?.today_returned ?? '—')}
+                  onClick={() => goDesk('ship', 'returned')}
+                />
+                <MetricCard
+                  label="ملغى اليوم"
+                  value={String(stats?.today_cancelled ?? '—')}
+                  onClick={() => goDesk('confirm', 'cancelled')}
+                />
+              </div>
+            </div>
+          </section>
         </div>
       )}
     </div>

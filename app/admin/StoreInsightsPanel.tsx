@@ -18,6 +18,30 @@ const PERIODS: { id: InsightPeriod; label: string }[] = [
   { id: 'all', label: 'الكل' },
 ];
 
+const STATUS_AR: Record<string, string> = {
+  PENDING_CONFIRMATION: 'جديد',
+  NO_ANSWER: 'ما جاوبش',
+  APPEL_1: 'مكالمة 1',
+  APPEL_2: 'مكالمة 2',
+  APPEL_3: 'مكالمة 3',
+  APPEL_4: 'مكالمة 4',
+  APPEL_5: 'مكالمة 5',
+  APPEL_6: 'مكالمة 6',
+  APPEL_7: 'مكالمة 7',
+  APPEL_WHATSAPP: 'واتساب',
+  BOITE_VOCALE: 'علبة صوتية',
+  REPORTE: 'مؤجل',
+  CONFIRMED: 'مؤكد',
+  READY_TO_SHIP: 'جاهز للشحن',
+  SHIPPED: 'مرسل',
+  DELIVERED: 'مسلّم',
+  RETURNED: 'مرتجع',
+  CANCELLED: 'ملغى',
+  FAUX_NM: 'رقم غلط',
+  DOUBLE: 'مكرر',
+  INJOIGNABLE: 'ما كيتجاوبش',
+};
+
 function pad(n: number) {
   return String(n).padStart(2, '0');
 }
@@ -29,58 +53,97 @@ function mad(n: number | null | undefined) {
   })} DH`;
 }
 
-function StatTile({
+function pct(n: number | null | undefined) {
+  return `${Number(n || 0)}%`;
+}
+
+function Section({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-3">
+      <div>
+        <h3 className="text-base font-bold text-[#1C1412]">{title}</h3>
+        {subtitle ? (
+          <p className="mt-0.5 text-[12px] text-[#6a5648]">{subtitle}</p>
+        ) : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Kpi({
   label,
   value,
   hint,
-  emphasize,
+  tone = 'default',
+  onClick,
 }: {
   label: string;
   value: string;
   hint?: string;
-  emphasize?: boolean;
+  tone?: 'default' | 'dark' | 'teal' | 'sky' | 'amber' | 'rose';
+  onClick?: () => void;
 }) {
-  return (
-    <div
-      className={`rounded-2xl border p-4 ${
-        emphasize
-          ? 'border-[#1C1412] bg-[#1C1412] text-white'
-          : 'border-[#e6d9cc] bg-white text-[#1C1412]'
-      }`}
-    >
-      <p
-        className={`text-xs font-medium ${
-          emphasize ? 'text-white/70' : 'text-[#6a5648]'
-        }`}
-      >
+  const tones: Record<string, string> = {
+    default: 'border-[#e6d9cc] bg-white text-[#1C1412]',
+    dark: 'border-[#1C1412] bg-[#1C1412] text-white',
+    teal: 'border-teal-200 bg-teal-50 text-[#1C1412]',
+    sky: 'border-sky-200 bg-sky-50 text-[#1C1412]',
+    amber: 'border-amber-200 bg-amber-50 text-[#1C1412]',
+    rose: 'border-[#F3D5DB] bg-[#FBEFF1] text-[#1C1412]',
+  };
+  const hintTone =
+    tone === 'dark' ? 'text-white/60' : 'text-[#6a5648]';
+  const labelTone =
+    tone === 'dark' ? 'text-white/70' : 'text-[#6a5648]';
+  const className = `rounded-2xl border p-4 text-right ${tones[tone]} ${
+    onClick ? 'hover:brightness-[0.98] transition' : ''
+  }`;
+  const body = (
+    <>
+      <p className={`text-[11px] font-bold tracking-wide ${labelTone}`}>
         {label}
       </p>
-      <p className="mt-1 text-2xl font-bold tabular-nums tracking-tight">
+      <p className="mt-1.5 text-2xl sm:text-3xl font-bold tabular-nums tracking-tight">
         {value}
       </p>
       {hint ? (
-        <p
-          className={`mt-1 text-[11px] leading-snug ${
-            emphasize ? 'text-white/60' : 'text-[#6a5648]'
-          }`}
-        >
-          {hint}
-        </p>
+        <p className={`mt-1.5 text-[11px] leading-snug ${hintTone}`}>{hint}</p>
       ) : null}
-    </div>
+    </>
   );
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={`w-full ${className}`}>
+        {body}
+      </button>
+    );
+  }
+  return <div className={className}>{body}</div>;
 }
+
+type DeskTarget = { desk: 'confirm' | 'ship'; pipe: string };
 
 type Props = {
   token: string;
   onOpenConfirm?: () => void;
   onOpenShip?: () => void;
+  onGoDesk?: (desk: 'confirm' | 'ship', pipe: string) => void;
 };
 
 export default function StoreInsightsPanel({
   token,
   onOpenConfirm,
   onOpenShip,
+  onGoDesk,
 }: Props) {
   const now = new Date();
   const [period, setPeriod] = useState<string>('today');
@@ -141,6 +204,11 @@ export default function StoreInsightsPanel({
     }
   };
 
+  const go = (target?: DeskTarget) => {
+    if (!target || !onGoDesk) return;
+    onGoDesk(target.desk, target.pipe);
+  };
+
   if (!token) {
     return (
       <p className="text-sm text-[#6a5648]">سجّل الدخول باش تشوف الحساب.</p>
@@ -149,14 +217,77 @@ export default function StoreInsightsPanel({
 
   const store = data?.store;
   const funnel = store?.funnel;
+  const periodLabel = data?.period_label || '';
+
+  const pipeline: {
+    key: keyof NonNullable<NonNullable<StoreInsights['store']>['funnel']>;
+    label: string;
+    hint: string;
+    tone: 'default' | 'amber' | 'teal' | 'sky' | 'rose';
+    target?: DeskTarget;
+  }[] = [
+    {
+      key: 'entered',
+      label: 'داخلة',
+      hint: 'كل الطلبات',
+      tone: 'default',
+    },
+    {
+      key: 'pending',
+      label: 'تأكيد',
+      hint: 'كاتسنى المكالمة',
+      tone: 'amber',
+      target: { desk: 'confirm', pipe: 'call_today' },
+    },
+    {
+      key: 'confirmed',
+      label: 'مؤكد',
+      hint: 'جاهز للشحن',
+      tone: 'teal',
+      target: { desk: 'ship', pipe: 'confirmed' },
+    },
+    {
+      key: 'shipped',
+      label: 'مرسل',
+      hint: 'عند الشركة',
+      tone: 'sky',
+      target: { desk: 'ship', pipe: 'shipped' },
+    },
+    {
+      key: 'delivered',
+      label: 'مسلّم',
+      hint: 'COD تسلاّم',
+      tone: 'teal',
+      target: { desk: 'ship', pipe: 'delivered' },
+    },
+    {
+      key: 'returned',
+      label: 'مرتجع',
+      hint: 'رجع للمخزن',
+      tone: 'amber',
+      target: { desk: 'ship', pipe: 'returned' },
+    },
+    {
+      key: 'cancelled',
+      label: 'ملغى',
+      hint: 'ما مشاتش',
+      tone: 'rose',
+      target: { desk: 'confirm', pipe: 'cancelled' },
+    },
+  ];
 
   return (
-    <div className="space-y-8" dir="rtl">
+    <div className={`space-y-8 ${loading ? 'opacity-70' : ''}`} dir="rtl">
+      {/* رأس */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-[#1C1412]">حساب رونق</h2>
-          <p className="text-sm text-[#6a5648] mt-0.5">
-            طلبات · فلوس COD · نسب · الدار البيضاء
+          <p className="text-[11px] font-bold tracking-[0.2em] text-[#C4A484]">
+            RAONAQ · حساب
+          </p>
+          <h2 className="mt-1 text-2xl font-bold text-[#1C1412]">نظرة شاملة</h2>
+          <p className="mt-1 text-sm text-[#6a5648]">
+            طلبات · تأكيد · شحن · تسليم · فلوس COD
+            {periodLabel ? ` · ${periodLabel}` : ''}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -183,6 +314,7 @@ export default function StoreInsightsPanel({
         </p>
       ) : null}
 
+      {/* اختيار الفترة */}
       <div className="flex flex-wrap gap-1.5">
         {PERIODS.map((p) => (
           <button
@@ -192,7 +324,7 @@ export default function StoreInsightsPanel({
             className={`px-3.5 py-2 rounded-xl text-sm font-bold border ${
               period === p.id
                 ? 'bg-[#1C1412] text-white border-[#1C1412]'
-                : 'bg-white border-[#e6d9cc] text-[#5c4a3c]'
+                : 'bg-white border-[#e6d9cc] text-[#5c4a3c] hover:border-[#C4A484]'
             }`}
           >
             {p.label}
@@ -200,189 +332,208 @@ export default function StoreInsightsPanel({
         ))}
       </div>
 
-      {data?.earnings ? (
-        <section className="space-y-3">
-          <h3 className="text-sm font-bold text-[#6a5648]">لمحة كل الفترات</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-            {PERIODS.map((p) => {
-              const row = data.earnings?.[p.id];
-              const on = period === p.id;
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => setPeriod(p.id)}
-                  className={`rounded-xl border px-3 py-3 text-right transition-colors ${
-                    on
-                      ? 'border-[#1C1412] bg-[#1C1412] text-white'
-                      : 'border-[#e6d9cc] bg-white hover:border-[#C4A484]'
-                  }`}
-                >
-                  <p
-                    className={`text-[11px] font-medium ${
-                      on ? 'text-white/70' : 'text-[#6a5648]'
-                    }`}
-                  >
-                    {p.label}
-                  </p>
-                  <p className="mt-1 text-lg font-bold tabular-nums">
-                    {mad(row?.earnings)}
-                  </p>
-                  <p
-                    className={`mt-0.5 text-[11px] tabular-nums ${
-                      on ? 'text-white/55' : 'text-[#6a5648]'
-                    }`}
-                  >
-                    {row?.orders ?? 0} طلب · {row?.delivered ?? 0} مسلّم
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      ) : null}
-
-      <section className="space-y-3">
-        <h3 className="text-sm font-bold text-[#6a5648]">
-          الفلوس
-          {data?.period_label ? ` · ${data.period_label}` : ''}
-        </h3>
+      {/* 1) الأرقام الأهم */}
+      <Section
+        title="الأهم دابا"
+        subtitle="شحال دخل · شحال تأكد · شحال تسلاّم · شحال فلوس جات"
+      >
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatTile
-            label="محصّل"
+          <Kpi
+            label="طلبات داخلة"
+            value={String(funnel?.entered ?? store?.orders ?? 0)}
+            hint="كل الطلبات فالفترة"
+          />
+          <Kpi
+            label="مؤكدة"
+            value={String(funnel?.confirmed ?? 0)}
+            hint="جاهزة أو خرجات للشحن"
+            tone="teal"
+            onClick={() => go({ desk: 'ship', pipe: 'confirmed' })}
+          />
+          <Kpi
+            label="مسلّمة"
+            value={String(funnel?.delivered ?? store?.delivered ?? 0)}
+            hint="الزبون خلّص / استلم"
+            tone="sky"
+            onClick={() => go({ desk: 'ship', pipe: 'delivered' })}
+          />
+          <Kpi
+            label="محصّل COD"
             value={mad(store?.earnings)}
-            hint={`${store?.delivered ?? 0} مسلّم · فلوس وصلت`}
-            emphasize
-          />
-          <StatTile
-            label="فريزو (فالتوصيل)"
-            value={mad(store?.frozen)}
-            hint={`${store?.frozen_count ?? 0} مرسل · معلّق دابا`}
-          />
-          <StatTile
-            label="مرتجع (قيمة)"
-            value={mad(store?.returned_value)}
-            hint="مجموع طلبات مرتجعة فالفترة"
-          />
-          <StatTile
-            label="متوسط الطلب"
-            value={mad(store?.avg_order_value)}
-            hint={`من ${store?.orders ?? 0} طلب (بدون ملغى)`}
+            hint="فلوس اللي تسلاّمات فعلاً"
+            tone="dark"
           />
         </div>
-        <p className="text-[11px] text-[#6a5648] leading-relaxed">
-          محصّل = COD اللي تسلاّم. فريزو = فلوس فالتوصيل دابا. هادا{' '}
-          <b>ماشي ربح صافي</b> (ما كنحسبوش تكلفة البضاعة / شحن Ozon هنا).
-        </p>
-      </section>
+      </Section>
 
-      <section className="space-y-3">
-        <h3 className="text-sm font-bold text-[#6a5648]">القمع</h3>
+      {/* 2) مسار الطلب */}
+      <Section
+        title="مسار الطلب"
+        subtitle="من الدخول حتى التسليم — كليكي باش تفتح الطابور"
+      >
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
-          {(
-            [
-              { key: 'entered', label: 'داخلة' },
-              { key: 'pending', label: 'قيد التأكيد' },
-              { key: 'confirmed', label: 'مؤكد / جاهز' },
-              { key: 'shipped', label: 'مرسل' },
-              { key: 'delivered', label: 'مسلّم' },
-              { key: 'returned', label: 'مرتجع' },
-              { key: 'cancelled', label: 'ملغى' },
-            ] as const
-          ).map((row) => (
-            <div
-              key={row.key}
-              className="rounded-xl border border-[#e6d9cc] bg-white px-3 py-3 text-center"
+          {pipeline.map((step, i) => (
+            <button
+              key={step.key}
+              type="button"
+              disabled={!step.target || !onGoDesk}
+              onClick={() => go(step.target)}
+              className={`rounded-xl border px-3 py-3 text-center disabled:cursor-default ${
+                step.tone === 'amber'
+                  ? 'border-amber-200 bg-amber-50'
+                  : step.tone === 'teal'
+                    ? 'border-teal-200 bg-teal-50'
+                    : step.tone === 'sky'
+                      ? 'border-sky-200 bg-sky-50'
+                      : step.tone === 'rose'
+                        ? 'border-[#F3D5DB] bg-[#FBEFF1]'
+                        : 'border-[#e6d9cc] bg-white'
+              } ${step.target && onGoDesk ? 'hover:brightness-[0.98]' : ''}`}
             >
-              <p className="text-[11px] text-[#6a5648] font-medium">
-                {row.label}
+              <p className="text-[10px] font-bold text-[#8a7464]">
+                {String(i + 1).padStart(2, '0')} · {step.label}
               </p>
-              <p className="mt-1 text-xl font-bold tabular-nums text-[#1C1412]">
-                {funnel?.[row.key] ?? 0}
+              <p className="mt-1 text-2xl font-bold tabular-nums text-[#1C1412]">
+                {funnel?.[step.key] ?? 0}
               </p>
-            </div>
+              <p className="mt-0.5 text-[10px] text-[#6a5648]">{step.hint}</p>
+            </button>
           ))}
         </div>
+      </Section>
+
+      {/* 3) الفلوس */}
+      <Section
+        title="الحساب · الفلوس"
+        subtitle="محصّل = تسلاّم. فريزو = باقي فالتوصيل. ماشي ربح صافي."
+      >
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <Kpi
+            label="محصّل"
+            value={mad(store?.earnings)}
+            hint={`${store?.delivered ?? 0} مسلّم`}
+            tone="dark"
+          />
+          <Kpi
+            label="فريزو فالتوصيل"
+            value={mad(store?.frozen)}
+            hint={`${store?.frozen_count ?? 0} طرد مرسل`}
+            tone="sky"
+          />
+          <Kpi
+            label="قيمة المرتجع"
+            value={mad(store?.returned_value)}
+            hint="طلبات رجعات"
+            tone="amber"
+          />
+          <Kpi
+            label="متوسط الطلب"
+            value={mad(store?.avg_order_value)}
+            hint={`من ${store?.orders ?? 0} طلب (بلا ملغى)`}
+          />
+        </div>
         {(store?.cancelled_value ?? 0) > 0 ? (
-          <p className="text-[11px] text-[#6a5648]">
-            قيمة الملغى فالفترة: {mad(store?.cancelled_value)}
+          <p className="text-[12px] text-[#6a5648]">
+            قيمة الملغى فالفترة: <b>{mad(store?.cancelled_value)}</b>
           </p>
         ) : null}
-      </section>
+      </Section>
 
-      <section className="space-y-3">
-        <h3 className="text-sm font-bold text-[#6a5648]">النسب</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatTile
+      {/* 4) النسب */}
+      <Section
+        title="الأداء"
+        subtitle="نسب التأكيد والتسليم والرجوع — باش تعرف الجودة"
+      >
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <Kpi
             label="نسبة التأكيد"
-            value={`${store?.confirm_rate ?? 0} %`}
+            value={pct(store?.confirm_rate)}
             hint="مؤكد فما فوق ÷ داخلة"
+            tone="teal"
           />
-          <StatTile
+          <Kpi
             label="نسبة التسليم"
-            value={`${store?.delivery_rate ?? 0} %`}
-            hint="مسلّم ÷ (مرسل+مسلّم+مرتجع)"
+            value={pct(store?.delivery_rate)}
+            hint="مسلّم ÷ الشحنات"
+            tone="sky"
           />
-          <StatTile
+          <Kpi
             label="نسبة الرجوع"
-            value={`${store?.return_rate ?? 0} %`}
+            value={pct(store?.return_rate)}
             hint="مرتجع ÷ الشحنات"
+            tone="amber"
           />
-          <StatTile
+          <Kpi
             label="تحويل COD"
-            value={`${store?.conversion_rate ?? 0} %`}
-            hint="مسلّم ÷ طلبات الفترة"
+            value={pct(store?.conversion_rate)}
+            hint="مسلّم ÷ كل الطلبات"
           />
         </div>
-      </section>
+      </Section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <div className="rounded-2xl border border-[#e6d9cc] bg-white p-4 space-y-3">
-          <p className="text-xs font-bold text-[#6a5648]">أفضل المنتجات</p>
-          {store?.top_products?.length ? (
-            <ul className="space-y-2">
-              {store.top_products.map((p) => (
-                <li
-                  key={p.name}
-                  className="flex items-center justify-between gap-3 text-sm border-b border-[#f0e6dc] pb-2 last:border-0"
-                >
-                  <span className="font-medium text-[#1C1412] truncate">
-                    {p.name}
-                  </span>
-                  <span className="shrink-0 tabular-nums text-[#6a5648]">
-                    ×{p.quantity} · {mad(p.revenue)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-[#6a5648]">ما كاينش بيانات</p>
-          )}
+      {/* 5) منتجات + مدن */}
+      <Section title="شنو كيتباع · فين" subtitle="أقوى المنتجات والمدن فالفترة">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <div className="rounded-2xl border border-[#e6d9cc] bg-white p-4 space-y-3">
+            <p className="text-xs font-bold text-[#6a5648]">أفضل المنتجات</p>
+            {store?.top_products?.length ? (
+              <ul className="space-y-2">
+                {store.top_products.map((p, idx) => (
+                  <li
+                    key={p.name}
+                    className="flex items-center justify-between gap-3 text-sm border-b border-[#f0e6dc] pb-2 last:border-0"
+                  >
+                    <span className="min-w-0 flex items-center gap-2">
+                      <span className="text-[11px] font-bold text-[#C4A484] tabular-nums">
+                        {idx + 1}
+                      </span>
+                      <span className="font-medium text-[#1C1412] truncate">
+                        {p.name}
+                      </span>
+                    </span>
+                    <span className="shrink-0 tabular-nums text-[#6a5648]">
+                      ×{p.quantity} · {mad(p.revenue)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-[#6a5648]">ما كاينش بيانات</p>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-[#e6d9cc] bg-white p-4 space-y-3">
+            <p className="text-xs font-bold text-[#6a5648]">أفضل المدن</p>
+            {store?.top_cities?.length ? (
+              <ul className="space-y-2">
+                {store.top_cities.map((c, idx) => (
+                  <li
+                    key={c.city}
+                    className="flex items-center justify-between gap-3 text-sm border-b border-[#f0e6dc] pb-2 last:border-0"
+                  >
+                    <span className="min-w-0 flex items-center gap-2">
+                      <span className="text-[11px] font-bold text-[#C4A484] tabular-nums">
+                        {idx + 1}
+                      </span>
+                      <span className="font-medium truncate">{c.city}</span>
+                    </span>
+                    <span className="tabular-nums font-bold">{c.count}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-[#6a5648]">ما كاينش بيانات</p>
+            )}
+          </div>
         </div>
+      </Section>
 
-        <div className="rounded-2xl border border-[#e6d9cc] bg-white p-4 space-y-3">
-          <p className="text-xs font-bold text-[#6a5648]">أفضل المدن</p>
-          {store?.top_cities?.length ? (
-            <ul className="space-y-2">
-              {store.top_cities.map((c) => (
-                <li
-                  key={c.city}
-                  className="flex items-center justify-between gap-3 text-sm border-b border-[#f0e6dc] pb-2 last:border-0"
-                >
-                  <span className="font-medium truncate">{c.city}</span>
-                  <span className="tabular-nums font-bold">{c.count}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-[#6a5648]">ما كاينش بيانات</p>
-          )}
-        </div>
-      </div>
-
+      {/* 6) تفصيل الحالات */}
       {store?.by_status && Object.keys(store.by_status).length > 0 ? (
-        <section className="space-y-3">
-          <h3 className="text-sm font-bold text-[#6a5648]">حسب الحالة</h3>
+        <Section
+          title="تفصيل الحالات"
+          subtitle="كل حالة بوحدها فالفترة المختارة"
+        >
           <div className="flex flex-wrap gap-2">
             {Object.entries(store.by_status)
               .sort((a, b) => b[1] - a[1])
@@ -391,23 +542,24 @@ export default function StoreInsightsPanel({
                   key={status}
                   className="inline-flex items-center gap-1.5 rounded-full border border-[#e6d9cc] bg-white px-3 py-1.5 text-xs font-bold text-[#1C1412]"
                 >
-                  {status}
+                  {STATUS_AR[status] || status}
                   <span className="tabular-nums text-[#6a5648]">{count}</span>
                 </span>
               ))}
           </div>
-        </section>
+        </Section>
       ) : null}
 
+      {/* اختصارات */}
       {(onOpenConfirm || onOpenShip) && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 border-t border-[#e6d9cc] pt-5">
           {onOpenConfirm ? (
             <button
               type="button"
               onClick={onOpenConfirm}
-              className="px-4 py-2.5 rounded-xl border border-[#e6d9cc] bg-white text-sm font-bold text-[#1C1412]"
+              className="px-4 py-2.5 rounded-xl bg-[#1C1412] text-white text-sm font-bold"
             >
-              فتح طابور التأكيد
+              طابور التأكيد
             </button>
           ) : null}
           {onOpenShip ? (
@@ -416,7 +568,7 @@ export default function StoreInsightsPanel({
               onClick={onOpenShip}
               className="px-4 py-2.5 rounded-xl border border-[#e6d9cc] bg-white text-sm font-bold text-[#1C1412]"
             >
-              فتح مكتب الشحن
+              مكتب الشحن
             </button>
           ) : null}
         </div>

@@ -706,15 +706,11 @@ export default function OpsDesk({
   }, [orders]);
 
   const sortedOrders = useMemo(() => {
-    return [...orders].sort((a, b) => {
-      const ac = isConfirmQueue(a);
-      const bc = isConfirmQueue(b);
-      if (ac && bc) return urgency(b) - urgency(a);
-      if (ac !== bc) return ac ? -1 : 1;
-      return (
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-    });
+    // ترتيب ثابت بتاريخ الإنشاء — الحالة ما تحرّكش الصف
+    return [...orders].sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
   }, [orders]);
 
   const sheetRows = useMemo(() => {
@@ -750,22 +746,40 @@ export default function OpsDesk({
         );
       });
     } else {
-      // طابور التأكيد: الأجدد فوق — الكموند الجديدة كطيح فالرأس، مرتبة واحد تحت واحد
-      list = list
-        .filter(isConfirmQueue)
-        .sort((a, b) => {
-          const rank = (o: AdminOrder) => {
-            if (o.status === 'PENDING_CONFIRMATION') return 0;
-            if (o.status === 'NO_ANSWER') return 1;
-            return 2;
-          };
-          const d = rank(a) - rank(b);
-          if (d !== 0) return d;
-          return (
-            new Date(b.created_at).getTime() -
-            new Date(a.created_at).getTime()
-          );
-        });
+      // طابور التأكيد: ترتيب ثابت بالأقدمية — ما كيقفزش الصف ملي كتبدّل الحالة
+      if (pipe === 'cancelled') {
+        list = list.filter(
+          (o) =>
+            o.status === 'CANCELLED' ||
+            o.status === 'FAUX_NM' ||
+            o.status === 'DOUBLE' ||
+            o.status === 'INJOIGNABLE',
+        );
+      } else if (pipe === 'en_attente') {
+        list = list.filter((o) => o.status === 'PENDING_CONFIRMATION');
+      } else if (pipe === 'appel_1') {
+        list = list.filter(
+          (o) => o.status === 'APPEL_1' || o.status === 'NO_ANSWER',
+        );
+      } else if (pipe === 'appel_2') {
+        list = list.filter((o) => o.status === 'APPEL_2');
+      } else if (pipe === 'appel_3') {
+        list = list.filter((o) =>
+          ['APPEL_3', 'APPEL_4', 'APPEL_5', 'APPEL_6', 'APPEL_7'].includes(
+            o.status,
+          ),
+        );
+      } else if (pipe === 'reporte') {
+        list = list.filter((o) => o.status === 'REPORTE');
+      } else if (pipe === 'call_today') {
+        list = list.filter(isCallTodayQueue);
+      } else {
+        list = list.filter(isConfirmQueue);
+      }
+      list = [...list].sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
     }
     if (filterYear || filterMonth || filterDay) {
       list = list.filter((o) => {
@@ -895,6 +909,7 @@ export default function OpsDesk({
     if (!token) return;
     setBusy(true);
     setError('');
+    const y = typeof window !== 'undefined' ? window.scrollY : 0;
     try {
       const updated = await patchAdminOrder(token, id, body);
       setOrders((prev) =>
@@ -922,6 +937,10 @@ export default function OpsDesk({
       setBusy(false);
       setShowCancel(false);
       setShowReporte(false);
+      requestAnimationFrame(() => {
+        window.scrollTo(0, y);
+        requestAnimationFrame(() => window.scrollTo(0, y));
+      });
     }
   };
 
@@ -2427,91 +2446,141 @@ export default function OpsDesk({
                 </button>
               ) : null}
 
-              {canPickConfirmStatut(active) && !showCancel && !showReporte ? (
+              {canPickConfirmStatut(active) ? (
                 <div className="rounded-2xl border border-[#e6d9cc]/80 bg-white shadow-sm overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => setShowStatutMenu((v) => !v)}
-                    className="w-full flex items-center gap-3 px-3 py-3 text-left hover:bg-[#faf6f1] transition-colors"
-                  >
-                    <span
-                      className={`h-10 w-1.5 shrink-0 rounded-full ${
-                        confirmStatusStyle(active.status).bar
-                      }`}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#6a5648]">
-                        Statut
-                      </p>
-                      <p
-                        className={`mt-1 inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${
-                          confirmStatusStyle(active.status).soft
-                        }`}
+                  {!showCancel && !showReporte ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setShowStatutMenu((v) => !v)}
+                        className="w-full flex items-center gap-3 px-3 py-3 text-left hover:bg-[#faf6f1] transition-colors"
                       >
-                        {active.status_label ||
-                          confirmStatusStyle(active.status).label}
-                      </p>
-                    </div>
-                    <span className="text-[#6a5648] text-sm font-bold shrink-0">
-                      {showStatutMenu ? 'Fermer' : 'Changer'}
-                    </span>
-                  </button>
-
-                  {showStatutMenu ? (
-                    <div className="border-t border-[#e6d9cc] bg-[#F7F1EC]/50 px-3 py-3 space-y-4 max-h-[55dvh] overflow-y-auto">
-                      {CONFIRM_STATUS_GROUPS.map((group) => (
-                        <div key={group.id} className="space-y-1.5">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#6a5648] px-1">
-                            {group.title}
+                        <span
+                          className={`h-10 w-1.5 shrink-0 rounded-full ${
+                            confirmStatusStyle(active.status).bar
+                          }`}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#6a5648]">
+                            Statut
                           </p>
-                          <div className="space-y-1.5">
-                            {CONFIRM_STATUSES.filter((s) => s.group === group.id).map(
-                              (s) => {
-                                const on =
-                                  active.status === s.id ||
-                                  (s.id === 'APPEL_1' &&
-                                    active.status === 'NO_ANSWER');
-                                return (
-                                  <button
-                                    key={s.id}
-                                    type="button"
-                                    disabled={busy || on}
-                                    onClick={() => {
-                                      void (async () => {
-                                        await patch(active.order_number, {
-                                          status: s.id,
-                                        });
-                                        setShowStatutMenu(false);
-                                        if (s.id === 'APPEL_WHATSAPP') {
-                                          openCustomerWhatsApp(
-                                            active.phone,
-                                            buildCallCenterConfirmMessage(active),
-                                          );
-                                        }
-                                      })();
-                                    }}
-                                    className={`w-full flex items-center gap-3 rounded-xl border px-2.5 py-2.5 text-left transition-all disabled:opacity-100 ${
-                                      on
-                                        ? `${s.soft} border-transparent shadow-sm ring-2 ring-[#1C1412]/15`
-                                        : `${s.soft} hover:brightness-[0.98]`
-                                    }`}
-                                  >
-                                    <span
-                                      className={`h-8 w-1.5 shrink-0 rounded-full ${s.bar}`}
-                                    />
-                                    <span className="flex-1 text-sm font-bold leading-tight">
-                                      {s.label}
-                                    </span>
-                                    {on ? (
-                                      <Check className="w-4 h-4 shrink-0 opacity-80" />
-                                    ) : null}
-                                  </button>
-                                );
-                              },
-                            )}
-                          </div>
+                          <p
+                            className={`mt-1 inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${
+                              confirmStatusStyle(active.status).soft
+                            }`}
+                          >
+                            {active.status_label ||
+                              confirmStatusStyle(active.status).label}
+                          </p>
                         </div>
-                      ))}
+                        <span className="text-[#6a5648] text-sm font-bold shrink-0">
+                          {showStatutMenu ? 'Fermer' : 'Changer'}
+                        </span>
+                      </button>
+
+                      {showStatutMenu ? (
+                        <div className="border-t border-[#e6d9cc] bg-[#F7F1EC]/50 px-3 py-3 space-y-4 max-h-[55dvh] overflow-y-auto">
+                          {CONFIRM_STATUS_GROUPS.map((group) => (
+                            <div key={group.id} className="space-y-1.5">
+                              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#6a5648] px-1">
+                                {group.title}
+                              </p>
+                              <div className="space-y-1.5">
+                                {CONFIRM_STATUSES.filter(
+                                  (s) => s.group === group.id,
+                                ).map((s) => {
+                                  const on =
+                                    active.status === s.id ||
+                                    (s.id === 'APPEL_1' &&
+                                      active.status === 'NO_ANSWER');
+                                  return (
+                                    <button
+                                      key={s.id}
+                                      type="button"
+                                      disabled={busy || on}
+                                      onClick={() => {
+                                        if (s.id === 'CANCELLED') {
+                                          setShowStatutMenu(false);
+                                          setShowCancel(true);
+                                          return;
+                                        }
+                                        void (async () => {
+                                          await patch(active.order_number, {
+                                            status: s.id,
+                                          });
+                                          setShowStatutMenu(false);
+                                          if (s.id === 'APPEL_WHATSAPP') {
+                                            openCustomerWhatsApp(
+                                              active.phone,
+                                              buildCallCenterConfirmMessage(
+                                                active,
+                                              ),
+                                            );
+                                          }
+                                        })();
+                                      }}
+                                      className={`w-full flex items-center gap-3 rounded-xl border px-2.5 py-2.5 text-left transition-all disabled:opacity-100 ${
+                                        on
+                                          ? `${s.soft} border-transparent shadow-sm ring-2 ring-[#1C1412]/15`
+                                          : `${s.soft} hover:brightness-[0.98]`
+                                      }`}
+                                    >
+                                      <span
+                                        className={`h-8 w-1.5 shrink-0 rounded-full ${s.bar}`}
+                                      />
+                                      <span className="flex-1 text-sm font-bold leading-tight">
+                                        {s.label}
+                                      </span>
+                                      {on ? (
+                                        <Check className="w-4 h-4 shrink-0 opacity-80" />
+                                      ) : null}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </>
+                  ) : null}
+
+                  {showCancel ? (
+                    <div className="px-3 py-3 space-y-3">
+                      <p className="font-bold">Annulé — سبب الإلغاء</p>
+                      <div className="flex flex-wrap gap-2">
+                        {CANCEL_REASONS.map((r) => (
+                          <button
+                            key={r}
+                            type="button"
+                            disabled={busy}
+                            onClick={() =>
+                              void patch(
+                                active.order_number,
+                                {
+                                  status: 'CANCELLED',
+                                  cancel_reason: r,
+                                  notes: r,
+                                },
+                                true,
+                              )
+                            }
+                            className="px-3 py-2 rounded-lg border border-[#e6d9cc] bg-[#faf6f1] text-sm"
+                          >
+                            {r}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowCancel(false);
+                          setShowStatutMenu(true);
+                        }}
+                        className="text-sm text-[#6a5648]"
+                      >
+                        رجوع
+                      </button>
                     </div>
                   ) : null}
                 </div>
@@ -2547,42 +2616,6 @@ export default function OpsDesk({
                   <button
                     type="button"
                     onClick={() => setShowReporte(false)}
-                    className="text-sm text-[#6a5648]"
-                  >
-                    رجوع
-                  </button>
-                </div>
-              ) : null}
-
-              {isConfirmQueue(active) && showCancel ? (
-                <div className="space-y-3">
-                  <p className="font-bold">سبب الإلغاء</p>
-                  <div className="flex flex-wrap gap-2">
-                    {CANCEL_REASONS.map((r) => (
-                      <button
-                        key={r}
-                        type="button"
-                        disabled={busy}
-                        onClick={() =>
-                          void patch(
-                            active.order_number,
-                            {
-                              status: 'CANCELLED',
-                              cancel_reason: r,
-                              notes: r,
-                            },
-                            true,
-                          )
-                        }
-                        className="px-3 py-2 rounded-lg border border-[#e6d9cc] bg-[#faf6f1] text-sm"
-                      >
-                        {r}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowCancel(false)}
                     className="text-sm text-[#6a5648]"
                   >
                     رجوع

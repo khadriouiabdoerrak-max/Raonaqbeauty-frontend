@@ -454,6 +454,10 @@ export default function OpsDesk({
   const [ozoneKey, setOzoneKey] = useState('');
   const [ozoneSaving, setOzoneSaving] = useState(false);
   const [shipConfirm, setShipConfirm] = useState(false);
+  /** طلبات بقاو ظاهرين فـ call_today بعد إلغاء/تأكيد — نفس البلاصة */
+  const [heldInCallToday, setHeldInCallToday] = useState<Record<string, true>>(
+    {},
+  );
   const [selectedShip, setSelectedShip] = useState<Record<string, boolean>>(
     {},
   );
@@ -762,7 +766,9 @@ export default function OpsDesk({
       } else if (pipe === 'reporte') {
         list = list.filter((o) => o.status === 'REPORTE');
       } else if (pipe === 'call_today') {
-        list = list.filter(isCallTodayQueue);
+        list = list.filter(
+          (o) => isCallTodayQueue(o) || heldInCallToday[o.order_number],
+        );
       } else {
         list = list.filter(isConfirmQueue);
       }
@@ -801,10 +807,13 @@ export default function OpsDesk({
     filterYear,
     filterMonth,
     filterDay,
+    heldInCallToday,
   ]);
 
   useEffect(() => {
     setPage(1);
+    // ملي كتبدّل الفلتر، صفّي الطلبات المحتفظ بها
+    if (pipe !== 'call_today') setHeldInCallToday({});
   }, [pipe, mode, query, filterYear, filterMonth, filterDay, pageSize]);
 
   const totalPages = Math.max(1, Math.ceil(sheetRows.length / pageSize));
@@ -905,17 +914,20 @@ export default function OpsDesk({
       setOrders((prev) =>
         prev.map((o) => (o.order_number === id ? { ...o, ...updated } : o)),
       );
+      // بقّي الطلب فنفس القائمة / نفس الترتيب فـ call_today
+      if (pipe === 'call_today' || mode === 'orders') {
+        setHeldInCallToday((prev) => ({ ...prev, [id]: true }));
+      }
       if (body.status === 'CONFIRMED') {
         openCustomerWhatsApp(
           updated.phone,
           buildConfirmedWhatsAppMessage(updated),
         );
         closeDetail();
-        goPipe('confirmed', 'ship');
+        // ما نبدّلوش التاب — كيبقا فالتأكيد فنفس البلاصة
       } else if (body.status === 'CANCELLED') {
         closeDetail();
-        // الملغى كيمشي لفلتر «ملغى» باش يبان فين مشى
-        goPipe('cancelled', 'orders');
+        // كيبقا ظاهر فـ call_today (held) — ما كيمشيش لفلتر آخر
       } else if (body.status === 'DELIVERED') {
         openCustomerWhatsApp(
           updated.phone,

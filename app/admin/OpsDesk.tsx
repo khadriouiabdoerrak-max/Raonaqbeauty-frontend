@@ -911,8 +911,11 @@ export default function OpsDesk({
           buildConfirmedWhatsAppMessage(updated),
         );
         closeDetail();
+        goPipe('confirmed', 'ship');
       } else if (body.status === 'CANCELLED') {
         closeDetail();
+        // الملغى كيمشي لفلتر «ملغى» باش يبان فين مشى
+        goPipe('cancelled', 'orders');
       } else if (body.status === 'DELIVERED') {
         openCustomerWhatsApp(
           updated.phone,
@@ -1235,7 +1238,13 @@ export default function OpsDesk({
           { id: 'returned', label: 'مرتجع' },
           { id: 'stale', label: `متأخر +${STALE_SHIP_DAYS}j` },
         ]
-      : [];
+      : [
+          { id: 'call_today', label: 'اليوم' },
+          { id: 'en_attente', label: 'جديد' },
+          { id: 'appel_1', label: 'مكالمة 1' },
+          { id: 'reporte', label: 'مؤجل' },
+          { id: 'cancelled', label: 'ملغى' },
+        ];
 
   const boardCards: {
     label: string;
@@ -1894,7 +1903,17 @@ export default function OpsDesk({
                       pipeCounts.shipped +
                       pipeCounts.delivered +
                       pipeCounts.returned
-                    : pipeCounts[f.id];
+                    : f.id === 'call_today'
+                      ? pipeCounts.call_today
+                      : f.id === 'cancelled'
+                        ? orders.filter(
+                            (o) =>
+                              o.status === 'CANCELLED' ||
+                              o.status === 'FAUX_NM' ||
+                              o.status === 'DOUBLE' ||
+                              o.status === 'INJOIGNABLE',
+                          ).length
+                        : pipeCounts[f.id];
                 const on = pipe === f.id;
                 return (
                   <button

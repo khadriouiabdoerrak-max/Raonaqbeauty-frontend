@@ -454,7 +454,7 @@ export default function OpsDesk({
   const [ozoneKey, setOzoneKey] = useState('');
   const [ozoneSaving, setOzoneSaving] = useState(false);
   const [shipConfirm, setShipConfirm] = useState(false);
-  /** طلبات بقاو ظاهرين فـ call_today بعد إلغاء/تأكيد — نفس البلاصة */
+  /** طلبات بقاو ظاهرين فالتأكيد بعد تغيّر الستاتو — نفس الترتيب (ما عدا Confirmé) */
   const [heldInCallToday, setHeldInCallToday] = useState<Record<string, true>>(
     {},
   );
@@ -914,26 +914,27 @@ export default function OpsDesk({
       setOrders((prev) =>
         prev.map((o) => (o.order_number === id ? { ...o, ...updated } : o)),
       );
-      // بقّي الطلب فنفس القائمة / نفس الترتيب فـ call_today
-      if (pipe === 'call_today' || mode === 'orders') {
-        setHeldInCallToday((prev) => ({ ...prev, [id]: true }));
-      }
       if (body.status === 'CONFIRMED') {
         openCustomerWhatsApp(
           updated.phone,
           buildConfirmedWhatsAppMessage(updated),
         );
         closeDetail();
-        // كونفيرمي → مكتب الشحن (الكل)
+        // غير الكونفيرمي كيدوز للشحن — الباقي كيبقا فالتأكيد
         goPipe('all', 'ship');
-      } else if (body.status === 'CANCELLED') {
-        closeDetail();
-        // كيبقا ظاهر فـ call_today (held) — ما كيمشيش لفلتر آخر
-      } else if (body.status === 'DELIVERED') {
-        openCustomerWhatsApp(
-          updated.phone,
-          buildDeliveredWhatsAppMessage(updated),
-        );
+      } else {
+        // Appel / Annulé / مؤجل… كيبقاو فنفس طابور التأكيد ونفس الترتيب
+        if (mode === 'orders') {
+          setHeldInCallToday((prev) => ({ ...prev, [id]: true }));
+        }
+        if (body.status === 'CANCELLED') {
+          closeDetail();
+        } else if (body.status === 'DELIVERED') {
+          openCustomerWhatsApp(
+            updated.phone,
+            buildDeliveredWhatsAppMessage(updated),
+          );
+        }
       }
       if (closeAfter) closeDetail();
       void refreshStats(token);

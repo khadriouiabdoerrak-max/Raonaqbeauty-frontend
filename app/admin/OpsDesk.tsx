@@ -924,7 +924,8 @@ export default function OpsDesk({
           buildConfirmedWhatsAppMessage(updated),
         );
         closeDetail();
-        // ما نبدّلوش التاب — كيبقا فالتأكيد فنفس البلاصة
+        // كونفيرمي → مكتب الشحن (الكل)
+        goPipe('all', 'ship');
       } else if (body.status === 'CANCELLED') {
         closeDetail();
         // كيبقا ظاهر فـ call_today (held) — ما كيمشيش لفلتر آخر

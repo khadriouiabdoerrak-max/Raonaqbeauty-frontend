@@ -173,16 +173,6 @@ function minsWaiting(iso: string) {
   return Math.floor((Date.now() - t) / 60000);
 }
 
-function urgency(o: AdminOrder) {
-  let s = minsWaiting(o.created_at);
-  if (o.status === 'APPEL_3' || o.status === 'APPEL_2') s += 120;
-  if (o.status === 'APPEL_1' || o.status === 'NO_ANSWER') s += 80;
-  if (o.status === 'REPORTE') s += 40;
-  if ((o.days_open ?? 0) >= 2) s += 50;
-  if (o.total_amount >= 500) s += 30;
-  return s;
-}
-
 function isConfirmQueue(o: AdminOrder) {
   return [
     'PENDING_CONFIRMATION',

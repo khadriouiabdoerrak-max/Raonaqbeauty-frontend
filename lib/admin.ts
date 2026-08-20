@@ -227,18 +227,27 @@ export function orderDateParts(iso: string) {
   if (Number.isNaN(d.getTime())) {
     return { year: 0, month: 0, day: 0, time: '' };
   }
+  const tz = 'Africa/Casablanca';
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: tz,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(d);
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value || '';
   return {
-    year: d.getFullYear(),
-    month: d.getMonth() + 1,
-    day: d.getDate(),
-    time: d.toLocaleTimeString('fr-MA', {
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
+    year: Number(get('year')) || 0,
+    month: Number(get('month')) || 0,
+    day: Number(get('day')) || 0,
+    time: `${get('hour')}:${get('minute')}`,
   };
 }
 
-/** Full chronology: HH:mm DD/MM/YYYY */
+/** توقيت المغرب: HH:mm DD/MM/YYYY */
 export function formatAdminDate(iso: string) {
   try {
     const p = orderDateParts(iso);
@@ -249,6 +258,13 @@ export function formatAdminDate(iso: string) {
   } catch {
     return iso;
   }
+}
+
+/** سطر زمن واضح لآخر الأحداث (توقيت المغرب) */
+export function formatAdminDateMa(iso: string) {
+  const s = formatAdminDate(iso);
+  if (!s || s === iso) return iso;
+  return `${s} · المغرب`;
 }
 
 export async function purgeAllAdminOrders(token: string) {

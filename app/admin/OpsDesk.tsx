@@ -51,6 +51,7 @@ import {
   statsFingerprint,
   fetchOrderAudit,
   formatAdminDate,
+  formatAdminDateMa,
   hasRealTracking,
   orderDateParts,
   patchAdminOrder,
@@ -127,6 +128,54 @@ type AuditEvent = {
   detail: string;
   created_at: string;
 };
+
+type TimelineRow = {
+  at: string;
+  title: string;
+  detail?: string;
+  operator?: string;
+};
+
+function buildOrderTimeline(
+  order: AdminOrder,
+  audits: AuditEvent[],
+): TimelineRow[] {
+  const rows: TimelineRow[] = [];
+  const seen = new Set<string>();
+
+  const push = (at: string | null | undefined, title: string, detail?: string) => {
+    if (!at) return;
+    const key = `${at}|${title}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    rows.push({ at, title, detail });
+  };
+
+  push(order.created_at, 'كموند دخلات', 'إنشاء الطلب');
+  push(order.confirmed_at, 'مؤكد', 'تأكيد الطلب');
+  push(order.shipped_at, 'مرسل / Ozone', order.tracking_number || undefined);
+  push(order.delivered_at, 'مسلّم', undefined);
+  push(order.returned_at, 'مرتجع', undefined);
+
+  for (const ev of audits) {
+    const title = (ev.action || 'حدث').trim() || 'حدث';
+    // ما نكرّرش «كموند دخلات» — كاينة أصلاً من created_at
+    if (title === 'كموند دخلات' && order.created_at) continue;
+    const key = `${ev.created_at}|${title}|${ev.detail || ''}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    rows.push({
+      at: ev.created_at,
+      title,
+      detail: ev.detail || undefined,
+      operator: ev.operator || undefined,
+    });
+  }
+
+  return rows.sort(
+    (a, b) => new Date(b.at).getTime() - new Date(a.at).getTime(),
+  );
+}
 
 const MODES: { id: Mode; label: string }[] = [
   { id: 'orders', label: 'تأكيد' },
@@ -890,7 +939,7 @@ export default function OpsDesk({
     void (async () => {
       try {
         const data = await fetchOrderAudit(token, activeId);
-        if (!cancelled) setAuditEvents((data.events || []).slice(0, 5));
+        if (!cancelled) setAuditEvents((data.events || []).slice(0, 25));
       } catch {
         if (!cancelled) setAuditEvents([]);
       }
@@ -938,6 +987,12 @@ export default function OpsDesk({
       }
       if (closeAfter) closeDetail();
       void refreshStats(token);
+      // حدّث آخر الأحداث بتوقيت المغرب
+      if (detailOpen || !closeAfter) {
+        void fetchOrderAudit(token, id)
+          .then((data) => setAuditEvents((data.events || []).slice(0, 25)))
+          .catch(() => undefined);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'خطأ');
     } finally {
@@ -2889,26 +2944,37 @@ export default function OpsDesk({
                 </button>
               </div>
 
-              {auditEvents.length > 0 ? (
+              {active ? (
                 <div className="rounded-xl border border-[#e6d9cc] bg-[#faf6f1] p-3 space-y-2">
-                  <p className="text-xs font-bold text-[#6a5648]">آخر الأحداث</p>
+                  <p className="text-xs font-bold text-[#6a5648]">
+                    آخر الأحداث · توقيت المغرب
+                  </p>
                   <ul className="space-y-1.5 text-xs">
-                    {auditEvents.map((ev, i) => (
-                      <li
-                        key={`${ev.created_at}-${i}`}
-                        className="border-b border-[#e6d9cc]/60 pb-1.5 last:border-0"
-                      >
-                        <span className="font-bold">{ev.action}</span>
-                        {ev.operator ? ` · ${ev.operator}` : ''}
-                        <span className="text-[#6a5648]">
-                          {' '}
-                          · {formatAdminDate(ev.created_at)}
-                        </span>
-                        {ev.detail ? (
-                          <p className="text-[#6a5648] mt-0.5">{ev.detail}</p>
-                        ) : null}
-                      </li>
-                    ))}
+                    {buildOrderTimeline(active, auditEvents)
+                      .slice(0, 20)
+                      .map((ev, i) => (
+                        <li
+                          key={`${ev.at}-${ev.title}-${i}`}
+                          className="border-b border-[#e6d9cc]/60 pb-1.5 last:border-0"
+                        >
+                          <div className="flex flex-wrap items-baseline justify-between gap-2">
+                            <span className="font-bold text-[#1C1412]">
+                              {ev.title}
+                            </span>
+                            <span className="tabular-nums text-[#6a5648] shrink-0">
+                              {formatAdminDateMa(ev.at)}
+                            </span>
+                          </div>
+                          {ev.operator ? (
+                            <p className="text-[#6a5648] mt-0.5">
+                              عامل: {ev.operator}
+                            </p>
+                          ) : null}
+                          {ev.detail ? (
+                            <p className="text-[#6a5648] mt-0.5">{ev.detail}</p>
+                          ) : null}
+                        </li>
+                      ))}
                   </ul>
                 </div>
               ) : null}

@@ -63,6 +63,7 @@ import {
   telHref,
   timeAgo,
 } from '@/lib/admin';
+import { mergeTopCities } from '@/lib/cityNormalize';
 import {
   buildCourierBatchText,
   CONFIRM_STATUSES,
@@ -1444,7 +1445,7 @@ export default function OpsDesk({
               </div>
               {stats.weekly.top_cities?.length ? (
                 <div className="flex flex-wrap gap-2">
-                  {stats.weekly.top_cities.slice(0, 5).map((c) => (
+                  {mergeTopCities(stats.weekly.top_cities, 5).map((c) => (
                     <span
                       key={c.city}
                       className="text-xs px-3 py-1.5 rounded-full bg-[#faf6f1] border border-[#e6d9cc]"

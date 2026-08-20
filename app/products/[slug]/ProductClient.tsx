@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCart } from "../../../context/CartContext";
 import { trackViewContent } from "../../../lib/pixels";
+import { trackEvent } from "../../../lib/track";
 import BeforeAfterSlider from "../../../components/BeforeAfterSlider";
 import ErrorBoundary from "../../../components/ErrorBoundary";
 import Price from "../../../components/Price";
@@ -314,7 +315,12 @@ export default function ProductClient({ product }: { product: Product }) {
 
   useEffect(() => {
     trackViewContent({ id: product.id, name: `Raonaq ${product.name}`, price: product.price1 });
-  }, [product.id, product.name, product.price1]);
+    trackEvent("view_product", {
+      path: `/products/${product.slug}`,
+      productId: product.id,
+      source: "pdp",
+    });
+  }, [product.id, product.name, product.price1, product.slug]);
 
   useEffect(() => {
     setSelectedImage(0);

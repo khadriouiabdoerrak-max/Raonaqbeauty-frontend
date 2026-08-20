@@ -4,6 +4,7 @@ import "./globals.css";
 import { CartProvider } from "../context/CartContext";
 import StoreShell from "../components/StoreShell";
 import Pixels from "../components/Pixels";
+import SiteTracker from "../components/SiteTracker";
 import { SITE } from "../lib/site";
 
 const outfit = localFont({
@@ -59,6 +60,7 @@ export default function RootLayout({
       >
         <CartProvider>
           <StoreShell>{children}</StoreShell>
+          <SiteTracker />
         </CartProvider>
         <Pixels
           facebookId={process.env.FB_PIXEL_ID || process.env.NEXT_PUBLIC_FB_PIXEL_ID}

@@ -7,6 +7,7 @@ import {
   type InsightPeriod,
   type StoreInsights,
 } from '@/lib/admin';
+import { mergeTopCities } from '@/lib/cityNormalize';
 import AdminDateCalendar from './AdminDateCalendar';
 
 const PERIODS: { id: InsightPeriod; label: string }[] = [
@@ -506,7 +507,7 @@ export default function StoreInsightsPanel({
             <p className="text-xs font-bold text-[#6a5648]">أفضل المدن</p>
             {store?.top_cities?.length ? (
               <ul className="space-y-2">
-                {store.top_cities.map((c, idx) => (
+                {mergeTopCities(store.top_cities, 8).map((c, idx) => (
                   <li
                     key={c.city}
                     className="flex items-center justify-between gap-3 text-sm border-b border-[#f0e6dc] pb-2 last:border-0"

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartContext";
 import { trackInitiateCheckout } from "../lib/pixels";
+import { trackEvent } from "../lib/track";
 import {
   createOrder,
   OrderSubmitError,
@@ -85,6 +86,7 @@ export default function CheckoutModal() {
       })),
       cartTotal
     );
+    trackEvent("begin_checkout", { source: "checkout_modal" });
   }, [isCheckoutOpen, cart, cartTotal]);
 
   if (!isCheckoutOpen) return null;

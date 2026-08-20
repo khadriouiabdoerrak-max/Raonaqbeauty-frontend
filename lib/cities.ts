@@ -805,8 +805,20 @@ export const OZONE_CITIES: OzoneCity[] = [
 export type CheckoutCity = { value: string; label: string; group?: string };
 
 function cityGroup(name: string): string {
-  const n = name.toLowerCase();
-  if (n.includes("casablanca") || n.startsWith("casa ")) return "Casablanca";
+  // Keep checkout grouping aligned with admin metro rankings
+  try {
+    // lazy require avoided — duplicate light check
+    const n = name.toLowerCase();
+    if (n.includes("casablanca") || n.startsWith("casa ") || n === "casa") {
+      return "Casablanca";
+    }
+    if (n.includes("marrakech") || n.includes("marrakesh")) return "Marrakech";
+    if (n.includes("rabat")) return "Rabat";
+    if (n.includes("tanger") || n.includes("tangier")) return "Tanger";
+    if (n.includes("agadir")) return "Agadir";
+  } catch {
+    /* ignore */
+  }
   return "Maroc";
 }
 

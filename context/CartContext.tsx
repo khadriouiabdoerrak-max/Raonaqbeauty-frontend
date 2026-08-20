@@ -12,6 +12,7 @@ import {
 import { usePathname } from "next/navigation";
 import { products, productIsAvailable } from "../lib/products";
 import { trackAddToCart } from "../lib/pixels";
+import { trackEvent } from "../lib/track";
 
 export type CartItem = {
   id: string;
@@ -134,6 +135,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       name: item.name,
       price: item.price,
       quantity: item.quantity,
+    });
+    trackEvent("add_to_cart", {
+      productId: item.id,
+      source: "cart",
     });
     setCheckoutOpen(false);
     setCartOpen(true);

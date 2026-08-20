@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "../../context/CartContext";
 import { trackPurchase, type LastPurchase, type PixelContent } from "../../lib/pixels";
+import { trackEvent } from "../../lib/track";
 import { getWhatsAppLink } from "../../lib/contact";
 import { clearPendingOrder, consumePurchaseForTracking, readLastOrder } from "../../lib/orders";
 import { products, productThumb, type Product } from "../../lib/products";
@@ -127,6 +128,11 @@ export default function ThankYouPage() {
       eventId: forPixel.eventId,
       contents: forPixel.contents as PixelContent[],
     });
+    trackEvent("purchase", {
+      path: "/thank-you",
+      source: `order_${forPixel.orderId}`,
+      productId: forPixel.contents[0]?.id,
+    });
   }, [finishOrder]);
 
   const customer = purchase?.customer;
@@ -216,6 +222,13 @@ export default function ThankYouPage() {
             href={whatsappConfirm}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() =>
+              trackEvent("whatsapp_click", {
+                path: "/thank-you",
+                source: "thankyou_confirm",
+                productId: purchase?.contents[0]?.id,
+              })
+            }
             className="mt-8 inline-flex w-full max-w-sm items-center justify-center gap-2.5 bg-[#25D366] px-6 py-4 text-[15px] font-semibold text-white transition hover:brightness-95"
           >
             <IconWhatsApp className="h-5 w-5" />
@@ -305,6 +318,12 @@ export default function ThankYouPage() {
                   href={whatsappFix}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() =>
+                    trackEvent("whatsapp_click", {
+                      path: "/thank-you",
+                      source: "thankyou_fix",
+                    })
+                  }
                   className="mt-5 inline-block text-[13px] font-semibold text-[#C45B6A] underline-offset-4 hover:underline"
                 >
                   Corriger mes informations

@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { getWhatsAppDisplay, getWhatsAppLink } from "../lib/contact";
 import { useCart } from "../context/CartContext";
+import { trackEvent } from "../lib/track";
 
 export default function WhatsAppButton() {
   const pathname = usePathname();
@@ -28,6 +29,13 @@ export default function WhatsAppButton() {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() =>
+        trackEvent("whatsapp_click", {
+          path: pathname || "/",
+          productId: slug || undefined,
+          source: onProduct ? "floating_pdp" : "floating",
+        })
+      }
       className={`fixed z-20 flex h-14 w-14 items-center justify-center rounded-full bg-whatsapp text-white shadow-[0_4px_14px_rgba(37,211,102,0.4)] ${
         onProduct
           ? "bottom-[5.5rem] left-4 md:bottom-6 md:left-6"

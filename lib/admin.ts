@@ -136,10 +136,40 @@ export type StoreInsights = {
       visitors: number | null;
       page_views: number | null;
       devices: null;
+      whatsapp_clicks?: number | null;
+      view_product?: number | null;
+      add_to_cart?: number | null;
+      begin_checkout?: number | null;
+      has_data?: boolean;
+      rates?: {
+        visitor_to_order?: number;
+        product_to_cart?: number;
+        cart_to_checkout?: number;
+        checkout_to_order?: number;
+        visitor_to_whatsapp?: number;
+      };
       message?: string;
     };
-    top_pages: { available: boolean; message?: string };
-    checkout_funnel: { available: boolean; message?: string };
+    top_pages: {
+      available: boolean;
+      items?: { path: string; views: number }[];
+      message?: string;
+    };
+    checkout_funnel: {
+      available: boolean;
+      has_data?: boolean;
+      steps?: { id: string; label: string; count: number }[];
+      rates?: {
+        visitor_to_order?: number;
+        product_to_cart?: number;
+        cart_to_checkout?: number;
+        checkout_to_order?: number;
+        visitor_to_whatsapp?: number;
+      };
+      whatsapp_by_source?: { source: string; count: number }[];
+      top_viewed_products?: { product_id: string; views: number }[];
+      message?: string;
+    };
   };
 };
 

@@ -222,8 +222,22 @@ export const CANCEL_REASONS = [
   'سبب آخر',
 ] as const;
 
+/**
+ * الباك كي خزّن UTC بلا timezone (naive).
+ * المتصفح كيقرّا ISO بلا Z كـ توقيت محلّي → نقص ساعة فالمغرب.
+ * دابا: إلا ما كانش offset، كنحسبوها UTC.
+ */
+export function parseAdminInstant(iso: string): Date {
+  const s = (iso || '').trim();
+  if (!s) return new Date(NaN);
+  if (/^\d{4}-\d{2}-\d{2}T/.test(s) && !/[zZ]|[+-]\d{2}:?\d{2}$/.test(s)) {
+    return new Date(`${s}Z`);
+  }
+  return new Date(s);
+}
+
 export function orderDateParts(iso: string) {
-  const d = new Date(iso);
+  const d = parseAdminInstant(iso);
   if (Number.isNaN(d.getTime())) {
     return { year: 0, month: 0, day: 0, time: '' };
   }
@@ -286,7 +300,7 @@ export async function purgeAllAdminOrders(token: string) {
 
 /** Relative time in Darija-friendly Arabic, e.g. "قبل 12 د" */
 export function timeAgo(iso: string) {
-  const then = new Date(iso).getTime();
+  const then = parseAdminInstant(iso).getTime();
   if (Number.isNaN(then)) return '';
   const mins = Math.max(0, Math.floor((Date.now() - then) / 60000));
   if (mins < 1) return 'دابا';

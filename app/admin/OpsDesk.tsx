@@ -54,6 +54,7 @@ import {
   formatAdminDateMa,
   hasRealTracking,
   orderDateParts,
+  parseAdminInstant,
   patchAdminOrder,
   purgeAllAdminOrders,
   shipAdminOrder,
@@ -173,7 +174,8 @@ function buildOrderTimeline(
   }
 
   return rows.sort(
-    (a, b) => new Date(b.at).getTime() - new Date(a.at).getTime(),
+    (a, b) =>
+      parseAdminInstant(b.at).getTime() - parseAdminInstant(a.at).getTime(),
   );
 }
 
@@ -217,7 +219,7 @@ function playChime() {
 }
 
 function minsWaiting(iso: string) {
-  const t = new Date(iso).getTime();
+  const t = parseAdminInstant(iso).getTime();
   if (Number.isNaN(t)) return 0;
   return Math.floor((Date.now() - t) / 60000);
 }
@@ -399,7 +401,7 @@ function daysLabel(o: AdminOrder) {
       : Math.max(
           0,
           Math.floor(
-            (Date.now() - new Date(o.created_at).getTime()) / 86400000,
+            (Date.now() - parseAdminInstant(o.created_at).getTime()) / 86400000,
           ),
         );
   const inSt =
@@ -752,7 +754,8 @@ export default function OpsDesk({
     // ترتيب ثابت بتاريخ الإنشاء — الحالة ما تحرّكش الصف
     return [...orders].sort(
       (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        parseAdminInstant(b.created_at).getTime() -
+        parseAdminInstant(a.created_at).getTime(),
     );
   }, [orders]);
 
@@ -785,7 +788,8 @@ export default function OpsDesk({
         const d = shipRank(a) - shipRank(b);
         if (d !== 0) return d;
         return (
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          parseAdminInstant(b.created_at).getTime() -
+          parseAdminInstant(a.created_at).getTime()
         );
       });
     } else {
@@ -823,7 +827,8 @@ export default function OpsDesk({
       }
       list = [...list].sort(
         (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+          parseAdminInstant(b.created_at).getTime() -
+        parseAdminInstant(a.created_at).getTime(),
       );
     }
     if (filterYear || filterMonth || filterDay) {
@@ -917,11 +922,14 @@ export default function OpsDesk({
     setCopied(false);
     if (active?.follow_up_at) {
       try {
-        const d = new Date(active.follow_up_at);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        setFollowUpDate(`${y}-${m}-${day}`);
+        const p = orderDateParts(active.follow_up_at);
+        if (p.year) {
+          const m = String(p.month).padStart(2, '0');
+          const day = String(p.day).padStart(2, '0');
+          setFollowUpDate(`${p.year}-${m}-${day}`);
+        } else {
+          setFollowUpDate(tomorrowLocalInput());
+        }
       } catch {
         setFollowUpDate(tomorrowLocalInput());
       }

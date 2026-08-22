@@ -23,6 +23,7 @@ import {
   AdminOrder,
   fetchAdminOrders,
   formatAdminDate,
+  parseAdminInstant,
   patchAdminOrder,
   telHref,
 } from '@/lib/admin';
@@ -145,7 +146,10 @@ export default function ConfirmDeskClient() {
         s === 'PENDING_CONFIRMATION' ? 0 : s === 'NO_ANSWER' ? 1 : 2;
       const d = rank(a.status) - rank(b.status);
       if (d !== 0) return d;
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      return (
+        parseAdminInstant(b.created_at).getTime() -
+        parseAdminInstant(a.created_at).getTime()
+      );
     });
   }, [orders, filter]);
 
